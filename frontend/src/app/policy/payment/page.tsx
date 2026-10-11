@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import CustomerShell from '@/components/layout/CustomerShell';
-import InfoPageLayout, { Section, PendingNotice, Placeholder } from '@/components/layout/InfoPageLayout';
+import InfoPageLayout, { Section } from '@/components/layout/InfoPageLayout';
 
 export const metadata: Metadata = {
   title: 'Chính sách thanh toán — DUCMANH PC',
@@ -24,9 +24,7 @@ export default function PaymentPolicyPage() {
         badge="Chính sách"
         toc={toc}
       >
-        <PendingNotice />
-
-        <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: <Placeholder label="DD/MM/YYYY" /></p>
+        <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: 11/10/2026</p>
 
         <Section id="phuong-thuc" title="1. Phương thức thanh toán được chấp nhận">
           <div className="space-y-4">
@@ -54,11 +52,11 @@ export default function PaymentPolicyPage() {
         </Section>
 
         <Section id="xac-nhan" title="3. Xác nhận đơn hàng">
-          <p>Sau khi thanh toán thành công, khách hàng sẽ nhận được xác nhận qua email. Đơn hàng được xử lý trong vòng <Placeholder label="X ngày làm việc" /> sau khi thanh toán được xác nhận.</p>
+          <p>Sau khi thanh toán thành công, khách hàng sẽ nhận được xác nhận qua email. Đơn hàng được xử lý trong vòng 1–2 ngày làm việc sau khi thanh toán được xác nhận.</p>
         </Section>
 
         <Section id="hoan-tien" title="4. Hoàn tiền">
-          <p>Trường hợp đơn hàng bị hủy sau khi đã thanh toán hoặc sản phẩm lỗi không có hàng đổi, DUCMANH PC sẽ hoàn tiền trong vòng <Placeholder label="X ngày làm việc" /> qua phương thức thanh toán ban đầu hoặc chuyển khoản ngân hàng.</p>
+          <p>Trường hợp đơn hàng bị hủy sau khi đã thanh toán hoặc sản phẩm lỗi không có hàng đổi, DUCMANH PC sẽ hoàn tiền trong vòng 3–5 ngày làm việc qua phương thức thanh toán ban đầu hoặc chuyển khoản ngân hàng.</p>
         </Section>
       </InfoPageLayout>
     </CustomerShell>

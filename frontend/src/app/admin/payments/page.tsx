@@ -1,4 +1,5 @@
 'use client';
+import AdminGuard from '@/components/admin/AdminGuard';
 import { useEffect, useState, useCallback } from 'react';
 import { Loader2, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
@@ -60,6 +61,7 @@ export default function AdminPaymentsPage() {
   const totalPages = Math.ceil(total / limit);
 
   return (
+    <AdminGuard permission="orders:view">
     <section>
       <AdminPageHeader title="Thanh toán" />
       <AdminFeedback error={error} />
@@ -148,5 +150,6 @@ export default function AdminPaymentsPage() {
         </div>
       )}
     </section>
+    </AdminGuard>
   );
 }

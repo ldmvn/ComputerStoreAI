@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import CustomerShell from '@/components/layout/CustomerShell';
-import InfoPageLayout, { Section, Placeholder } from '@/components/layout/InfoPageLayout';
+import InfoPageLayout, { Section } from '@/components/layout/InfoPageLayout';
 
 export const metadata: Metadata = {
   title: 'Vận chuyển & Giao nhận — DUCMANH PC',
@@ -44,7 +44,7 @@ export default function ShippingPage() {
                 <tr><td className="px-4 py-3 text-slate-700">Hà Nội, các tỉnh lân cận</td><td className="px-4 py-3 text-slate-600">1–3 ngày làm việc</td></tr>
                 <tr><td className="px-4 py-3 text-slate-700">Miền Trung</td><td className="px-4 py-3 text-slate-600">3–5 ngày làm việc</td></tr>
                 <tr><td className="px-4 py-3 text-slate-700">Miền Nam</td><td className="px-4 py-3 text-slate-600">3–6 ngày làm việc</td></tr>
-                <tr><td className="px-4 py-3 text-slate-700">Vùng sâu, vùng xa, hải đảo</td><td className="px-4 py-3 text-slate-600"><Placeholder label="Liên hệ xác nhận" /></td></tr>
+                <tr><td className="px-4 py-3 text-slate-700">Vùng sâu, vùng xa, hải đảo</td><td className="px-4 py-3 text-slate-600">Liên hệ xác nhận</td></tr>
               </tbody>
             </table>
           </div>
@@ -57,7 +57,7 @@ export default function ShippingPage() {
         </Section>
 
         <Section id="don-vi" title="4. Đơn vị vận chuyển">
-          <p>DUCMANH PC hợp tác với các đơn vị vận chuyển uy tín như: <Placeholder label="Danh sách đơn vị vận chuyển" />.</p>
+          <p>DUCMANH PC hợp tác với các đơn vị vận chuyển uy tín như: Giao Hàng Nhanh (GHN), Giao Hàng Tiết Kiệm (GHTK), J&amp;T Express, Viettel Post.</p>
           <p>Tùy theo khu vực và trọng lượng hàng hóa, đơn vị vận chuyển phù hợp sẽ được tự động chỉ định.</p>
         </Section>
 

@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import { authenticateToken } from '../../middlewares/auth.middleware.js';
 import { requireAdmin } from '../../middlewares/admin.middleware.js';
+import { requirePermission } from '../../middlewares/permission.middleware.js';
 import * as controller from '../../controllers/adminCustomer.controller.js';
 
 const router = Router();
-router.use(authenticateToken);
-router.use(requireAdmin);
+router.use(authenticateToken, requireAdmin);
 
-router.get('/stats', controller.stats);
-router.get('/', controller.list);
-router.get('/:id', controller.detail);
+router.get('/stats', requirePermission('customers', 'view'), controller.stats);
+router.get('/', requirePermission('customers', 'view'), controller.list);
+router.get('/:id', requirePermission('customers', 'view'), controller.detail);
 
 export default router;

@@ -132,10 +132,10 @@ export default function ProductCatalog() {
   };
 
   // Chips read their labels from the metadata so the user sees "Intel", not a raw slug or id.
+  // Category is intentionally excluded here — it's already shown in the page title.
   const chips = useMemo<Chip[]>(() => {
     const out: Chip[] = [];
     if (searchTerm) out.push({ id: 'search', label: 'Tìm kiếm', value: searchTerm, clear: { search: '' } });
-    if (categoryFilter) out.push({ id: 'category', label: 'Danh mục', value: categoryFilter, clear: { category: '' } });
     if (brandFilter) {
       const brand = metadata.brands.find(b => b.slug === brandFilter);
       out.push({ id: 'brand', label: 'Thương hiệu', value: brand?.name ?? brandFilter, clear: { brand: '' } });
@@ -168,8 +168,8 @@ export default function ProductCatalog() {
   const pageTitle = searchTerm
     ? `Kết quả cho "${searchTerm}"`
     : categoryFilter
-      ? `Danh mục: ${categoryFilter}`
-      : 'Sản phẩm';
+      ? (metadata.categoryName ?? categoryFilter)
+      : 'Tất cả sản phẩm';
 
   const sortSelect = (className: string) => (
     <select
@@ -234,13 +234,6 @@ export default function ProductCatalog() {
               </button>
             </span>
           ))}
-          <button
-            type="button"
-            onClick={() => navigate(clearChanges(true))}
-            className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-500 hover:bg-slate-50"
-          >
-            Xóa tất cả
-          </button>
         </div>
       )}
 

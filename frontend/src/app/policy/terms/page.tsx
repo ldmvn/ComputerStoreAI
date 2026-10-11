@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import CustomerShell from '@/components/layout/CustomerShell';
-import InfoPageLayout, { Section, PendingNotice, Placeholder } from '@/components/layout/InfoPageLayout';
+import InfoPageLayout, { Section } from '@/components/layout/InfoPageLayout';
 
 export const metadata: Metadata = {
   title: 'Điều khoản sử dụng — DUCMANH PC',
@@ -27,9 +27,7 @@ export default function TermsPage() {
         badge="Pháp lý"
         toc={toc}
       >
-        <PendingNotice />
-
-        <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: <Placeholder label="DD/MM/YYYY" /></p>
+        <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: 11/10/2026</p>
 
         <Section id="chap-nhan" title="1. Chấp nhận điều khoản">
           <p>Bằng việc truy cập và sử dụng website DUCMANH PC, bạn đồng ý tuân thủ và bị ràng buộc bởi các điều khoản và điều kiện được quy định dưới đây.</p>

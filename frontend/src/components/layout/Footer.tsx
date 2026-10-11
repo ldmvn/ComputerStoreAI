@@ -171,12 +171,12 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
             <LinkGroup title="Giới thiệu" links={aboutLinks} />
           </div>
 
-          {/* Col 3 — Hỗ trợ */}
+          {/* Col 3 — Hỗ trợ khách hàng */}
           <div className="border-t border-slate-200 sm:border-0">
             <LinkGroup title="Hỗ trợ khách hàng" links={supportLinks} />
           </div>
 
-          {/* Col 4 — Chính sách */}
+          {/* Col 4 — Chính sách chung */}
           <div className="border-t border-slate-200 sm:border-0">
             <LinkGroup title="Chính sách chung" links={policyLinks} />
           </div>
@@ -209,13 +209,8 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
       {/* ── Copyright bar ── */}
       <div className="border-t border-slate-200 bg-white py-5">
         <div className="container mx-auto flex flex-col items-center justify-between gap-2 px-4 text-center text-xs text-slate-500 md:flex-row md:text-left">
-          <p>
-            © 2026 <strong className="text-slate-700">DUCMANH PC</strong>.
-            ldm. All rights reserved.
-          </p>
-          <p>
-            Được xây dựng bởi <span className="text-red-500">♥</span> Lưu Đức Mạnh
-          </p>
+          <p>© 2026 <strong className="text-slate-700">DUCMANH PC</strong>. All rights reserved.</p>
+          <p>Được xây dựng bởi <span className="text-red-500">♥</span> Lưu Đức Mạnh</p>
         </div>
       </div>
 

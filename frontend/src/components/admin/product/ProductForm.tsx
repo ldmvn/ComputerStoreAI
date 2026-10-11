@@ -9,7 +9,7 @@ import type { Product } from '@/types/product.type';
 import type { Category } from '@/services/category.service';
 import type { Brand } from '@/services/brand.service';
 import { mediaUrl } from '@/services/http.client';
-import { getCategoryAttributes, type Attribute } from '@/services/attribute.service';
+import { getCategoryAttributes, type CategoryBoundAttribute } from '@/services/attribute.service';
 import { getProductSections } from '@/services/productSection.service';
 import type { ProductSection } from '@/types/productSection.type';
 import { useAuthStore } from '@/store/auth.store';
@@ -45,10 +45,12 @@ export default function ProductForm({ product, categories, brands, busy, error, 
   const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
   const [imageOrder, setImageOrder] = useState<number[]>((product?.images || []).map(image => image.id));
   const [customSpecifications, setCustomSpecifications] = useState<{ id?: number; name: string; value: string; sortOrder: number }[]>(() => (product?.customSpecifications || []).map(item => ({ id: item.id, name: item.name, value: item.value, sortOrder: item.sortOrder })));
-  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [attributes, setAttributes] = useState<CategoryBoundAttribute[]>([]);
   const [attributeInputs, setAttributeInputs] = useState<Record<number, string[]>>({});
   const [attributeLoading, setAttributeLoading] = useState(false);
   const [attributeError, setAttributeError] = useState('');
+  const [requiredErrors, setRequiredErrors] = useState<Set<number>>(new Set());
+  const [categoryConfirm, setCategoryConfirm] = useState<string | null>(null);
 
   const [allSections, setAllSections] = useState<ProductSection[]>([]);
   const [sectionsLoading, setSectionsLoading] = useState(false);
@@ -59,6 +61,15 @@ export default function ProductForm({ product, categories, brands, busy, error, 
   const sectionDropdownRef = useRef<HTMLDivElement>(null);
   const [sectionDropdownOpen, setSectionDropdownOpen] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+
+  const handleCategoryChange = (newCategory: string) => {
+    if (newCategory === category) return;
+    const hasValues = Object.values(attributeInputs).some(vals => vals.length > 0 && vals.some(v => v !== ''));
+    if (hasValues) { setCategoryConfirm(newCategory); return; }
+    setCategory(newCategory);
+    setAttributeInputs({});
+    setRequiredErrors(new Set());
+  };
 
   const inconsistentPricing = originalPrice.trim() !== '' && Number.isFinite(Number(originalPrice)) && Number.isFinite(Number(price)) && Number(originalPrice) < Number(price);
   const validDiscount = !inconsistentPricing && originalPrice.trim() !== '' && price.trim() !== '' && Number(originalPrice) > 0 && Number(price) > 0 && Number(originalPrice) > Number(price);
@@ -147,6 +158,15 @@ export default function ProductForm({ product, categories, brands, busy, error, 
   };
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
+    // Frontend required-field check
+    const missing = new Set<number>();
+    for (const attr of attributes) {
+      if (!attr.isRequired) continue;
+      const vals = attributeInputs[attr.id] || [];
+      if (!vals.length || vals.every(v => v === '')) missing.add(attr.id);
+    }
+    if (missing.size > 0) { setRequiredErrors(missing); return; }
+    setRequiredErrors(new Set());
     const body = new FormData();
     const selectedCategory = categories.find(item => String(item.id) === category);
     const legacyCategory = category.startsWith('legacy:') ? category.slice('legacy:'.length) : '';
@@ -196,11 +216,20 @@ export default function ProductForm({ product, categories, brands, busy, error, 
             </label>
             <label className="text-sm font-medium">
               Danh mục
-              <select value={category} onChange={event => setCategory(event.target.value)} className={inputCls}>
+              <select value={categoryConfirm ?? category} onChange={event => handleCategoryChange(event.target.value)} className={inputCls}>
                 <option value="">Chưa phân loại</option>
                 {product?.category && !categories.some(item => item.name === product.category) && <option value={`legacy:${product.category}`}>{product.category} (dữ liệu hiện có)</option>}
                 {categories.map(item => <option key={item.id} value={String(item.id)}>{item.name}{item.isActive ? '' : ' (đang ẩn)'}</option>)}
               </select>
+              {categoryConfirm !== null && (
+                <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
+                  <p className="font-medium text-amber-800">Thay đổi danh mục sẽ xóa các giá trị thuộc tính đã nhập.</p>
+                  <div className="mt-2 flex gap-2">
+                    <button type="button" onClick={() => { setCategory(categoryConfirm); setAttributeInputs({}); setRequiredErrors(new Set()); setCategoryConfirm(null); }} className="rounded-md bg-amber-600 px-3 py-1 text-xs font-semibold text-white hover:bg-amber-700">Xác nhận</button>
+                    <button type="button" onClick={() => setCategoryConfirm(null)} className="rounded-md border border-amber-300 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100">Hủy</button>
+                  </div>
+                </div>
+              )}
             </label>
             <label className="text-sm font-medium">
               Thương hiệu
@@ -333,20 +362,47 @@ export default function ProductForm({ product, categories, brands, busy, error, 
           {attributeError && <p role="alert" className="text-sm text-red-600">{attributeError}</p>}
           {!attributeLoading && !attributeError && !category && <p className="text-sm text-slate-500">Chọn danh mục để tải thuộc tính phù hợp.</p>}
           {!attributeLoading && !attributeError && category && attributes.length === 0 && <p className="text-sm text-slate-500">Danh mục này chưa được gán thuộc tính.</p>}
-          {!attributeLoading && !attributeError && attributes.length > 0 && (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {attributes.map(attribute => (
-                <label key={attribute.id} className="text-sm font-medium">
-                  {attribute.name}
-                  {attribute.type === 'SELECT' && <select value={attributeInputs[attribute.id]?.[0] || ''} onChange={event => setAttributeInputs(current => ({ ...current, [attribute.id]: event.target.value ? [event.target.value] : [] }))} className={inputCls}><option value="">Chưa chọn</option>{attribute.values.map(v => <option key={v.id} value={v.id}>{v.value}</option>)}</select>}
-                  {attribute.type === 'MULTI_SELECT' && <select multiple value={attributeInputs[attribute.id] || []} onChange={event => setAttributeInputs(current => ({ ...current, [attribute.id]: Array.from(event.target.selectedOptions, o => o.value) }))} className={`${inputCls} min-h-24`}>{attribute.values.map(v => <option key={v.id} value={v.id}>{v.value}</option>)}</select>}
-                  {attribute.type === 'TEXT' && <input value={attributeInputs[attribute.id]?.[0] || ''} onChange={event => setAttributeInputs(current => ({ ...current, [attribute.id]: [event.target.value] }))} className={inputCls} />}
-                  {attribute.type === 'NUMBER' && <input type="number" value={attributeInputs[attribute.id]?.[0] || ''} onChange={event => setAttributeInputs(current => ({ ...current, [attribute.id]: [event.target.value] }))} className={inputCls} />}
-                  {attribute.type === 'BOOLEAN' && <select value={attributeInputs[attribute.id]?.[0] || ''} onChange={event => setAttributeInputs(current => ({ ...current, [attribute.id]: event.target.value ? [event.target.value] : [] }))} className={inputCls}><option value="">Chưa chọn</option><option value="true">Có</option><option value="false">Không</option></select>}
-                </label>
-              ))}
-            </div>
-          )}
+          {!attributeLoading && !attributeError && attributes.length > 0 && (() => {
+            const displayed = attributes.filter(a => a.showInForm !== false);
+            const buildPcAttrs = attributes.filter(a => a.requiredForBuildPC);
+            const buildPcFilled = buildPcAttrs.filter(a => { const v = attributeInputs[a.id] || []; return v.length > 0 && v.some(s => s !== ''); }).length;
+            return (
+              <>
+                {displayed.length === 0 && <p className="text-sm text-slate-500">Không có thuộc tính nào được cấu hình hiển thị trong form.</p>}
+                {displayed.length > 0 && (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {displayed.map(attribute => {
+                      const hasErr = requiredErrors.has(attribute.id);
+                      const labelCls = `text-sm font-medium${hasErr ? ' text-red-700' : ''}`;
+                      const fieldCls = `${inputCls}${hasErr ? ' border-red-400 ring-1 ring-red-300' : ''}`;
+                      return (
+                        <label key={attribute.id} className={labelCls}>
+                          <span>
+                            {attribute.name}
+                            {attribute.isRequired && <span className="ml-0.5 text-red-500" aria-label="bắt buộc">*</span>}
+                            {attribute.unit && <span className="ml-1 text-xs font-normal text-slate-400">({attribute.unit})</span>}
+                          </span>
+                          {attribute.type === 'SELECT' && <select value={attributeInputs[attribute.id]?.[0] || ''} onChange={event => { setAttributeInputs(c => ({ ...c, [attribute.id]: event.target.value ? [event.target.value] : [] })); if (hasErr) setRequiredErrors(e => { const n = new Set(e); n.delete(attribute.id); return n; }); }} className={fieldCls}><option value="">Chưa chọn</option>{attribute.values.map(v => <option key={v.id} value={v.id}>{v.value}</option>)}</select>}
+                          {attribute.type === 'MULTI_SELECT' && <select multiple value={attributeInputs[attribute.id] || []} onChange={event => { setAttributeInputs(c => ({ ...c, [attribute.id]: Array.from(event.target.selectedOptions, o => o.value) })); if (hasErr) setRequiredErrors(e => { const n = new Set(e); n.delete(attribute.id); return n; }); }} className={`${fieldCls} min-h-24`}>{attribute.values.map(v => <option key={v.id} value={v.id}>{v.value}</option>)}</select>}
+                          {attribute.type === 'TEXT' && <input value={attributeInputs[attribute.id]?.[0] || ''} placeholder={attribute.unit || undefined} onChange={event => { setAttributeInputs(c => ({ ...c, [attribute.id]: [event.target.value] })); if (hasErr) setRequiredErrors(e => { const n = new Set(e); n.delete(attribute.id); return n; }); }} className={fieldCls} />}
+                          {attribute.type === 'NUMBER' && <input type="number" value={attributeInputs[attribute.id]?.[0] || ''} placeholder={attribute.unit || undefined} onChange={event => { setAttributeInputs(c => ({ ...c, [attribute.id]: [event.target.value] })); if (hasErr) setRequiredErrors(e => { const n = new Set(e); n.delete(attribute.id); return n; }); }} className={fieldCls} />}
+                          {attribute.type === 'BOOLEAN' && <select value={attributeInputs[attribute.id]?.[0] || ''} onChange={event => { setAttributeInputs(c => ({ ...c, [attribute.id]: event.target.value ? [event.target.value] : [] })); if (hasErr) setRequiredErrors(e => { const n = new Set(e); n.delete(attribute.id); return n; }); }} className={fieldCls}><option value="">Chưa chọn</option><option value="true">Có</option><option value="false">Không</option></select>}
+                          {hasErr && <p role="alert" className="mt-0.5 text-xs font-normal text-red-600">Trường này là bắt buộc.</p>}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+                {buildPcAttrs.length > 0 && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs">
+                    <span className="font-semibold text-blue-700">Build PC:</span>
+                    <span className={`font-semibold ${buildPcFilled === buildPcAttrs.length ? 'text-green-700' : 'text-blue-600'}`}>{buildPcFilled}/{buildPcAttrs.length} thông số</span>
+                    <span className="text-blue-500">{buildPcFilled === buildPcAttrs.length ? '— đủ điều kiện gợi ý linh kiện' : '— cần thêm để gợi ý linh kiện'}</span>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </section>
 
         {/* G. Thông số tự do */}

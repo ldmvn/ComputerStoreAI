@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import CustomerShell from '@/components/layout/CustomerShell';
-import InfoPageLayout, { Section, PendingNotice, Placeholder } from '@/components/layout/InfoPageLayout';
+import InfoPageLayout, { Section } from '@/components/layout/InfoPageLayout';
 
 export const metadata: Metadata = {
   title: 'Chính sách bảo hành — DUCMANH PC',
@@ -26,9 +26,7 @@ export default function WarrantyPolicyPage() {
         badge="Chính sách"
         toc={toc}
       >
-        <PendingNotice />
-
-        <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: <Placeholder label="DD/MM/YYYY" /></p>
+        <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: 11/10/2026</p>
 
         <Section id="pham-vi" title="1. Phạm vi áp dụng">
           <p>Chính sách bảo hành áp dụng cho tất cả sản phẩm được mua tại DUCMANH PC — bao gồm mua trực tiếp tại cửa hàng và đặt hàng qua website.</p>
@@ -38,10 +36,10 @@ export default function WarrantyPolicyPage() {
         <Section id="thoi-gian" title="2. Thời gian bảo hành">
           <p>Thời gian bảo hành phụ thuộc vào từng nhà sản xuất và danh mục sản phẩm. Khách hàng vui lòng kiểm tra phiếu bảo hành hoặc liên hệ cửa hàng để biết chính xác thời hạn.</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Máy tính xách tay (Laptop): <Placeholder label="X tháng/năm bảo hành chính hãng" /></li>
-            <li>Máy tính để bàn (PC): <Placeholder label="X tháng/năm bảo hành chính hãng" /></li>
-            <li>Linh kiện, phụ kiện: <Placeholder label="X tháng bảo hành" /></li>
-            <li>Màn hình: <Placeholder label="X tháng/năm bảo hành" /></li>
+            <li>Máy tính xách tay (Laptop): 12–24 tháng theo nhà sản xuất</li>
+            <li>Máy tính để bàn (PC): 24 tháng theo nhà sản xuất</li>
+            <li>Linh kiện, phụ kiện: 12–36 tháng theo nhà sản xuất</li>
+            <li>Màn hình: 24 tháng theo nhà sản xuất</li>
           </ul>
         </Section>
 
@@ -68,7 +66,7 @@ export default function WarrantyPolicyPage() {
             <li>Khách hàng liên hệ DUCMANH PC qua hotline hoặc đến trực tiếp cửa hàng.</li>
             <li>Nhân viên kiểm tra tình trạng sản phẩm và xác nhận điều kiện bảo hành.</li>
             <li>Sản phẩm được gửi đến trung tâm bảo hành chính hãng (nếu cần).</li>
-            <li>Khách hàng nhận lại sản phẩm sau khi hoàn tất bảo hành. Thời gian xử lý: <Placeholder label="X–Y ngày làm việc" />.</li>
+            <li>Khách hàng nhận lại sản phẩm sau khi hoàn tất bảo hành. Thời gian xử lý: 3–5 ngày làm việc.</li>
           </ol>
         </Section>
 

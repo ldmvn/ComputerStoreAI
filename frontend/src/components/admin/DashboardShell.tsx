@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import DashboardSidebar from './DashboardSidebar';
 import DashboardTopbar from './DashboardTopbar';
+import AdminRouteGuard from './AdminRouteGuard';
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -23,7 +24,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           onExpandSidebar={() => setCollapsed(false)}
         />
         <main className="min-w-0 w-full flex-1 px-4 py-6 sm:px-5 sm:py-7 md:px-6 lg:px-8 lg:py-8 2xl:px-10">
-          <div className="w-full min-w-0">{children}</div>
+          <div className="w-full min-w-0">
+            <AdminRouteGuard>{children}</AdminRouteGuard>
+          </div>
         </main>
       </div>
     </div>

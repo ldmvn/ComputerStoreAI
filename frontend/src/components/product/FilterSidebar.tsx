@@ -57,7 +57,7 @@ function PriceFilter({ min, max, range, onApply }: { min?: number; max?: number;
       <div className="flex gap-2">
         <input
           type="number" min={0} inputMode="numeric"
-          placeholder={range.min != null ? String(range.min) : 'Từ'}
+          placeholder="Từ"
           value={localMin}
           onChange={e => setLocalMin(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleApply()}
@@ -66,7 +66,7 @@ function PriceFilter({ min, max, range, onApply }: { min?: number; max?: number;
         />
         <input
           type="number" min={0} inputMode="numeric"
-          placeholder={range.max != null ? String(range.max) : 'Đến'}
+          placeholder="Đến"
           value={localMax}
           onChange={e => setLocalMax(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleApply()}

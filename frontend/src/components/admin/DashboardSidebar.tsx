@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ChevronDown, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { usePermissionStore } from '@/store/permission.store';
 import { dashboardMenu, dashboardOverview, type DashboardMenuGroup } from './menu.config';
 
 type DashboardSidebarProps = {
@@ -24,11 +25,27 @@ function groupHasActiveChild(pathname: string, group: DashboardMenuGroup) {
 export default function DashboardSidebar({ collapsed, mobileOpen, onCloseMobile, onExpandSidebar }: DashboardSidebarProps) {
   const pathname = usePathname();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const canSee = usePermissionStore((s) => s.has);
+  // Super Admin has wildcard '*' — can see items without a mapped permission.
+  const isSuperAdmin = usePermissionStore((s) => s.permissions.has('*'));
+
+  // Filter menu groups — hide items the user has no permission for, hide empty groups.
+  // Items without a permission field are visible only to Super Admin (wildcard).
+  const visibleMenu = dashboardMenu
+    .map(group => ({
+      ...group,
+      children: group.children.filter(item => {
+        if (!item.permission) return isSuperAdmin;
+        const [mod, action] = item.permission.split(':') as [string, string];
+        return canSee(mod, action);
+      }),
+    }))
+    .filter(group => group.children.length > 0);
 
   useEffect(() => {
     setOpenGroups((current) => {
       const next = { ...current };
-      dashboardMenu.forEach((group) => {
+      visibleMenu.forEach((group) => {
         if (groupHasActiveChild(pathname, group)) next[group.label] = true;
       });
       return next;
@@ -79,23 +96,25 @@ export default function DashboardSidebar({ collapsed, mobileOpen, onCloseMobile,
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-5" aria-label="Điều hướng quản trị">
-          <Link
-            href={dashboardOverview.path}
-            onClick={handleNavigation}
-            aria-current={pathname === dashboardOverview.path ? 'page' : undefined}
-            className={`ui-menu-item group mb-2 flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
-              isPathActive(pathname, dashboardOverview.path) && pathname === dashboardOverview.path
-                ? 'bg-primary-50 text-primary-700'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            } ${collapsed ? 'lg:justify-center lg:px-0' : ''}`}
-            title={collapsed ? dashboardOverview.label : undefined}
-          >
-            <dashboardOverview.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-            <span className={collapsed ? 'lg:hidden' : ''}>{dashboardOverview.label}</span>
-          </Link>
+          {(isSuperAdmin || canSee('dashboard', 'view')) && (
+            <Link
+              href={dashboardOverview.path}
+              onClick={handleNavigation}
+              aria-current={pathname === dashboardOverview.path ? 'page' : undefined}
+              className={`ui-menu-item group mb-2 flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
+                isPathActive(pathname, dashboardOverview.path) && pathname === dashboardOverview.path
+                  ? 'bg-primary-50 text-primary-700'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              } ${collapsed ? 'lg:justify-center lg:px-0' : ''}`}
+              title={collapsed ? dashboardOverview.label : undefined}
+            >
+              <dashboardOverview.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <span className={collapsed ? 'lg:hidden' : ''}>{dashboardOverview.label}</span>
+            </Link>
+          )}
 
           <div className="space-y-1">
-            {dashboardMenu.map((group) => {
+            {visibleMenu.map((group) => {
               const GroupIcon = group.icon;
               const isOpen = Boolean(openGroups[group.label]);
               const hasActiveChild = groupHasActiveChild(pathname, group);

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import CustomerShell from '@/components/layout/CustomerShell';
-import InfoPageLayout, { Section, Placeholder } from '@/components/layout/InfoPageLayout';
+import InfoPageLayout, { Section } from '@/components/layout/InfoPageLayout';
 
 export const metadata: Metadata = {
   title: 'Đổi trả & Hoàn tiền — DUCMANH PC',
@@ -25,12 +25,12 @@ export default function ReturnsPage() {
         toc={toc}
       >
         <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
-          <strong className="font-semibold">Cam kết đổi trả trong <Placeholder label="X ngày" /></strong> — nếu sản phẩm lỗi hoặc không đúng mô tả, chúng tôi sẽ hỗ trợ đổi ngay.
+          <strong className="font-semibold">Cam kết đổi trả trong 7 ngày</strong> — nếu sản phẩm lỗi hoặc không đúng mô tả, chúng tôi sẽ hỗ trợ đổi ngay.
         </div>
 
         <Section id="dieu-kien" title="1. Điều kiện đổi trả hợp lệ">
           <ul className="list-disc pl-5 space-y-1">
-            <li>Sản phẩm còn trong thời hạn đổi trả (<Placeholder label="X ngày kể từ ngày nhận hàng" />).</li>
+            <li>Sản phẩm còn trong thời hạn đổi trả (7 ngày kể từ ngày nhận hàng).</li>
             <li>Còn nguyên hộp, phụ kiện, tem niêm phong đầy đủ như khi mua.</li>
             <li>Có hóa đơn mua hàng hoặc xác nhận đơn từ hệ thống.</li>
             <li>Lỗi thuộc về nhà sản xuất hoặc do DUCMANH PC giao sai sản phẩm.</li>
@@ -44,7 +44,7 @@ export default function ReturnsPage() {
             </li>
             <li><strong>Mô tả vấn đề</strong> — Cung cấp mã đơn hàng, tên sản phẩm và mô tả tình trạng lỗi (kèm ảnh/video nếu có).</li>
             <li><strong>Gửi sản phẩm về</strong> — Đóng gói cẩn thận và gửi về địa chỉ cửa hàng hoặc mang trực tiếp.</li>
-            <li><strong>Kiểm tra & xử lý</strong> — Nhân viên kiểm tra trong <Placeholder label="X ngày làm việc" /> và xác nhận kết quả.</li>
+            <li><strong>Kiểm tra & xử lý</strong> — Nhân viên kiểm tra trong 3–5 ngày làm việc và xác nhận kết quả.</li>
             <li><strong>Nhận hàng mới hoặc hoàn tiền</strong> — Tùy trường hợp cụ thể và thỏa thuận với khách hàng.</li>
           </ol>
         </Section>
@@ -52,7 +52,7 @@ export default function ReturnsPage() {
         <Section id="hoan-tien" title="3. Chính sách hoàn tiền">
           <p>Trong trường hợp không có hàng để đổi hoặc khách hàng không muốn đổi sản phẩm khác:</p>
           <ul className="list-disc pl-5 space-y-1 mt-2">
-            <li>Hoàn tiền qua chuyển khoản trong <Placeholder label="X–Y ngày làm việc" />.</li>
+            <li>Hoàn tiền qua chuyển khoản trong 3–5 ngày làm việc.</li>
             <li>Hoàn tiền mặt tại cửa hàng (áp dụng cho trường hợp mang trực tiếp).</li>
             <li>Hoàn về ví MoMo hoặc VNPAY nếu ban đầu thanh toán qua các kênh này.</li>
           </ul>

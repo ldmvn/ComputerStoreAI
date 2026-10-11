@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import CustomerShell from '@/components/layout/CustomerShell';
-import InfoPageLayout, { Section, PendingNotice, Placeholder } from '@/components/layout/InfoPageLayout';
+import InfoPageLayout, { Section } from '@/components/layout/InfoPageLayout';
 
 export const metadata: Metadata = {
   title: 'Chính sách bảo mật — DUCMANH PC',
@@ -27,9 +27,7 @@ export default function PrivacyPolicyPage() {
         badge="Chính sách"
         toc={toc}
       >
-        <PendingNotice />
-
-        <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: <Placeholder label="DD/MM/YYYY" /></p>
+        <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: 11/10/2026</p>
 
         <Section id="thu-thap" title="1. Thông tin chúng tôi thu thập">
           <p>Khi sử dụng dịch vụ của DUCMANH PC, chúng tôi có thể thu thập các thông tin sau:</p>

@@ -19,6 +19,7 @@ import { bannerMediaDirectory } from './src/services/media.service.js';
 import { productMediaDirectory } from './src/services/productMedia.service.js';
 import { brandMediaDirectory } from './src/services/brandMedia.service.js';
 import { reviewMediaDirectory } from './src/services/reviewMedia.service.js';
+
 import { adminAttributeRouter, publicAttributeRouter } from './src/routes/v1/attribute.route.js';
 import wishlistRoutes from './src/routes/v1/wishlist.route.js';
 import addressRoutes from './src/routes/v1/address.route.js';
@@ -32,6 +33,12 @@ import adminInventoryRoutes from './src/routes/v1/adminInventory.route.js';
 import adminReviewRoutes from './src/routes/v1/adminReview.route.js';
 import adminVoucherRoutes from './src/routes/v1/adminVoucher.route.js';
 import voucherRoutes from './src/routes/v1/voucher.route.js';
+import searchRoutes from './src/routes/v1/search.route.js';
+import rolesRoutes from './src/routes/v1/roles.route.js';
+import adminUsersRoutes from './src/routes/v1/adminUsers.route.js';
+import activityLogRoutes from './src/routes/v1/activityLog.route.js';
+import adminSettingsRoutes from './src/routes/v1/adminSettings.route.js';
+
 import { verifyResetMailConnection } from './src/services/passwordResetMail.service.js';
 import { cleanupExpiredPasswordResets } from './src/services/passwordReset.service.js';
 
@@ -106,6 +113,12 @@ app.use('/api/admin/inventory', adminInventoryRoutes);
 app.use('/api/admin/reviews', adminReviewRoutes);
 app.use('/api/admin/vouchers', adminVoucherRoutes);
 app.use('/api/vouchers', voucherRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/admin/roles', rolesRoutes);
+app.use('/api/admin/admin-users', adminUsersRoutes);
+app.use('/api/admin/activity-logs', activityLogRoutes);
+app.use('/api/admin/settings', adminSettingsRoutes);
+
 app.use('/media/banners', express.static(bannerMediaDirectory, {
   dotfiles: 'deny',
   immutable: true,
@@ -130,6 +143,7 @@ app.use('/media/reviews', express.static(reviewMediaDirectory, {
   maxAge: '1y',
   setHeaders: res => res.set('X-Content-Type-Options', 'nosniff'),
 }));
+
 
 // ---------------------------------------------------------------------------
 // 404 fallback

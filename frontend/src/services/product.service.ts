@@ -6,7 +6,7 @@ export type ProductListQuery = { page?: number; limit?: number; search?: string;
 export type FilterBrand = { id: number; name: string; slug: string; productCount: number };
 export type FilterAttributeValue = { id: number; value: string; productCount: number };
 export type FilterAttribute = { id: number; name: string; slug: string; type: string; values: FilterAttributeValue[] };
-export type ProductFilterMetadata = { brands: FilterBrand[]; attributes: FilterAttribute[]; priceRange: { min: number | null; max: number | null } };
+export type ProductFilterMetadata = { brands: FilterBrand[]; attributes: FilterAttribute[]; priceRange: { min: number | null; max: number | null }; categoryName?: string | null };
 export type FilterContextQuery = { category?: string; search?: string };
 
 function queryString(query: ProductListQuery) {

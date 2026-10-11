@@ -10,7 +10,6 @@ import { useAuthModal } from '@/store/authModal.store';
 import { useCartStore } from '@/store/cart.store';
 import { useWishlistStore } from '@/store/wishlist.store';
 import {
-  Search,
   ShoppingCart,
   Heart,
   User,
@@ -25,6 +24,7 @@ import { getCategoryIcon } from '@/components/category/CategoryIcon';
 import { getPublicCategories, type PublicCategory } from '@/services/category.service';
 import { getPublicMenus, type PublicMenu } from '@/services/megaMenu.service';
 import { MegaMenuPanel, MobileMenuGroups } from '@/components/category/MegaMenuPanel';
+import SmartSearchBar from '@/components/layout/SmartSearchBar';
 
 export default function Header() {
   const [categories, setCategories] = useState<PublicCategory[]>([]);
@@ -36,7 +36,6 @@ export default function Header() {
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [loginOpen, setLoginOpen] = useState(false);
   const categoriesRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
@@ -125,12 +124,7 @@ export default function Header() {
     };
   }, [mobileMenuOpen]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = `/customer/products?search=${encodeURIComponent(searchQuery)}`;
-    }
-  };
+
 
   const toggleCategories = () => {
     setCategoriesOpen(true);
@@ -260,23 +254,10 @@ export default function Header() {
             />
           </Link>
 
-          {/* Search Wrapper - preserves the original layout space */}
-          <form
-            onSubmit={handleSearch}
-            className="order-last flex min-w-0 basis-full items-center justify-center lg:order-none lg:flex-1 lg:basis-auto"
-            role="search"
-          >
-            <div className="ui-search relative w-full min-w-0 lg:w-3/4 lg:max-w-[500px]">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-500" />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm kiếm PC, Laptop, linh kiện..."
-                className="w-full rounded-xl border bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition focus:bg-white focus:outline-none"
-              />
-            </div>
-          </form>
+          {/* Smart Search */}
+          <div className="order-last flex min-w-0 basis-full items-center justify-center lg:order-none lg:flex-1 lg:basis-auto">
+            <SmartSearchBar />
+          </div>
 
           {/* Action Icons */}
           <div className="ml-auto flex shrink-0 items-center gap-0 min-[360px]:gap-1 xl:gap-3">

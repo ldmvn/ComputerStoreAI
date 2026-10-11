@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import CustomerShell from '@/components/layout/CustomerShell';
-import InfoPageLayout, { Section, PendingNotice, Placeholder } from '@/components/layout/InfoPageLayout';
+import InfoPageLayout, { Section } from '@/components/layout/InfoPageLayout';
 
 export const metadata: Metadata = {
   title: 'Chính sách đổi trả — DUCMANH PC',
@@ -26,9 +26,7 @@ export default function ReturnPolicyPage() {
         badge="Chính sách"
         toc={toc}
       >
-        <PendingNotice />
-
-        <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: <Placeholder label="DD/MM/YYYY" /></p>
+        <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: 11/10/2026</p>
 
         <Section id="dieu-kien" title="1. Điều kiện đổi trả">
           <ul className="list-disc pl-5 space-y-1">
@@ -40,7 +38,7 @@ export default function ReturnPolicyPage() {
         </Section>
 
         <Section id="thoi-han" title="2. Thời hạn đổi trả">
-          <p>Khách hàng có quyền yêu cầu đổi/trả trong vòng <Placeholder label="X ngày" /> kể từ ngày nhận hàng, với điều kiện sản phẩm còn nguyên vẹn và đáp ứng các điều kiện nêu trên.</p>
+          <p>Khách hàng có quyền yêu cầu đổi/trả trong vòng 7 ngày kể từ ngày nhận hàng, với điều kiện sản phẩm còn nguyên vẹn và đáp ứng các điều kiện nêu trên.</p>
         </Section>
 
         <Section id="hang-khong-doi" title="3. Sản phẩm không áp dụng đổi trả">
@@ -57,7 +55,7 @@ export default function ReturnPolicyPage() {
             <li>Liên hệ DUCMANH PC qua hotline hoặc email để thông báo yêu cầu đổi/trả.</li>
             <li>Cung cấp hóa đơn mua hàng và mô tả tình trạng sản phẩm.</li>
             <li>Gửi sản phẩm về cửa hàng (hoặc mang trực tiếp).</li>
-            <li>Nhân viên kiểm tra và xác nhận yêu cầu trong <Placeholder label="X ngày làm việc" />.</li>
+            <li>Nhân viên kiểm tra và xác nhận yêu cầu trong 3–5 ngày làm việc.</li>
             <li>Đổi sản phẩm mới hoặc hoàn tiền theo thỏa thuận.</li>
           </ol>
         </Section>
@@ -65,7 +63,7 @@ export default function ReturnPolicyPage() {
         <Section id="hoan-tien" title="5. Chính sách hoàn tiền">
           <p>Trong trường hợp sản phẩm lỗi mà không có hàng đổi, DUCMANH PC sẽ hoàn tiền theo hình thức:</p>
           <ul className="list-disc pl-5 space-y-1 mt-2">
-            <li>Chuyển khoản ngân hàng trong vòng <Placeholder label="X ngày làm việc" /> sau khi xác nhận.</li>
+            <li>Chuyển khoản ngân hàng trong vòng 3–5 ngày làm việc sau khi xác nhận.</li>
             <li>Hoàn tiền mặt tại cửa hàng (áp dụng khi khách mang trực tiếp).</li>
           </ul>
         </Section>

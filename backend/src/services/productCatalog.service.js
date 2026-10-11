@@ -99,6 +99,27 @@ async function resolveProductBrand(payload) {
 async function replaceProductAttributes(tx, productId, categoryId, entries) {
   await tx.productAttributeValue.deleteMany({ where: { productId } });
   entries ||= [];
+
+  if (categoryId) {
+    // Validate required fields (showInForm=true AND isRequired=true must have a value)
+    const requiredLinks = await tx.categoryAttribute.findMany({
+      where: { categoryId, isRequired: true, showInForm: true, attribute: { isActive: true } },
+      include: { attribute: { select: { id: true, name: true, type: true } } },
+    });
+    if (requiredLinks.length) {
+      const entryMap = new Map(entries.map(e => [e.attributeId, e]));
+      for (const link of requiredLinks) {
+        const entry = entryMap.get(link.attributeId);
+        const hasValue = entry && (
+          ['SELECT', 'MULTI_SELECT'].includes(link.attribute.type)
+            ? (entry.attributeValueIds || []).length > 0
+            : (entry.valueText !== null && entry.valueText !== '')
+        );
+        if (!hasValue) throw productError(`Thuộc tính “${link.attribute.name}” là bắt buộc.`);
+      }
+    }
+  }
+
   if (!entries.length) return;
   const attributes = await tx.attribute.findMany({ where: { id: { in: entries.map(item => item.attributeId) }, categories: { some: { categoryId } } }, include: { values: true } });
   const byId = new Map(attributes.map(attribute => [attribute.id, attribute]));
@@ -164,7 +185,7 @@ export async function getFilterMetadata(context) {
 
   const valueCounts = new Map(valueGroups.map(row => [row.attributeValueId, row._count._all]));
   const category = context.category
-    ? await prisma.category.findFirst({ where: { slug: context.category, isActive: true }, select: { id: true } })
+    ? await prisma.category.findFirst({ where: { slug: context.category, isActive: true }, select: { id: true, name: true } })
     : null;
 
   // Category drives which attributes may appear; without one, fall back to the attributes that
@@ -197,6 +218,7 @@ export async function getFilterMetadata(context) {
     brands,
     attributes,
     priceRange: { min: priceAggregate._min.price ?? null, max: priceAggregate._max.price ?? null },
+    categoryName: category?.name ?? null,
   };
 }
 

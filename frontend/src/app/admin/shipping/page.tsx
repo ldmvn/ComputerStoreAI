@@ -1,4 +1,5 @@
 'use client';
+import AdminGuard from '@/components/admin/AdminGuard';
 import { useEffect, useState, useCallback } from 'react';
 import { Loader2, Search, X, ChevronLeft, ChevronRight, Truck } from 'lucide-react';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
@@ -70,6 +71,7 @@ export default function AdminShippingPage() {
   const totalPages = Math.ceil(total / limit);
 
   return (
+    <AdminGuard permission="orders:manage">
     <section>
       <AdminPageHeader title="Vận chuyển" />
       <AdminFeedback message={message} error={error} />
@@ -174,5 +176,6 @@ export default function AdminShippingPage() {
         </div>
       )}
     </section>
+    </AdminGuard>
   );
 }

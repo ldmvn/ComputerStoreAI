@@ -32,6 +32,8 @@ export type DashboardMenuItem = {
   label: string;
   path: string;
   icon: LucideIcon;
+  /** Permission key required to see this item. Omit for items visible to all admins. */
+  permission?: string;
 };
 
 export type DashboardMenuGroup = {
@@ -40,10 +42,11 @@ export type DashboardMenuGroup = {
   children: DashboardMenuItem[];
 };
 
-export const dashboardOverview = {
+export const dashboardOverview: DashboardMenuItem = {
   label: 'Tổng quan',
   path: '/admin/dashboard',
   icon: LayoutDashboard,
+  permission: 'dashboard:view',
 };
 
 export const dashboardMenu: DashboardMenuGroup[] = [
@@ -51,48 +54,48 @@ export const dashboardMenu: DashboardMenuGroup[] = [
     label: 'Cửa hàng',
     icon: Store,
     children: [
-      { label: 'Sản phẩm', path: '/admin/products', icon: Package },
-      { label: 'Danh mục', path: '/admin/categories', icon: Layers },
-      { label: 'Thương hiệu', path: '/admin/brands', icon: Badge },
-      { label: 'Thuộc tính', path: '/admin/attributes', icon: SlidersHorizontal },
-      { label: 'Mega Menu', path: '/admin/mega-menu', icon: PanelTop },
-      { label: 'Kho', path: '/admin/inventory', icon: Warehouse },
-      { label: 'Quản lý Banner', path: '/admin/banners', icon: Image },
-      { label: 'Khối sản phẩm', path: '/admin/product-sections', icon: PanelTop },
-      { label: 'Khuyến mãi', path: '/admin/promotions', icon: TicketPercent },
-      { label: 'Đánh giá', path: '/admin/reviews', icon: Star },
+      { label: 'Sản phẩm',       path: '/admin/products',         icon: Package,          permission: 'products:view' },
+      { label: 'Danh mục',       path: '/admin/categories',       icon: Layers,           permission: 'categories:view' },
+      { label: 'Thương hiệu',    path: '/admin/brands',           icon: Badge,            permission: 'brands:view' },
+      { label: 'Thuộc tính',     path: '/admin/attributes',       icon: SlidersHorizontal,permission: 'attributes:view' },
+      { label: 'Mega Menu',      path: '/admin/mega-menu',        icon: PanelTop,         permission: 'megamenu:view' },
+      { label: 'Kho',            path: '/admin/inventory',        icon: Warehouse,        permission: 'inventory:view' },
+      { label: 'Quản lý Banner', path: '/admin/banners',          icon: Image,            permission: 'banners:view' },
+      { label: 'Khối sản phẩm',  path: '/admin/product-sections', icon: PanelTop,         permission: 'product_sections:view' },
+      { label: 'Khuyến mãi',     path: '/admin/promotions',       icon: TicketPercent,    permission: 'promotions:view' },
+      { label: 'Đánh giá',       path: '/admin/reviews',          icon: Star,             permission: 'reviews:view' },
     ],
   },
   {
     label: 'Bán hàng',
     icon: ShoppingCart,
     children: [
-      { label: 'Đơn hàng', path: '/admin/orders', icon: ClipboardList },
-      { label: 'Khách hàng', path: '/admin/customers', icon: Users },
-      { label: 'Thanh toán', path: '/admin/payments', icon: CreditCard },
-      { label: 'Vận chuyển', path: '/admin/shipping', icon: Truck },
-      { label: 'Đổi trả', path: '/admin/returns', icon: Undo2 },
-      { label: 'Báo cáo bán hàng', path: '/admin/reports', icon: BarChart2 },
+      { label: 'Đơn hàng',           path: '/admin/orders',    icon: ClipboardList, permission: 'orders:view' },
+      { label: 'Khách hàng',         path: '/admin/customers', icon: Users,         permission: 'customers:view' },
+      { label: 'Thanh toán',         path: '/admin/payments',  icon: CreditCard, permission: 'orders:view' },
+      { label: 'Vận chuyển',         path: '/admin/shipping',  icon: Truck,       permission: 'orders:manage' },
+      { label: 'Đổi trả',            path: '/admin/returns',   icon: Undo2,         permission: 'returns:view' },
+      { label: 'Báo cáo bán hàng',   path: '/admin/reports',   icon: BarChart2,     permission: 'reports:view' },
     ],
   },
   {
     label: 'Hệ thống',
     icon: Settings2,
     children: [
-      { label: 'Build PC', path: '/admin/build-pc', icon: Wrench },
-      { label: 'Quản trị viên', path: '/admin/admin-users', icon: ShieldCheck },
-      { label: 'Phân quyền', path: '/admin/roles', icon: KeyRound },
-      { label: 'Nhật ký hoạt động', path: '/admin/activity-logs', icon: History },
+      { label: 'Build PC',             path: '/admin/build-pc',       icon: Wrench,      permission: 'build_pc:view' },
+      { label: 'Quản trị viên',        path: '/admin/admin-users',    icon: ShieldCheck, permission: 'administrators:view' },
+      { label: 'Phân quyền',           path: '/admin/roles',          icon: KeyRound,    permission: 'roles:view' },
+      { label: 'Nhật ký hoạt động',    path: '/admin/activity-logs',  icon: History,     permission: 'activity_logs:view' },
     ],
   },
   {
     label: 'Cài đặt',
     icon: Settings,
     children: [
-      { label: 'Thông tin cửa hàng', path: '/admin/settings/store', icon: Store },
-      { label: 'Logo / Favicon', path: '/admin/settings/branding', icon: Image },
-      { label: 'Email / Hotline', path: '/admin/settings/contact', icon: CreditCard },
-      { label: 'Cấu hình chung', path: '/admin/settings/general', icon: Check },
+      { label: 'Thông tin cửa hàng', path: '/admin/settings/store',    icon: Store,      permission: 'settings:view' },
+      { label: 'Logo / Favicon',     path: '/admin/settings/branding', icon: Image,      permission: 'settings:view' },
+      { label: 'Email / Hotline',    path: '/admin/settings/contact',  icon: CreditCard, permission: 'settings:view' },
+      { label: 'Cấu hình chung',     path: '/admin/settings/general',  icon: Check,      permission: 'settings:view' },
     ],
   },
 ];
