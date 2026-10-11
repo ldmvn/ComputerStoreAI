@@ -68,8 +68,11 @@ export async function getOrderStats(token: string): Promise<OrderStats> {
   const all = await listOrders(token);
   return {
     total: all.length,
+    pending: all.filter(o => o.status === 'PENDING').length,
     waitingPickup: all.filter(o => o.status === 'CONFIRMED').length,
+    shipping: all.filter(o => o.status === 'SHIPPING').length,
     completed: all.filter(o => o.status === 'DELIVERED').length,
+    cancelled: all.filter(o => o.status === 'CANCELLED').length,
     totalValue: all.reduce((sum, o) => sum + o.subtotal, 0),
   };
 }

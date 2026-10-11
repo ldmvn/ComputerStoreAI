@@ -40,17 +40,17 @@ const LOG_TYPE_LABEL: Record<string, string> = {
 };
 
 const LOG_TYPE_COLOR: Record<string, string> = {
-  IMPORT: 'bg-emerald-100 text-emerald-700',
-  ADJUSTMENT: 'bg-blue-100 text-blue-700',
+  IMPORT: 'bg-emerald-50 text-emerald-700',
+  ADJUSTMENT: 'bg-blue-50 text-blue-700',
   ORDER_DEDUCT: 'bg-slate-100 text-slate-600',
-  RETURN_RESTORE: 'bg-amber-100 text-amber-700',
+  RETURN_RESTORE: 'bg-amber-50 text-amber-700',
 };
 
 function StockBadge({ status }: { status: StockStatus }) {
   const map: Record<StockStatus, string> = {
-    in: 'bg-emerald-100 text-emerald-700',
-    low: 'bg-amber-100 text-amber-700',
-    out: 'bg-red-100 text-red-600',
+    in: 'bg-emerald-50 text-emerald-700',
+    low: 'bg-amber-50 text-amber-700',
+    out: 'bg-red-50 text-red-700',
   };
   const label: Record<StockStatus, string> = { in: 'Còn hàng', low: 'Sắp hết', out: 'Hết hàng' };
   return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${map[status]}`}>{label[status]}</span>;
@@ -295,6 +295,7 @@ function HistoryModal({ product, token, onClose }: { product: InventoryProduct; 
           ) : logs.length === 0 ? (
             <p className="py-10 text-center text-sm text-slate-400">Chưa có lịch sử giao dịch.</p>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-slate-50">
                 <tr>
@@ -332,6 +333,7 @@ function HistoryModal({ product, token, onClose }: { product: InventoryProduct; 
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
         {totalPages > 1 && (
@@ -339,11 +341,11 @@ function HistoryModal({ product, token, onClose }: { product: InventoryProduct; 
             <p className="text-xs text-slate-500">{total} giao dịch</p>
             <div className="flex gap-1">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                className="rounded-md border border-slate-200 p-1.5 text-slate-600 hover:bg-slate-50 disabled:opacity-40">
+                className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
               <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                className="rounded-md border border-slate-200 p-1.5 text-slate-600 hover:bg-slate-50 disabled:opacity-40">
+                className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40">
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -451,6 +453,7 @@ export default function AdminInventoryPage() {
           <input
             type="text" value={searchInput} onChange={e => setSearchInput(e.target.value)}
             placeholder="Tên sản phẩm, SKU..."
+            aria-label="Tìm kiếm tồn kho"
             className="h-8 w-full rounded-lg border border-slate-200 pl-8 pr-7 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
           />
           {searchInput && (

@@ -45,6 +45,9 @@ export type OrderStats = {
   waitingPickup: number;
   completed: number;
   totalValue: number;
+  pending: number;
+  shipping: number;
+  cancelled: number;
 };
 
 export type CreateOrderPayload = {

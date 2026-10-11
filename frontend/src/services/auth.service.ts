@@ -115,3 +115,18 @@ export async function getCurrentUser(token: string): Promise<AuthUser> {
   if (!response.ok) throw new AuthRequestError(data.message || 'Phiên đăng nhập không hợp lệ.');
   return data.user as AuthUser;
 }
+
+export async function changePassword(token: string, currentPassword: string, newPassword: string): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/auth/password`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  } catch {
+    throw new AuthRequestError('Không thể kết nối máy chủ. Vui lòng thử lại sau.');
+  }
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new AuthRequestError((data as Record<string, string>).message || 'Không thể đổi mật khẩu.', (data as Record<string, string>).field);
+}

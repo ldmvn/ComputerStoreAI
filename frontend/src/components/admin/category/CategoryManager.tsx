@@ -113,7 +113,7 @@ export default function CategoryManager() {
   if (!token) return null;
   return (
     <section>
-      <AdminPageHeader title="Danh mục" description="Quản lý danh mục sản phẩm trong hệ thống DUCMANH PC." />
+      <AdminPageHeader title="Danh mục" />
       <AdminFeedback message={message} error={error} />
       <AdminFilterBar className="flex flex-wrap items-center gap-2 p-3">
         <input aria-label="Tìm kiếm danh mục" value={filters.search} onChange={event => setFilters(current => ({ ...current, search: event.target.value }))} placeholder="Tìm tên hoặc slug..." className="min-w-[160px] flex-[1_1_200px] rounded-lg border border-slate-200 px-3 py-2 text-sm" />

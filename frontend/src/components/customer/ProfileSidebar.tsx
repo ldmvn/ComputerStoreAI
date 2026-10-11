@@ -1,8 +1,8 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { ClipboardList, Lock, MapPin, Star, User, LogOut } from 'lucide-react';
+import { ClipboardList, Heart, Lock, MapPin, Star, User, LogOut } from 'lucide-react';
 import { mediaUrl } from '@/services/http.client';
 import { useAuthStore } from '@/store/auth.store';
 import type { AuthUser } from '@/types/user.type';
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/customer/profile/orders',    label: 'Đơn hàng của tôi',    icon: ClipboardList                 },
   { href: '/customer/profile/addresses', label: 'Sổ địa chỉ',          icon: MapPin                        },
   { href: '/customer/profile/reviews',   label: 'Đánh giá của tôi',    icon: Star                          },
+  { href: '/customer/wishlist',          label: 'Yêu thích',           icon: Heart                         },
   { href: '/customer/profile/password',  label: 'Bảo mật tài khoản',   icon: Lock                          },
 ];
 
@@ -35,7 +36,7 @@ export default function ProfileSidebar({ user }: { user: AuthUser }) {
   return (
     <>
       {/* ── Mobile: horizontal scrollable nav ── */}
-      <nav aria-label="Menu tài khoản" className="lg:hidden">
+      <nav aria-label="Menu tài khoản" className="relative lg:hidden">
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           {navItems.map(({ href, label, icon: Icon, exact }) => {
             const active = isActive(href, exact);
@@ -44,7 +45,7 @@ export default function ProfileSidebar({ user }: { user: AuthUser }) {
                 key={href}
                 href={href}
                 title={label}
-                className={`flex shrink-0 flex-col items-center gap-1 rounded-xl px-3 py-2 text-[11px] transition-colors ${active ? 'bg-primary-50 font-medium text-primary-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+                className={`flex min-h-[2.75rem] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-3 py-2.5 text-xs transition-colors ${active ? 'bg-primary-50 font-medium text-primary-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
               >
                 <Icon size={20} aria-hidden="true" />
                 <span className="whitespace-nowrap">{label}</span>
@@ -53,19 +54,21 @@ export default function ProfileSidebar({ user }: { user: AuthUser }) {
           })}
           <button
             onClick={handleLogout}
-            className="flex shrink-0 flex-col items-center gap-1 rounded-xl px-3 py-2 text-[11px] text-slate-500 transition-colors hover:bg-slate-50 hover:text-red-600"
+            className="flex min-h-[2.75rem] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-3 py-2.5 text-xs text-slate-500 transition-colors hover:bg-slate-50 hover:text-red-600"
           >
             <LogOut size={20} aria-hidden="true" />
             <span className="whitespace-nowrap">Đăng xuất</span>
           </button>
         </div>
+        {/* right-edge fade — signals horizontal scroll */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-slate-50 to-transparent" aria-hidden="true" />
       </nav>
 
       {/* ── Desktop: vertical sidebar ── */}
       <aside className="hidden w-60 shrink-0 lg:block">
         <div className="mb-3 flex items-center gap-3 border-b border-slate-200 pb-4">
           {user.avatarUrl
-            ? <img src={mediaUrl(user.avatarUrl)} alt={user.fullName} className="h-12 w-12 rounded-full object-cover ring-2 ring-primary-100" />
+            ? <Image src={mediaUrl(user.avatarUrl)} alt={user.fullName} width={48} height={48} className="h-12 w-12 rounded-full object-cover ring-2 ring-primary-100" />
             : <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">{getInitials(user.fullName)}</div>}
           <div className="min-w-0">
             <p className="truncate font-semibold text-slate-800">{user.fullName}</p>

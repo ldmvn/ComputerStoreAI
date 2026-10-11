@@ -1,8 +1,8 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Eye, Heart, PackageOpen, ShoppingCart, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+import { ChevronRight, Eye, Heart, PackageOpen, ShoppingCart, Trash2 } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
 import { useAuthStore } from '@/store/auth.store';
 import { useAuthModal } from '@/store/authModal.store';
@@ -36,7 +36,7 @@ function WishlistSkeleton() {
   );
 }
 
-export default function Page() {
+export default function WishlistPage() {
   const user = useAuthStore(state => state.user);
   const token = useAuthStore(state => state.token);
   const isHydrated = useAuthStore(state => state.isHydrated);
@@ -86,33 +86,83 @@ export default function Page() {
     return <p role="status" className="text-sm text-slate-500">Đang tải...</p>;
   }
 
+  const breadcrumb = (
+    <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5 text-sm text-slate-500">
+      <Link href="/" className="hover:text-primary-600">Trang chủ</Link>
+      <ChevronRight size={14} aria-hidden="true" />
+      <span className="text-slate-700">Yêu thích</span>
+    </nav>
+  );
+
   if (!user) {
-    return <section>
-      <h1 className="mb-6 text-2xl font-semibold text-slate-900">Yêu thích</h1>
-      <EmptyState
-        icon={Heart}
-        iconClassName="mx-auto mb-4 h-11 w-11 text-primary-300"
-        title="Vui lòng đăng nhập để xem danh sách sản phẩm yêu thích của bạn."
-        description="Sản phẩm yêu thích được lưu theo tài khoản nên bạn có thể xem lại trên mọi thiết bị."
-        action={<button type="button" onClick={openAuthModal} className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700">Đăng nhập ngay</button>}
-      />
-    </section>;
+    return (
+      <>
+        {breadcrumb}
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div className="flex items-center gap-3 px-5 py-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
+              <Heart className="h-5 w-5" />
+            </span>
+            <div>
+              <h1 className="text-lg font-bold text-slate-800">Yêu thích</h1>
+              <p className="text-sm text-slate-500">Lưu lại sản phẩm yêu thích</p>
+            </div>
+          </div>
+          <div className="px-5 pb-6">
+            <EmptyState
+              icon={Heart}
+              iconClassName="mx-auto mb-4 h-11 w-11 text-primary-300"
+              title="Vui lòng đăng nhập để xem danh sách sản phẩm yêu thích của bạn."
+              description="Sản phẩm yêu thích được lưu theo tài khoản nên bạn có thể xem lại trên mọi thiết bị."
+              action={<button type="button" onClick={openAuthModal} className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700">Đăng nhập ngay</button>}
+            />
+          </div>
+        </div>
+      </>
+    );
   }
 
   const showSkeleton = loading && items.length === 0;
 
-  return <section>
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Yêu thích</h1>
-        <p className="mt-1 text-sm text-slate-500" role="status">{items.length} sản phẩm trong danh sách yêu thích.</p>
-      </div>
-      <Link href="/customer/products" className="text-sm font-semibold text-primary-700 hover:text-primary-800">Tiếp tục khám phá →</Link>
-    </div>
+  return (
+    <>
+      {breadcrumb}
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 px-5 py-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
+              <Heart className="h-5 w-5" />
+            </span>
+            <div>
+              <h1 className="text-lg font-bold text-slate-800">Yêu thích</h1>
+              <p className="text-sm text-slate-500" role="status">{items.length} sản phẩm trong danh sách yêu thích</p>
+            </div>
+          </div>
+          <Link href="/products" className="inline-flex items-center gap-1 text-sm font-semibold text-primary-700 hover:text-primary-800">
+            Tiếp tục khám phá <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
 
-    {error && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+        {/* Stat strip */}
+        {!showSkeleton && items.length > 0 && (
+          <div className="grid grid-cols-2 border-y border-slate-200">
+            {[
+              { label: 'Đã lưu', value: items.length },
+              { label: 'Còn hàng', value: items.filter(i => i.product.stockStatus !== 'OUT_OF_STOCK' && i.product.stockQuantity > 0 && i.product.isActive).length },
+            ].map((s, idx) => (
+              <div key={s.label} className={`px-5 py-4 ${idx < 1 ? 'border-r border-slate-200' : ''}`}>
+                <p className="text-2xl font-bold tabular-nums text-primary-600">{s.value}</p>
+                <p className="mt-0.5 text-xs text-slate-500">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
-    {showSkeleton ? <WishlistSkeleton /> : items.length === 0 ? (
+        {error && <p role="alert" className="mx-5 mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+
+        <div className="px-4 pb-4">
+        {showSkeleton ? <WishlistSkeleton /> : items.length === 0 ? (
       error ? (
         <EmptyState
           icon={PackageOpen}
@@ -125,11 +175,11 @@ export default function Page() {
           icon={PackageOpen}
           title="Bạn chưa có sản phẩm yêu thích."
           description="Nhấn vào biểu tượng trái tim trên sản phẩm để lưu lại xem sau."
-          action={<Link href="/customer/products" className="text-sm font-semibold text-primary-700">Khám phá sản phẩm</Link>}
+          action={<Link href="/products" className="text-sm font-semibold text-primary-700">Khám phá sản phẩm</Link>}
         />
       )
     ) : (
-      <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white px-4">
+      <ul className="divide-y divide-slate-100 px-1">
         {items.map(item => {
           const stockInfo = STOCK_LABELS[item.product.stockStatus] || STOCK_LABELS.IN_STOCK;
           const outOfStock = item.product.stockQuantity <= 0 || !item.product.isActive || item.product.stockStatus === 'OUT_OF_STOCK';
@@ -140,7 +190,7 @@ export default function Page() {
           return <li key={item.productId} className="grid grid-cols-[84px_minmax(0,1fr)] items-start gap-x-4 gap-y-3 py-5 sm:grid-cols-[96px_minmax(0,1fr)_auto] sm:items-center">
             <Link href={productDetailHref(item.product.slug)} className="flex h-[84px] w-[84px] items-center justify-center rounded-lg bg-slate-50 p-2 sm:h-24 sm:w-24" tabIndex={-1} aria-hidden="true">
               {item.product.primaryImage
-                ? <img src={mediaUrl(item.product.primaryImage)} alt="" className="h-full w-full object-contain" loading="lazy" />
+                ? <Image src={mediaUrl(item.product.primaryImage)} alt="" width={96} height={96} className="h-full w-full object-contain" />
                 : <PackageOpen className="h-8 w-8 text-slate-300" aria-hidden="true" />}
             </Link>
 
@@ -150,11 +200,11 @@ export default function Page() {
               <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
                 <span className="text-base font-bold tabular-nums text-primary-700">{formatProductPrice(item.product.price)}</span>
                 {discounted && <span className="text-xs tabular-nums text-slate-400 line-through">{formatProductPrice(item.product.originalPrice!)}</span>}
-                {discounted && <span className="rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-semibold text-primary-600">-{discount}%</span>}
+                {discounted && <span className="rounded bg-primary-50 px-1.5 py-0.5 text-xs font-semibold text-primary-600">-{discount}%</span>}
               </div>
 
               <div className="mt-1.5">
-                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ring-inset ${stockInfo.className}`}>{stockInfo.label}</span>
+                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${stockInfo.className}`}>{stockInfo.label}</span>
               </div>
 
               {item.product.highlightSpecs.length > 0 && (
@@ -195,6 +245,9 @@ export default function Page() {
           </li>;
         })}
       </ul>
-    )}
-  </section>;
+        )}
+        </div>
+      </div>
+    </>
+  );
 }

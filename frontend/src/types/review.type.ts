@@ -20,4 +20,6 @@ export interface MyReviewsResponse {
   total: number;
   page: number;
   limit: number;
+  publishedCount: number;
+  pendingCount: number;
 }

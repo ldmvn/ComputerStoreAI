@@ -6,6 +6,8 @@ import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminFeedback from '@/components/admin/AdminFeedback';
 import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import Modal from '@/components/ui/Modal';
 import { mediaUrl } from '@/services/http.client';
 import {
   adminGetReviewStats, adminListReviews, adminPublishReview, adminHideReview, adminDeleteReview,
@@ -43,60 +45,54 @@ const RATING_OPTS = [
 
 function ReviewDetailModal({ review, onClose }: { review: AdminReview; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="flex w-full max-w-lg flex-col rounded-xl bg-white shadow-xl" style={{ maxHeight: '85vh' }}>
-        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
-          <h2 className="font-semibold text-slate-800">Chi tiết đánh giá</h2>
-          <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100"><X className="h-4 w-4" /></button>
-        </div>
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
-          {/* Product */}
-          <div className="flex items-center gap-3 rounded-lg bg-slate-50 p-3">
-            {review.product.imageUrl && (
-              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                <Image src={mediaUrl(review.product.imageUrl)} alt={review.product.name} fill className="object-cover" sizes="48px" />
-              </div>
-            )}
-            <div>
-              <p className="text-sm font-medium text-slate-800">{review.product.name}</p>
-              <p className="text-xs text-slate-500">/{review.product.slug}</p>
-            </div>
-          </div>
-          {/* Author */}
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Người đánh giá</p>
-            <p className="mt-0.5 text-sm text-slate-800">{review.author?.fullName ?? 'Ẩn danh'}</p>
-            {review.author?.email && <p className="text-xs text-slate-500">{review.author.email}</p>}
-          </div>
-          {/* Rating & date */}
-          <div className="flex items-center gap-4">
-            <StarDisplay rating={review.rating} />
-            <span className="text-xs text-slate-400">{new Date(review.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${review.isPublished ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-              {review.isPublished ? 'Đã duyệt' : 'Đang ẩn'}
-            </span>
-          </div>
-          {/* Content */}
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Nội dung</p>
-            <p className="mt-1 text-sm leading-relaxed text-slate-700">{review.content}</p>
-          </div>
-          {/* Images */}
-          {review.images.length > 0 && (
-            <div>
-              <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-slate-400">Hình ảnh ({review.images.length})</p>
-              <div className="flex flex-wrap gap-2">
-                {review.images.map((url, i) => (
-                  <a key={i} href={mediaUrl(url)} target="_blank" rel="noreferrer" className="relative h-16 w-16 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
-                    <Image src={mediaUrl(url)} alt="" fill className="object-cover" sizes="64px" />
-                  </a>
-                ))}
-              </div>
+    <Modal title="Chi tiết đánh giá" onClose={onClose} scrollableBody>
+      <div className="space-y-4">
+        {/* Product */}
+        <div className="flex items-center gap-3 rounded-lg bg-slate-50 p-3">
+          {review.product.imageUrl && (
+            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+              <Image src={mediaUrl(review.product.imageUrl)} alt={review.product.name} fill className="object-cover" sizes="48px" />
             </div>
           )}
+          <div>
+            <p className="text-sm font-medium text-slate-800">{review.product.name}</p>
+            <p className="text-xs text-slate-500">/{review.product.slug}</p>
+          </div>
         </div>
+        {/* Author */}
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Người đánh giá</p>
+          <p className="mt-0.5 text-sm text-slate-800">{review.author?.fullName ?? 'Ẩn danh'}</p>
+          {review.author?.email && <p className="text-xs text-slate-500">{review.author.email}</p>}
+        </div>
+        {/* Rating & date */}
+        <div className="flex items-center gap-4">
+          <StarDisplay rating={review.rating} />
+          <span className="text-xs text-slate-400">{new Date(review.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${review.isPublished ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+            {review.isPublished ? 'Đã duyệt' : 'Đang ẩn'}
+          </span>
+        </div>
+        {/* Content */}
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Nội dung</p>
+          <p className="mt-1 text-sm leading-relaxed text-slate-700">{review.content}</p>
+        </div>
+        {/* Images */}
+        {review.images.length > 0 && (
+          <div>
+            <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-slate-400">Hình ảnh ({review.images.length})</p>
+            <div className="flex flex-wrap gap-2">
+              {review.images.map((url, i) => (
+                <a key={i} href={mediaUrl(url)} target="_blank" rel="noreferrer" className="relative h-16 w-16 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                  <Image src={mediaUrl(url)} alt="" fill className="object-cover" sizes="64px" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -106,6 +102,7 @@ export default function AdminReviewsPage() {
   const token = useAuthStore(s => s.token);
   const isHydrated = useAuthStore(s => s.isHydrated);
   const toast = useToast();
+  const confirmAction = useConfirm();
 
   const [reviews, setReviews] = useState<AdminReview[]>([]);
   const [stats, setStats] = useState<AdminReviewStats | null>(null);
@@ -173,7 +170,8 @@ export default function AdminReviewsPage() {
 
   async function handleDelete(r: AdminReview) {
     if (!token) return;
-    if (!confirm(`Xóa đánh giá của "${r.author?.fullName ?? 'Ẩn danh'}"? Hành động này không thể hoàn tác.`)) return;
+    const ok = await confirmAction({ title: 'Xóa đánh giá', description: `Xóa đánh giá của "${r.author?.fullName ?? 'Ẩn danh'}"? Hành động này không thể hoàn tác.`, destructive: true });
+    if (!ok) return;
     setActionLoading(r.id); setError(''); setMessage('');
     try {
       await adminDeleteReview(token, r.id);
@@ -189,6 +187,11 @@ export default function AdminReviewsPage() {
   }
 
   const totalPages = Math.ceil(total / limit);
+  const avgRating = stats
+    ? stats.total > 0
+      ? (Object.entries(stats.ratingMap).reduce((s, [r, c]) => s + Number(r) * c, 0) / stats.total).toFixed(1)
+      : '—'
+    : '—';
 
   return (
     <div>
@@ -202,11 +205,11 @@ export default function AdminReviewsPage() {
             { label: 'Tổng đánh giá', value: stats.total, color: 'text-slate-700', bg: 'bg-slate-50' },
             { label: 'Đã duyệt', value: stats.published, color: 'text-emerald-700', bg: 'bg-emerald-50' },
             { label: 'Đang ẩn', value: stats.hidden, color: 'text-amber-700', bg: 'bg-amber-50' },
-            { label: 'Chờ duyệt', value: stats.hidden, color: 'text-red-600', bg: 'bg-red-50' },
+            { label: 'Điểm trung bình', value: avgRating, color: 'text-primary-700', bg: 'bg-primary-50' },
           ].map(card => (
             <div key={card.label} className={`rounded-xl ${card.bg} p-4`}>
               <p className="text-xs font-medium text-slate-500">{card.label}</p>
-              <p className={`mt-1 text-2xl font-bold tabular-nums ${card.color}`}>{card.value.toLocaleString('vi-VN')}</p>
+              <p className={`mt-1 text-2xl font-bold tabular-nums ${card.color}`}>{typeof card.value === 'number' ? card.value.toLocaleString('vi-VN') : card.value}</p>
             </div>
           ))}
         </div>
@@ -219,6 +222,7 @@ export default function AdminReviewsPage() {
           <input
             type="text" value={searchInput} onChange={e => setSearchInput(e.target.value)}
             placeholder="Sản phẩm, khách hàng, nội dung..."
+            aria-label="Tìm kiếm đánh giá"
             className="h-8 w-full rounded-lg border border-slate-200 pl-8 pr-7 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
           />
           {searchInput && (
@@ -289,7 +293,7 @@ export default function AdminReviewsPage() {
                       {r.images.length > 0 && <p className="text-xs text-slate-400">{r.images.length} ảnh</p>}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${r.isPublished ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${r.isPublished ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
                         {r.isPublished ? 'Đã duyệt' : 'Đang ẩn'}
                       </span>
                     </td>
@@ -299,21 +303,21 @@ export default function AdminReviewsPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => setDetail(r)} title="Xem chi tiết"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:bg-slate-100">
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:bg-slate-100">
                           <Eye className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => handlePublish(r)}
                           disabled={actionLoading === r.id}
                           title={r.isPublished ? 'Ẩn đánh giá' : 'Duyệt đánh giá'}
-                          className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition ${r.isPublished ? 'border-slate-200 text-slate-500 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700' : 'border-slate-200 text-slate-500 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700'} disabled:opacity-40`}>
+                          className={`inline-flex h-10 w-10 items-center justify-center rounded-md border transition ${r.isPublished ? 'border-slate-200 text-slate-500 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700' : 'border-slate-200 text-slate-500 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700'} disabled:opacity-40`}>
                           {actionLoading === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : r.isPublished ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5 text-emerald-600" />}
                         </button>
                         <button
                           onClick={() => handleDelete(r)}
                           disabled={actionLoading === r.id}
                           title="Xóa đánh giá"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-40">
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-40">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>

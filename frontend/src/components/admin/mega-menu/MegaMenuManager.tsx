@@ -439,7 +439,6 @@ export default function MegaMenuManager() {
     <section>
       <AdminPageHeader
         title="Mega Menu"
-        description="Cấu hình nhóm hiển thị và liên kết tới dữ liệu sản phẩm hiện có."
       />
 
       {/* ── Toolbar ── */}

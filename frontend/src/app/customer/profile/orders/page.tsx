@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import {
   ShoppingBag,
   Search,
@@ -19,6 +20,7 @@ import {
   PackageCheck,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
   getMyOrders,
   getOrderStats,
@@ -51,22 +53,22 @@ const TABS: {
   value: string;
   label: string;
   icon: React.ElementType;
-  statsKey?: keyof Pick<OrderStats, 'total' | 'waitingPickup' | 'completed'>;
+  statsKey?: keyof Pick<OrderStats, 'total' | 'pending' | 'waitingPickup' | 'shipping' | 'completed' | 'cancelled'>;
 }[] = [
   { value: '',          label: 'Tất cả',       icon: SlidersHorizontal, statsKey: 'total'         },
-  { value: 'PENDING',   label: 'Chờ xác nhận', icon: Clock                                        },
+  { value: 'PENDING',   label: 'Chờ xác nhận', icon: Clock,             statsKey: 'pending'       },
   { value: 'CONFIRMED', label: 'Chờ lấy hàng', icon: PackageCheck,      statsKey: 'waitingPickup' },
-  { value: 'SHIPPING',  label: 'Đang giao',    icon: Truck                                        },
+  { value: 'SHIPPING',  label: 'Đang giao',    icon: Truck,             statsKey: 'shipping'      },
   { value: 'DELIVERED', label: 'Hoàn thành',   icon: CheckCircle2,      statsKey: 'completed'     },
-  { value: 'CANCELLED', label: 'Đã hủy',       icon: XCircle                                      },
+  { value: 'CANCELLED', label: 'Đã hủy',       icon: XCircle,           statsKey: 'cancelled'     },
 ];
 
 const LIMIT = 10;
 
 // ─── OrderCard ────────────────────────────────────────────────────────────────
 
-function OrderCard({ order, onCancel, cancelling }: {
-  order: Order; onCancel: (id: number) => void; cancelling: boolean;
+function OrderCard({ order, onCancel, cancelling, cancelError }: {
+  order: Order; onCancel: (id: number) => void; cancelling: boolean; cancelError?: string;
 }) {
   const meta = STATUS_META[order.status];
   const StatusIcon = meta.icon;
@@ -80,7 +82,7 @@ function OrderCard({ order, onCancel, cancelling }: {
         <div className="flex items-center gap-2 min-w-0">
           <Package className="h-4 w-4 shrink-0 text-slate-400" />
           <span className="truncate text-sm font-semibold text-slate-700">#{order.id}</span>
-          <span className="hidden text-xs text-slate-400 sm:block">{formatDate(order.createdAt)}</span>
+          <span className="text-xs text-slate-400">{formatDate(order.createdAt)}</span>
         </div>
         <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${meta.color}`}>
           <StatusIcon className="h-3.5 w-3.5" />
@@ -117,26 +119,45 @@ function OrderCard({ order, onCancel, cancelling }: {
         {extra > 0 && <p className="py-2 text-xs text-slate-400">+{extra} sản phẩm khác</p>}
       </div>
 
+      {cancelError && (
+        <p className="flex items-center gap-1 border-t border-red-100 bg-red-50 px-4 py-2 text-xs text-red-600">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          {cancelError}
+        </p>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3">
-        <div className="text-sm text-slate-600">
-          {order.discountAmount > 0 && (
-            <p className="text-xs text-slate-400">
-              Tạm tính: {formatPrice(order.subtotal)} &minus; Giảm: {formatPrice(order.discountAmount)}
-            </p>
+        <div className="text-sm">
+          <p className="font-bold tabular-nums text-primary-600">{formatPrice(order.subtotal - order.discountAmount)}</p>
+          {order.discountAmount > 0 ? (
+            <p className="text-xs text-slate-400">Tạm tính {formatPrice(order.subtotal)} &minus; giảm {formatPrice(order.discountAmount)}</p>
+          ) : (
+            <p className="text-xs text-slate-500">Tổng tiền</p>
           )}
-          <p>Tổng tiền: <span className="font-bold text-primary-600">{formatPrice(order.subtotal - order.discountAmount)}</span></p>
         </div>
         <div className="flex items-center gap-2">
           {canCancel && (
             <button onClick={() => onCancel(order.id)} disabled={cancelling}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50">
+              className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50">
               <X className="h-3.5 w-3.5" />
               {cancelling ? 'Đang hủy...' : 'Hủy đơn'}
             </button>
           )}
+          {(order.status === 'CONFIRMED' || order.status === 'SHIPPING') && (
+            <div className="flex flex-col items-end gap-0.5">
+              <button
+                disabled
+                title="Đơn hàng đang được xử lý, không thể hủy"
+                className="inline-flex min-h-[2.75rem] cursor-not-allowed items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-400 opacity-60"
+              >
+                <X className="h-3.5 w-3.5" />
+                Hủy đơn
+              </button>
+              <span className="text-[10px] text-slate-400">Đơn đang xử lý</span>
+            </div>
+          )}
           <Link href={`/customer/profile/orders/${order.id}`}
-            className="inline-flex items-center gap-1 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-primary-700">
-            Xem chi tiết <ChevronRight className="h-3.5 w-3.5" />
+            className="inline-flex min-h-[2.75rem] items-center gap-1 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700">
+            Xem chi tiết <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         </div>
       </div>
@@ -146,7 +167,8 @@ function OrderCard({ order, onCancel, cancelling }: {
 
 // ─── main page ────────────────────────────────────────────────────────────────
 
-export default function OrdersPage() {
+function OrdersPageContent() {
+  const searchParams = useSearchParams();
   const { user, token } = useAuthStore();
 
   const [stats, setStats]               = useState<OrderStats | null>(null);
@@ -157,13 +179,14 @@ export default function OrdersPage() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [error, setError]               = useState<string | null>(null);
 
-  const [activeTab, setActiveTab]     = useState('');
+  const [activeTab, setActiveTab]     = useState(searchParams.get('status') ?? '');
   const [search, setSearch]           = useState('');
   const [searchInput, setSearchInput] = useState('');
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const confirm = useConfirm();
   const [cancellingId, setCancellingId] = useState<number | null>(null);
-  const [cancelError, setCancelError]   = useState<string | null>(null);
+  const [cancelError, setCancelError]   = useState<{ orderId: number; message: string } | null>(null);
 
   const hasFilter = Boolean(activeTab || search);
   const totalPages = Math.ceil(total / LIMIT);
@@ -193,31 +216,40 @@ export default function OrdersPage() {
   useEffect(() => { loadStats(); }, [loadStats]);
 
   useEffect(() => {
-    setPage(1);
-    loadOrders({ status: activeTab || undefined, search: search || undefined, page: 1, limit: LIMIT });
-  }, [activeTab, search, loadOrders]);
+    loadOrders({ status: activeTab || undefined, search: search || undefined, page, limit: LIMIT });
+  }, [activeTab, search, page, loadOrders]);
 
   useEffect(() => {
-    if (page === 1) return;
-    loadOrders({ status: activeTab || undefined, search: search || undefined, page, limit: LIMIT });
-  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!cancelError) return;
+    const t = setTimeout(() => setCancelError(null), 8000);
+    return () => clearTimeout(t);
+  }, [cancelError]);
 
   const handleSearchChange = (val: string) => {
     setSearchInput(val);
     if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => setSearch(val.trim()), 400);
+    searchTimer.current = setTimeout(() => {
+      setPage(1);
+      setSearch(val.trim());
+    }, 400);
   };
 
-  const clearFilters = () => { setActiveTab(''); setSearch(''); setSearchInput(''); };
+  const clearFilters = () => { setActiveTab(''); setSearch(''); setSearchInput(''); setPage(1); };
 
   const handleCancel = async (orderId: number) => {
     if (!token) return;
+    const ok = await confirm({
+      title: 'Hủy đơn hàng',
+      description: `Bạn có chắc muốn hủy đơn hàng #${orderId}? Hành động này không thể hoàn tác.`,
+      destructive: true,
+    });
+    if (!ok) return;
     setCancellingId(orderId); setCancelError(null);
     try {
       const { order: updated } = await cancelOrder(token, orderId);
       setOrders(prev => prev.map(o => o.id === updated.id ? updated : o));
     } catch (err: unknown) {
-      setCancelError(err instanceof OrderRequestError ? err.message : 'Không thể hủy đơn hàng.');
+      setCancelError({ orderId, message: err instanceof OrderRequestError ? err.message : 'Không thể hủy đơn hàng.' });
     } finally { setCancellingId(null); }
   };
 
@@ -226,9 +258,9 @@ export default function OrdersPage() {
   const breadcrumb = (
     <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-slate-500">
       <Link href="/" className="hover:text-primary-600">Trang chủ</Link>
-      <ChevronRight size={14} />
+      <ChevronRight size={14} aria-hidden="true" />
       <Link href="/customer/profile" className="hover:text-primary-600">Tài khoản</Link>
-      <ChevronRight size={14} />
+      <ChevronRight size={14} aria-hidden="true" />
       <span className="text-slate-700">Đơn hàng của tôi</span>
     </nav>
   );
@@ -267,8 +299,10 @@ export default function OrdersPage() {
               { label: 'Tổng giá trị', value: formatPrice(stats?.totalValue ?? 0) },
             ].map((s, idx) => (
               <div key={s.label} className={`px-5 py-4 ${idx < 3 ? 'border-r border-slate-200' : ''}`}>
-                <p className="text-2xl font-bold tabular-nums text-primary-600">{s.value}</p>
-                <p className="mt-0.5 text-xs text-slate-500">{s.label}</p>
+                <dl className="flex flex-col-reverse">
+                  <dt className="mt-0.5 text-xs text-slate-500">{s.label}</dt>
+                  <dd className="text-2xl font-bold tabular-nums text-primary-600">{s.value}</dd>
+                </dl>
               </div>
             ))
           )}
@@ -278,11 +312,13 @@ export default function OrdersPage() {
         <div className="px-5 py-3">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <label htmlFor="order-search" className="sr-only">Tìm kiếm đơn hàng</label>
             <input
+              id="order-search"
               type="search"
               value={searchInput}
               onChange={e => handleSearchChange(e.target.value)}
-              placeholder="Tìm theo mã đơn hàng, tên người mua..."
+              placeholder="Tìm theo mã đơn hàng, tên sản phẩm..."
               className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-800 placeholder-slate-400 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
             />
           </div>
@@ -298,7 +334,7 @@ export default function OrdersPage() {
               return (
                 <button
                   key={tab.value}
-                  onClick={() => { setActiveTab(tab.value); setPage(1); }}
+                  onClick={() => { setPage(1); setActiveTab(tab.value); }}
                   className={`flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                     active
                       ? 'border-primary-600 text-primary-600'
@@ -307,9 +343,16 @@ export default function OrdersPage() {
                 >
                   <TabIcon className="h-3.5 w-3.5 shrink-0" />
                   {tab.label}
-                  <span className={`text-xs tabular-nums ${active ? 'text-primary-600' : 'text-slate-500'}`}>
-                    {count}
-                  </span>
+                  {statsLoading ? (
+                    <span className="inline-block h-2.5 w-4 animate-pulse rounded bg-slate-200" aria-hidden="true" />
+                  ) : (
+                    <>
+                      <span className={`text-xs tabular-nums ${active ? 'text-primary-600' : 'text-slate-500'}`} aria-hidden="true">
+                        {count}
+                      </span>
+                      <span className="sr-only">({count} đơn)</span>
+                    </>
+                  )}
                 </button>
               );
             })}
@@ -318,13 +361,6 @@ export default function OrdersPage() {
 
         {/* List */}
         <div className="space-y-3 p-4 sm:p-5">
-          {cancelError && (
-            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              {cancelError}
-            </div>
-          )}
-
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map(i => (
@@ -357,7 +393,7 @@ export default function OrdersPage() {
                   : 'Hãy khám phá sản phẩm và đặt đơn hàng đầu tiên của bạn'}
               </p>
               {!hasFilter && (
-                <Link href="/customer/products"
+                <Link href="/products"
                   className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700">
                   Mua sắm ngay
                 </Link>
@@ -366,7 +402,8 @@ export default function OrdersPage() {
           ) : (
             orders.map(order => (
               <OrderCard key={order.id} order={order}
-                onCancel={handleCancel} cancelling={cancellingId === order.id} />
+                onCancel={handleCancel} cancelling={cancellingId === order.id}
+                cancelError={cancelError?.orderId === order.id ? cancelError.message : undefined} />
             ))
           )}
 
@@ -393,5 +430,13 @@ export default function OrdersPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense>
+      <OrdersPageContent />
+    </Suspense>
   );
 }

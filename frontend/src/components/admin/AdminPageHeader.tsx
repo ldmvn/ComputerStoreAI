@@ -2,8 +2,7 @@ import type { ReactNode } from 'react';
 
 type AdminPageHeaderProps = {
   title: string;
-  description?: string;
-  action?: ReactNode;
+action?: ReactNode;
 };
 
 export default function AdminPageHeader({ title, action }: AdminPageHeaderProps) {

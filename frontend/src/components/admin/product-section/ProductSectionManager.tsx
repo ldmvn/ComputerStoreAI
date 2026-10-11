@@ -154,7 +154,6 @@ export default function ProductSectionManager() {
     <section>
       <AdminPageHeader
         title="Khối sản phẩm"
-        description="Tạo và sắp xếp các nhóm sản phẩm hiển thị trên trang Home."
         action={
           <button type="button" onClick={() => setEditor(null)} className="ui-button ui-button--primary inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-700">
             <Plus className="h-4 w-4" />Tạo khối sản phẩm

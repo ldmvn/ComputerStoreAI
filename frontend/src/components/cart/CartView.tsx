@@ -6,6 +6,7 @@ import { PackageOpen } from 'lucide-react';
 import { useCartStore, type CartItem } from '@/store/cart.store';
 import { useAuthStore } from '@/store/auth.store';
 import { useCheckoutStore } from '@/store/checkout.store';
+import { useAuthModal } from '@/store/authModal.store';
 import { useToast } from '@/components/ui/Toast';
 import EmptyState from '@/components/ui/EmptyState';
 import CartItemsList from './CartItemsList';
@@ -37,12 +38,16 @@ export default function CartView() {
   const removeItem = useCartStore(state => state.removeItem);
   const user = useAuthStore(state => state.user);
   const prepare = useCheckoutStore(state => state.prepare);
+  const openAuthModal = useAuthModal(state => state.open);
+  const isModalOpen = useAuthModal(state => state.isOpen);
   const toast = useToast();
 
   const deselectedKey = `cart_deselected_${user?.id ?? 'guest'}`;
 
   // deselectedIds: IDs người dùng đã chủ động bỏ tích — persisted to localStorage per user
   const [deselectedIds, setDeselectedIds] = useState<Set<number>>(new Set<number>());
+  // Snapshot of items waiting to be checked out after the user logs in
+  const [pendingItems, setPendingItems] = useState<CartItem[] | null>(null);
 
   const saveDeselected = (next: Set<number>) => {
     try { localStorage.setItem(deselectedKey, JSON.stringify([...next])); } catch {}
@@ -104,9 +109,26 @@ export default function CartView() {
 
   const handleCheckout = () => {
     if (selectedItems.length === 0) return;
+    if (!user) {
+      setPendingItems([...selectedItems]);
+      openAuthModal();
+      return;
+    }
     prepare('cart', selectedItems);
     router.push('/customer/checkout');
   };
+
+  // When the auth modal closes, proceed to checkout if the user is now logged in,
+  // or clear the pending intent if they dismissed without logging in.
+  useEffect(() => {
+    if (pendingItems !== null && !isModalOpen) {
+      if (user) {
+        prepare('cart', pendingItems);
+        router.push('/customer/checkout');
+      }
+      setPendingItems(null);
+    }
+  }, [isModalOpen, pendingItems, user, prepare, router]);
 
   return (
     <section>

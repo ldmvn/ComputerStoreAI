@@ -2,18 +2,27 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Lock, Eye, EyeOff, AlertCircle, Shield } from 'lucide-react';
+import { ChevronRight, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import { changePassword, AuthRequestError } from '@/services/auth.service';
 
 // ─── password strength ────────────────────────────────────────────────────────
+
+function getCriteria(pw: string) {
+  return [
+    { label: 'Ít nhất 8 ký tự',      met: pw.length >= 8           },
+    { label: 'Ít nhất 12 ký tự',      met: pw.length >= 12          },
+    { label: 'Chứa chữ hoa (A–Z)',     met: /[A-Z]/.test(pw)         },
+    { label: 'Chứa chữ số (0–9)',      met: /[0-9]/.test(pw)         },
+    { label: 'Chứa ký tự đặc biệt',   met: /[^A-Za-z0-9]/.test(pw) },
+  ];
+}
 
 function getStrength(pw: string): { score: number; label: string; color: string } {
   if (!pw) return { score: 0, label: '', color: '' };
   let score = 0;
-  if (pw.length >= 6)  score++;
+  if (pw.length >= 8)  score++;
   if (pw.length >= 12) score++;
   if (/[A-Z]/.test(pw)) score++;
   if (/[0-9]/.test(pw)) score++;
@@ -51,8 +60,8 @@ function PasswordField({
         <button
           type="button"
           onClick={() => setShow(v => !v)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-          tabIndex={-1}
+          aria-label={show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
@@ -81,7 +90,7 @@ export default function PasswordPage() {
     const e: Record<string, string> = {};
     if (!current) e.current = 'Vui lòng nhập mật khẩu hiện tại.';
     if (!next)    e.next    = 'Vui lòng nhập mật khẩu mới.';
-    else if (next.length < 6) e.next = 'Mật khẩu mới phải có ít nhất 6 ký tự.';
+    else if (next.length < 8) e.next = 'Mật khẩu mới phải có ít nhất 8 ký tự.';
     else if (next === current) e.next = 'Mật khẩu mới phải khác mật khẩu hiện tại.';
     if (!confirm)           e.confirm = 'Vui lòng xác nhận mật khẩu mới.';
     else if (confirm !== next) e.confirm = 'Mật khẩu xác nhận không khớp.';
@@ -93,27 +102,23 @@ export default function PasswordPage() {
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
+    if (!token) return;
 
     setLoading(true);
     setApiError(null);
     try {
-      const res = await fetch(`${API}/auth/password`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ currentPassword: current, newPassword: next }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.field === 'currentPassword') setErrors({ current: data.message });
-        else if (data.field === 'newPassword') setErrors({ next: data.message });
-        else setApiError(data.message || 'Đã xảy ra lỗi. Vui lòng thử lại.');
-        return;
-      }
+      await changePassword(token, current, next);
       toast.success('Đổi mật khẩu thành công!', 'Vui lòng dùng mật khẩu mới cho lần đăng nhập tiếp theo.');
       setCurrent(''); setNext(''); setConfirm('');
       setErrors({}); setApiError(null);
-    } catch {
-      setApiError('Không thể kết nối máy chủ. Vui lòng thử lại.');
+    } catch (err) {
+      if (err instanceof AuthRequestError) {
+        if (err.field === 'currentPassword') setErrors({ current: err.message });
+        else if (err.field === 'newPassword') setErrors({ next: err.message });
+        else setApiError(err.message);
+      } else {
+        setApiError('Không thể kết nối máy chủ. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }
@@ -124,11 +129,11 @@ export default function PasswordPage() {
   return (
     <>
       {/* Breadcrumb */}
-      <nav className="mb-4 flex items-center gap-1.5 text-sm text-slate-500">
+      <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5 text-sm text-slate-500">
         <Link href="/" className="hover:text-primary-600">Trang chủ</Link>
-        <ChevronRight size={14} />
+        <ChevronRight size={14} aria-hidden="true" />
         <Link href="/customer/profile" className="hover:text-primary-600">Tài khoản</Link>
-        <ChevronRight size={14} />
+        <ChevronRight size={14} aria-hidden="true" />
         <span className="text-slate-700">Bảo mật tài khoản</span>
       </nav>
 
@@ -136,31 +141,13 @@ export default function PasswordPage() {
 
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-primary-600">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
             <Lock className="h-5 w-5" />
           </span>
           <div>
             <h1 className="text-lg font-bold text-slate-800">Bảo mật tài khoản</h1>
             <p className="text-sm text-slate-500">Cập nhật mật khẩu để bảo vệ tài khoản của bạn</p>
           </div>
-        </div>
-
-        {/* Stats strip */}
-        <div className="grid grid-cols-2 border-y border-slate-200">
-          {[
-            { icon: Shield, label: 'Trạng thái', value: 'Đang hoạt động', green: true },
-            { icon: Lock,   label: 'Xác thực',  value: 'Mật khẩu', green: false },
-          ].map((s, i) => (
-            <div key={s.label} className={`flex items-center gap-3 px-5 py-4 ${i === 0 ? 'border-r border-slate-200' : ''}`}>
-              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${s.green ? 'bg-green-50' : 'bg-slate-50'}`}>
-                <s.icon className={`h-4 w-4 ${s.green ? 'text-green-600' : 'text-slate-500'}`} />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-slate-800">{s.value}</p>
-                <p className="text-xs text-slate-500">{s.label}</p>
-              </div>
-            </div>
-          ))}
         </div>
 
         {/* Form */}
@@ -192,15 +179,25 @@ export default function PasswordPage() {
               placeholder="Tối thiểu 8 ký tự"
             />
 
-            {/* Strength bar */}
+            {/* Strength bar + criteria */}
             {next.length > 0 && (
-              <div className="-mt-2">
+              <div className="-mt-2 space-y-2">
                 <div className="flex gap-1">
                   {[1,2,3,4,5].map(i => (
                     <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= strength.score ? strength.color : 'bg-slate-100'}`} />
                   ))}
                 </div>
-                <p className="mt-1 text-xs text-slate-500">Độ mạnh: <span className="font-medium text-slate-700">{strength.label}</span></p>
+                <p role="status" aria-live="polite" className="text-xs text-slate-500">
+                  Độ mạnh: <span className="font-medium text-slate-700">{strength.label}</span>
+                </p>
+                <ul className="space-y-0.5">
+                  {getCriteria(next).map(c => (
+                    <li key={c.label} className={`flex items-center gap-1.5 text-xs ${c.met ? 'text-green-600' : 'text-slate-400'}`}>
+                      <span aria-hidden="true">{c.met ? '✓' : '○'}</span>
+                      {c.label}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 

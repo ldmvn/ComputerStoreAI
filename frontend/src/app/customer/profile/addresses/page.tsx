@@ -54,18 +54,28 @@ function AddressCard({ addr, onEdit, onDelete, onSetDefault, settingDefault }: {
 
         {/* Right column: badge + actions */}
         <div className="flex shrink-0 flex-col items-end gap-2">
-          {addr.isDefault && (
+          {addr.isDefault ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-semibold text-primary-700">
               <Star className="h-3 w-3" /> Mặc định
             </span>
+          ) : (
+            <button
+              onClick={onSetDefault}
+              disabled={settingDefault}
+              className="inline-flex min-h-[2.75rem] items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-500 transition hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 disabled:opacity-50"
+            >
+              <Star className="h-3 w-3" />
+              {settingDefault ? 'Đang đặt...' : 'Đặt mặc định'}
+            </button>
           )}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 border-t border-slate-100 pt-2">
             <button onClick={onEdit}
-              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">
+              className="inline-flex min-h-[2.75rem] items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50">
               <Pencil className="h-3 w-3" /> Sửa
             </button>
             <button onClick={onDelete}
-              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600">
+              aria-label={`Xóa địa chỉ ${addr.fullName}`}
+              className="inline-flex min-h-[2.75rem] items-center gap-1 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 hover:text-red-600">
               <Trash2 className="h-3 w-3" /> Xóa
             </button>
           </div>
@@ -129,16 +139,20 @@ export default function AddressesPage() {
   };
 
   const handleDelete = async (id: number) => {
+    const target = addresses.find(a => a.id === id);
+    const wasDefault = target?.isDefault ?? false;
     const ok = await confirm({
       title: 'Xóa địa chỉ',
-      description: 'Bạn có chắc muốn xóa địa chỉ này không?',
+      description: wasDefault
+        ? 'Đây là địa chỉ mặc định của bạn. Sau khi xóa, hãy chọn địa chỉ mặc định mới trước khi đặt hàng.'
+        : 'Bạn có chắc muốn xóa địa chỉ này không?',
       destructive: true,
     });
     if (!ok || !token) return;
     try {
       await deleteAddress(token, id);
       setAddresses(prev => prev.filter(a => a.id !== id));
-      toast.success('Đã xóa địa chỉ.');
+      toast.success(wasDefault ? 'Đã xóa địa chỉ mặc định. Vui lòng đặt địa chỉ mặc định mới.' : 'Đã xóa địa chỉ.');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Không thể xóa.');
     }
@@ -181,9 +195,9 @@ export default function AddressesPage() {
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5 text-sm text-slate-500">
         <Link href="/" className="hover:text-primary-600">Trang chủ</Link>
-        <ChevronRight size={14} />
+        <ChevronRight size={14} aria-hidden="true" />
         <Link href="/customer/profile" className="hover:text-primary-600">Tài khoản</Link>
-        <ChevronRight size={14} />
+        <ChevronRight size={14} aria-hidden="true" />
         <span className="text-slate-700">Địa chỉ của tôi</span>
       </nav>
 

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -59,6 +59,7 @@ export default function CheckoutView() {
   const isAuthHydrated = useAuthStore(state => state.isHydrated);
   const removeItem = useCartStore(state => state.removeItem);
   const openAuthModal = useAuthModal(state => state.open);
+  const isModalOpen = useAuthModal(state => state.isOpen);
   const toast = useToast();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -68,6 +69,9 @@ export default function CheckoutView() {
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [addFormOpen, setAddFormOpen] = useState(false);
+  // Tracks whether we already opened the auth modal for this checkout visit,
+  // so we can detect "modal closed without login" and redirect back to cart.
+  const didOpenModalRef = useRef(false);
 
   const [voucherInput, setVoucherInput] = useState('');
   const [voucherApplied, setVoucherApplied] = useState<VoucherValidation | null>(null);
@@ -103,9 +107,19 @@ export default function CheckoutView() {
 
   useEffect(() => {
     if (!isAuthHydrated) return;
-    if (!user) { openAuthModal(); return; }
+    if (!user) {
+      if (!didOpenModalRef.current) {
+        didOpenModalRef.current = true;
+        openAuthModal();
+      } else if (!isModalOpen) {
+        // Modal was shown but dismissed without logging in — send back to cart.
+        router.replace('/customer/cart');
+      }
+      return;
+    }
+    didOpenModalRef.current = false;
     void loadAddresses();
-  }, [isAuthHydrated, user, loadAddresses, openAuthModal]);
+  }, [isAuthHydrated, user, isModalOpen, loadAddresses, openAuthModal, router]);
 
   useEffect(() => {
     if (!isAuthHydrated) return;

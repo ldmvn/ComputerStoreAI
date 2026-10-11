@@ -34,11 +34,11 @@ const SORT_OPTIONS: { value: CustomerSortBy; label: string }[] = [
 ];
 
 const ORDER_STATUS_COLOR: Partial<Record<OrderStatus, string>> = {
-  PENDING:   'bg-amber-100 text-amber-700',
-  CONFIRMED: 'bg-blue-100 text-blue-700',
-  SHIPPING:  'bg-indigo-100 text-indigo-700',
-  DELIVERED: 'bg-emerald-100 text-emerald-700',
-  CANCELLED: 'bg-red-100 text-red-600',
+  PENDING:   'bg-amber-50 text-amber-700',
+  CONFIRMED: 'bg-blue-50 text-blue-700',
+  SHIPPING:  'bg-indigo-50 text-indigo-700',
+  DELIVERED: 'bg-emerald-50 text-emerald-700',
+  CANCELLED: 'bg-red-50 text-red-700',
 };
 
 function initials(name: string) {
@@ -75,7 +75,7 @@ function CustomerModal({ customerId, onClose }: { customerId: number; onClose: (
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <p className="truncate font-semibold text-slate-900">{detail.fullName}</p>
-          <span className={`inline-block shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${detail.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+          <span className={`inline-block shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${detail.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
             {detail.isActive ? 'Hoạt động' : 'Bị khóa'}
           </span>
         </div>
@@ -124,6 +124,7 @@ function CustomerModal({ customerId, onClose }: { customerId: number; onClose: (
               </div>
             ) : (
               <div className="overflow-hidden rounded-xl border border-slate-200">
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50">
@@ -150,6 +151,7 @@ function CustomerModal({ customerId, onClose }: { customerId: number; onClose: (
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             )}
           </div>
@@ -249,6 +251,7 @@ export default function AdminCustomersPage() {
               onChange={e => setSearchInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
               placeholder="Tìm tên, email, SĐT..."
+              aria-label="Tìm kiếm khách hàng"
               className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
             />
             {searchInput && (
@@ -353,7 +356,7 @@ export default function AdminCustomersPage() {
                       {fmtDate(c.lastOrderAt)}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${c.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${c.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
                         {c.isActive ? 'Hoạt động' : 'Bị khóa'}
                       </span>
                     </td>
@@ -379,11 +382,11 @@ export default function AdminCustomersPage() {
         <div className="mt-4 flex items-center justify-between">
           <p className="text-sm text-slate-500">{total} khách hàng</p>
           <div className="flex items-center gap-1">
-            <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="rounded-lg border border-slate-200 p-1.5 disabled:opacity-40">
+            <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 disabled:opacity-40">
               <ChevronLeft className="h-4 w-4" />
             </button>
             <span className="px-3 text-sm text-slate-600">{page} / {totalPages}</span>
-            <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="rounded-lg border border-slate-200 p-1.5 disabled:opacity-40">
+            <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 disabled:opacity-40">
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>

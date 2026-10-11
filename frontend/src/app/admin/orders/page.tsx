@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Fragment } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Loader2, Search, ChevronLeft, ChevronRight, X, ChevronDown } from 'lucide-react';
@@ -10,6 +10,7 @@ import {
   adminListOrders, adminGetOrderStats, adminUpdateOrderStatus,
   type AdminOrder, type AdminOrderStats,
 } from '@/services/adminSales.service';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { mediaUrl } from '@/services/http.client';
 import { formatProductPrice as fmt } from '@/lib/product';
 import { ORDER_STATUS_LABEL, type OrderStatus } from '@/types/order.type';
@@ -30,11 +31,11 @@ const STATUS_NEXT: Partial<Record<OrderStatus, { status: OrderStatus; label: str
 };
 
 const STATUS_COLOR: Record<OrderStatus, string> = {
-  PENDING:   'bg-amber-100 text-amber-700',
-  CONFIRMED: 'bg-blue-100 text-blue-700',
-  SHIPPING:  'bg-indigo-100 text-indigo-700',
-  DELIVERED: 'bg-emerald-100 text-emerald-700',
-  CANCELLED: 'bg-red-100 text-red-600',
+  PENDING:   'bg-amber-50 text-amber-700',
+  CONFIRMED: 'bg-blue-50 text-blue-700',
+  SHIPPING:  'bg-indigo-50 text-indigo-700',
+  DELIVERED: 'bg-emerald-50 text-emerald-700',
+  CANCELLED: 'bg-red-50 text-red-700',
 };
 
 export default function AdminOrdersPage() {
@@ -56,6 +57,7 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
+  const confirmAction = useConfirm();
   const [expanded, setExpanded] = useState<number | null>(null);
 
   const load = useCallback(async () => {
@@ -99,7 +101,9 @@ export default function AdminOrdersPage() {
   };
 
   const handleCancel = async (order: AdminOrder) => {
-    if (!token || !confirm(`Hủy đơn hàng #${order.id}?`)) return;
+    if (!token) return;
+    const ok = await confirmAction({ title: 'Hủy đơn hàng', description: `Hủy đơn hàng #${order.id}? Hành động này không thể hoàn tác.`, destructive: true });
+    if (!ok) return;
     setActionLoading(order.id);
     try {
       await adminUpdateOrderStatus(token, order.id, { status: 'CANCELLED' });
@@ -146,6 +150,7 @@ export default function AdminOrdersPage() {
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
             placeholder="ID đơn, tên, SĐT..."
+            aria-label="Tìm kiếm đơn hàng"
             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
           />
           {searchInput && <button onClick={clearSearch}><X className="h-4 w-4 text-slate-400 hover:text-slate-600" /></button>}
@@ -173,6 +178,7 @@ export default function AdminOrdersPage() {
         ) : orders.length === 0 ? (
           <p className="py-14 text-center text-sm text-slate-400">Không có đơn hàng nào.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50">
@@ -189,8 +195,8 @@ export default function AdminOrdersPage() {
                 const canCancel = order.status === 'PENDING' || order.status === 'CONFIRMED';
                 const isExpanded = expanded === order.id;
                 return (
-                  <>
-                    <tr key={order.id} className="hover:bg-slate-50/60">
+                  <Fragment key={order.id}>
+                    <tr className="hover:bg-slate-50/60">
                       <td className="px-4 py-3">
                         <button onClick={() => setExpanded(isExpanded ? null : order.id)} className="flex items-center gap-1 font-semibold text-slate-800 hover:text-primary-700">
                           <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -261,11 +267,12 @@ export default function AdminOrdersPage() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -274,11 +281,11 @@ export default function AdminOrdersPage() {
         <div className="mt-4 flex items-center justify-between">
           <p className="text-sm text-slate-500">{total} đơn hàng</p>
           <div className="flex items-center gap-1">
-            <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="rounded-lg border border-slate-200 p-1.5 disabled:opacity-40">
+            <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 disabled:opacity-40">
               <ChevronLeft className="h-4 w-4" />
             </button>
             <span className="px-3 text-sm text-slate-600">{page} / {totalPages}</span>
-            <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="rounded-lg border border-slate-200 p-1.5 disabled:opacity-40">
+            <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 disabled:opacity-40">
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>

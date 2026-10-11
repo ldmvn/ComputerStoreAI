@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 
 export async function listMyReviews(userId, { page = 1, limit = 10 } = {}) {
   const skip = (page - 1) * limit;
-  const [rows, total] = await Promise.all([
+  const [rows, total, publishedCount] = await Promise.all([
     prisma.productReview.findMany({
       where: { userId },
       include: {
@@ -18,6 +18,7 @@ export async function listMyReviews(userId, { page = 1, limit = 10 } = {}) {
       skip, take: limit,
     }),
     prisma.productReview.count({ where: { userId } }),
+    prisma.productReview.count({ where: { userId, isPublished: true } }),
   ]);
 
   const reviews = rows.map(r => ({
@@ -35,7 +36,48 @@ export async function listMyReviews(userId, { page = 1, limit = 10 } = {}) {
     },
   }));
 
-  return { reviews, total, page, limit };
+  const pendingCount = total - publishedCount;
+  return { reviews, total, page, limit, publishedCount, pendingCount };
+}
+
+export async function updateMyReview(userId, reviewId, { rating, content }) {
+  const existing = await prisma.productReview.findFirst({
+    where: { id: reviewId, userId },
+    select: { id: true },
+  });
+  if (!existing) return null;
+
+  const updated = await prisma.productReview.update({
+    where: { id: reviewId },
+    data: {
+      rating: parseInt(rating),
+      content: content.trim(),
+      isPublished: false,
+    },
+    include: {
+      product: {
+        select: {
+          id: true, name: true, slug: true,
+          images: { where: { isPrimary: true }, select: { imageUrl: true }, take: 1 },
+        },
+      },
+    },
+  });
+
+  return {
+    id: updated.id,
+    rating: updated.rating,
+    content: updated.content,
+    images: (() => { try { return updated.images ? JSON.parse(updated.images) : []; } catch { return []; } })(),
+    isPublished: updated.isPublished,
+    createdAt: updated.createdAt,
+    product: {
+      id: updated.product.id,
+      name: updated.product.name,
+      slug: updated.product.slug,
+      imageUrl: updated.product.images[0]?.imageUrl ?? null,
+    },
+  };
 }
 
 export async function deleteMyReview(userId, reviewId) {

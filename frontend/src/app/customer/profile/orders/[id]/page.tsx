@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
   ArrowLeft, ChevronRight, Clock, PackageCheck, Truck, CheckCircle2,
   XCircle, ShoppingBag, MapPin, CreditCard, Banknote, Package,
-  AlertCircle, Loader2,
+  AlertCircle, Loader2, Star, X,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
-import { getOrder, OrderRequestError } from '@/services/order.service';
+import { getOrder, cancelOrder, OrderRequestError } from '@/services/order.service';
 import { mediaUrl } from '@/services/http.client';
 import type { Order, OrderStatus } from '@/types/order.type';
 
@@ -57,9 +58,12 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const { user, token } = useAuthStore();
 
+  const confirm = useConfirm();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   const id = Number(params.id);
 
@@ -78,16 +82,33 @@ export default function OrderDetailPage() {
       .finally(() => setLoading(false));
   }, [token, id]);
 
+  const handleCancel = async () => {
+    if (!token || !order) return;
+    const ok = await confirm({
+      title: 'Hủy đơn hàng',
+      description: `Bạn có chắc muốn hủy đơn hàng #${order.id}? Hành động này không thể hoàn tác.`,
+      destructive: true,
+    });
+    if (!ok) return;
+    setCancelling(true); setCancelError(null);
+    try {
+      const { order: updated } = await cancelOrder(token, order.id);
+      setOrder(updated);
+    } catch (err) {
+      setCancelError(err instanceof OrderRequestError ? err.message : 'Không thể hủy đơn hàng.');
+    } finally { setCancelling(false); }
+  };
+
   if (!user) return null;
 
   const breadcrumb = (
     <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-slate-500">
       <Link href="/" className="hover:text-primary-600">Trang chủ</Link>
-      <ChevronRight size={14} />
+      <ChevronRight size={14} aria-hidden="true" />
       <Link href="/customer/profile" className="hover:text-primary-600">Tài khoản</Link>
-      <ChevronRight size={14} />
+      <ChevronRight size={14} aria-hidden="true" />
       <Link href="/customer/profile/orders" className="hover:text-primary-600">Đơn hàng</Link>
-      <ChevronRight size={14} />
+      <ChevronRight size={14} aria-hidden="true" />
       <span className="text-slate-700">#{id}</span>
     </nav>
   );
@@ -228,6 +249,37 @@ export default function OrderDetailPage() {
               <p className="text-xs text-slate-500">Ghi chú: <span className="text-slate-700">{order.note}</span></p>
             </div>
           )}
+
+          {/* Delivered — review CTA + workshop trust signal */}
+          {order.status === 'DELIVERED' && (
+            <div className="rounded-2xl border border-primary-100 bg-primary-50/40 p-5">
+              <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-800">
+                <Star className="h-4 w-4 text-amber-400" aria-hidden="true" />
+                Đánh giá sản phẩm
+              </h2>
+              <p className="mb-3 text-xs text-slate-500">Chia sẻ trải nghiệm của bạn để giúp người dùng khác lựa chọn đúng hơn</p>
+              <ul className="space-y-2">
+                {order.items.map(item => (
+                  <li key={item.id} className="flex items-center justify-between gap-3">
+                    <span className="line-clamp-1 min-w-0 text-sm text-slate-700">{item.name}</span>
+                    {item.slug ? (
+                      <Link
+                        href={`/products/${item.slug}#reviews`}
+                        className="shrink-0 rounded-lg border border-primary-200 bg-white px-3 py-1.5 text-xs font-semibold text-primary-700 hover:bg-primary-50"
+                      >
+                        Viết đánh giá
+                      </Link>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-4 border-t border-primary-100 pt-3">
+                <p className="text-xs text-slate-500">
+                  <span className="font-medium text-slate-700">DUCMANH PC</span> bảo hành theo phiếu đi kèm sản phẩm. Cần hỗ trợ kỹ thuật sau mua? Đội ngũ workshop của chúng tôi luôn sẵn sàng.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── Right ── */}
@@ -246,12 +298,8 @@ export default function OrderDetailPage() {
                 <dd className="tabular-nums text-slate-700">{formatDatetime(order.createdAt)}</dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-500">Trạng thái</dt>
-                <dd>
-                  <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${meta.color}`}>
-                    <StatusIcon className="h-3 w-3" />{meta.label}
-                  </span>
-                </dd>
+                <dt className="text-slate-500">Cập nhật</dt>
+                <dd className="tabular-nums text-slate-700">{formatDatetime(order.updatedAt ?? order.createdAt)}</dd>
               </div>
             </dl>
           </div>
@@ -275,9 +323,31 @@ export default function OrderDetailPage() {
               {order.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng (COD)' : 'Chuyển khoản ngân hàng'}
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              {order.status === 'DELIVERED' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+              {order.paymentMethod === 'COD'
+                ? (order.status === 'DELIVERED' ? 'Đã thanh toán' : 'Thanh toán khi nhận hàng')
+                : 'Đã thanh toán'}
             </p>
           </div>
+
+          {/* Cancel — PENDING orders only */}
+          {order.status === 'PENDING' && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              {cancelError && (
+                <p className="mb-3 flex items-center gap-1.5 text-sm text-red-600">
+                  <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {cancelError}
+                </p>
+              )}
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+                {cancelling ? 'Đang hủy...' : 'Hủy đơn hàng'}
+              </button>
+            </div>
+          )}
 
           {/* Price breakdown */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -293,10 +363,6 @@ export default function OrderDetailPage() {
                   <dd className="tabular-nums font-medium">-{formatPrice(order.discountAmount)}</dd>
                 </div>
               )}
-              <div className="flex justify-between gap-2 text-slate-400">
-                <dt>Phí vận chuyển</dt>
-                <dd className="text-xs">Đã bao gồm / Tính khi xác nhận</dd>
-              </div>
               <div className="flex justify-between gap-2 border-t border-slate-100 pt-2">
                 <dt className="font-semibold text-slate-800">Tổng thanh toán</dt>
                 <dd className="text-lg font-bold tabular-nums text-primary-700">{formatPrice(total)}</dd>
