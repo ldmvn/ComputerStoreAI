@@ -1,33 +1,64 @@
 'use client';
 
 import { useState } from 'react';
-import { Phone, Mail, MapPin, MessageSquare, Clock } from 'lucide-react';
+import { Phone, Mail, MapPin, MessageSquare, Clock, Copy, CheckCheck } from 'lucide-react';
 import CustomerShell from '@/components/layout/CustomerShell';
 import InfoPageLayout from '@/components/layout/InfoPageLayout';
+import { createSupportTicket, type TicketCreatedResult } from '@/services/support.service';
+import { useAuthStore } from '@/store/auth.store';
 
 const CATEGORIES = ['Lỗi kỹ thuật sản phẩm', 'Cài đặt & Phần mềm', 'Kết nối & Mạng', 'Linh kiện & Nâng cấp', 'Khác'];
 
 export default function SupportPage() {
-  const [form, setForm] = useState({ name: '', phone: '', email: '', category: '', detail: '' });
-  const [sent, setSent] = useState(false);
+  const { token } = useAuthStore();
+  const [form, setForm] = useState({ name: '', phone: '', email: '', category: '', subject: '', detail: '' });
+  const [result, setResult] = useState<TicketCreatedResult | null>(null);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [serverError, setServerError] = useState('');
+  const [copied, setCopied] = useState(false);
 
   function validate() {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = 'Vui lòng nhập họ tên.';
     if (!form.phone.trim()) e.phone = 'Vui lòng nhập số điện thoại.';
     if (!form.category) e.category = 'Vui lòng chọn loại hỗ trợ.';
+    if (!form.subject.trim()) e.subject = 'Vui lòng nhập tiêu đề vấn đề.';
     if (!form.detail.trim()) e.detail = 'Vui lòng mô tả vấn đề.';
     return e;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
+    setServerError('');
     if (Object.keys(errs).length > 0) return;
-    // TODO: Gọi API khi backend hỗ trợ ticket kỹ thuật
-    setSent(true);
+
+    setLoading(true);
+    try {
+      const res = await createSupportTicket({
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim() || undefined,
+        category: form.category,
+        subject: form.subject.trim(),
+        detail: form.detail.trim(),
+      }, token ?? undefined);
+      setResult(res.data);
+    } catch (err: unknown) {
+      setServerError(err instanceof Error ? err.message : 'Có lỗi xảy ra. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleCopyCode() {
+    if (!result) return;
+    navigator.clipboard.writeText(result.code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   const field = (id: keyof typeof form, label: string, el: React.ReactNode) => (
@@ -41,6 +72,10 @@ export default function SupportPage() {
   const inputCls = (id: string) =>
     `w-full rounded-xl border px-4 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-300 ${errors[id] ? 'border-red-400 bg-red-50 focus:ring-2 focus:ring-red-200' : 'border-slate-200 bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20'}`;
 
+  const ticketUrl = result
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/support/ticket?code=${result.code}&token=${result.accessToken}`
+    : '';
+
   return (
     <CustomerShell>
       <InfoPageLayout
@@ -49,25 +84,62 @@ export default function SupportPage() {
         description="Đội ngũ kỹ thuật DUCMANH PC sẵn sàng hỗ trợ bạn qua điện thoại, email hoặc phiếu hỗ trợ trực tuyến."
       >
         <div className="grid gap-8 md:grid-cols-[1fr_280px]">
-          {/* Form */}
+          {/* Form / Success */}
           <div>
             <h2 className="mb-4 text-base font-semibold text-slate-900">Gửi yêu cầu hỗ trợ</h2>
 
-            {sent ? (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center">
-                <p className="text-2xl">✓</p>
-                <p className="mt-2 font-semibold text-emerald-800">Yêu cầu đã được gửi thành công!</p>
-                <p className="mt-1 text-sm text-emerald-700">Đội ngũ kỹ thuật sẽ liên hệ với bạn trong thời gian sớm nhất.</p>
+            {result ? (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6">
+                <p className="text-2xl text-center">✓</p>
+                <p className="mt-2 text-center font-semibold text-emerald-800">Yêu cầu đã được gửi thành công!</p>
+                <p className="mt-1 text-center text-sm text-emerald-700">Đội ngũ kỹ thuật sẽ phản hồi trong thời gian sớm nhất.</p>
+
+                <div className="mt-5 rounded-lg border border-emerald-300 bg-white p-4 space-y-3">
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Mã phiếu hỗ trợ</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="font-mono text-lg font-bold text-slate-900">{result.code}</span>
+                      <button
+                        type="button"
+                        onClick={handleCopyCode}
+                        className="rounded p-1 text-slate-400 hover:text-slate-700 transition"
+                        title="Sao chép mã phiếu"
+                      >
+                        {copied ? <CheckCheck className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-600">
+                    Lưu lại mã phiếu và đường dẫn bên dưới để tra cứu trạng thái xử lý bất kỳ lúc nào.
+                  </p>
+                  <div className="rounded border border-slate-200 bg-slate-50 px-3 py-2">
+                    <p className="text-xs text-slate-500 mb-1">Đường dẫn tra cứu phiếu:</p>
+                    <a
+                      href={ticketUrl}
+                      className="break-all text-xs text-primary-700 hover:underline"
+                    >
+                      {ticketUrl}
+                    </a>
+                  </div>
+                </div>
+
                 <button
                   type="button"
-                  className="mt-4 text-sm text-primary-700 hover:underline"
-                  onClick={() => { setSent(false); setForm({ name: '', phone: '', email: '', category: '', detail: '' }); }}
+                  className="mt-5 w-full text-sm text-primary-700 hover:underline"
+                  onClick={() => {
+                    setResult(null);
+                    setForm({ name: '', phone: '', email: '', category: '', subject: '', detail: '' });
+                  }}
                 >
                   Gửi yêu cầu khác
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                {/* Honeypot — hidden from real users */}
+                <input type="text" name="_honeypot" aria-hidden="true" tabIndex={-1}
+                  className="hidden" autoComplete="off" />
+
                 {field('name', 'Họ và tên *', (
                   <input id="name" type="text" value={form.name} placeholder="Nguyễn Văn A"
                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -93,18 +165,29 @@ export default function SupportPage() {
                     {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 ))}
+                {field('subject', 'Tiêu đề vấn đề *', (
+                  <input id="subject" type="text" value={form.subject}
+                    placeholder="VD: Máy tính không khởi động được"
+                    onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
+                    className={inputCls('subject')} />
+                ))}
                 {field('detail', 'Mô tả vấn đề *', (
                   <textarea id="detail" rows={4} value={form.detail}
                     placeholder="Mô tả chi tiết vấn đề bạn đang gặp phải..."
                     onChange={e => setForm(f => ({ ...f, detail: e.target.value }))}
                     className={inputCls('detail')} />
                 ))}
-                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                  ⚠ Chức năng gửi yêu cầu trực tuyến đang được phát triển. Hiện tại vui lòng liên hệ trực tiếp qua hotline hoặc email bên phải.
-                </p>
-                <button type="submit"
-                  className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700">
-                  Gửi yêu cầu
+                {serverError && (
+                  <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                    {serverError}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:opacity-60"
+                >
+                  {loading ? 'Đang gửi...' : 'Gửi yêu cầu'}
                 </button>
               </form>
             )}

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import CustomerShell from '@/components/layout/CustomerShell';
 import InfoPageLayout, { Section } from '@/components/layout/InfoPageLayout';
+import { getPublicPolicyPage } from '@/services/contentPage.service';
 
 export const metadata: Metadata = {
   title: 'Điều khoản sử dụng — DUCMANH PC',
@@ -17,16 +18,35 @@ const toc = [
   { id: 'thay-doi', label: 'Thay đổi điều khoản' },
 ];
 
-export default function TermsPage() {
+function DynamicContent({ html }: { html: string }) {
+  return (
+    <>
+      <div className="policy-content text-sm leading-relaxed text-slate-700" dangerouslySetInnerHTML={{ __html: html }} />
+      <style>{`
+        .policy-content h2 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 1.4em 0 0.5em; scroll-margin-top: 24px; }
+        .policy-content h3 { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 1.2em 0 0.4em; }
+        .policy-content p { margin: 0.4em 0; }
+        .policy-content ul { list-style: disc; padding-left: 1.5em; margin: 0.4em 0; }
+        .policy-content ol { list-style: decimal; padding-left: 1.5em; margin: 0.4em 0; }
+        .policy-content li { margin: 0.2em 0; }
+        .policy-content a { color: #c4480a; text-decoration: underline; }
+      `}</style>
+    </>
+  );
+}
+
+export default async function TermsPage() {
+  const page = await getPublicPolicyPage('terms');
   return (
     <CustomerShell>
       <InfoPageLayout
         breadcrumbs={[{ label: 'Trang chủ', href: '/' }, { label: 'Điều khoản sử dụng' }]}
-        title="Điều khoản sử dụng"
-        description="Vui lòng đọc kỹ các điều khoản dưới đây trước khi sử dụng dịch vụ của DUCMANH PC."
+        title={page?.title ?? 'Điều khoản sử dụng'}
+        description={page?.description ?? 'Vui lòng đọc kỹ các điều khoản dưới đây trước khi sử dụng dịch vụ của DUCMANH PC.'}
         badge="Pháp lý"
         toc={toc}
       >
+        {page?.contentHtml ? <DynamicContent html={page.contentHtml} /> : (<>
         <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: 11/10/2026</p>
 
         <Section id="chap-nhan" title="1. Chấp nhận điều khoản">
@@ -61,6 +81,7 @@ export default function TermsPage() {
         <Section id="thay-doi" title="7. Thay đổi điều khoản">
           <p>DUCMANH PC có quyền cập nhật các điều khoản này vào bất kỳ lúc nào. Thay đổi có hiệu lực kể từ khi được đăng tải lên website. Việc tiếp tục sử dụng dịch vụ đồng nghĩa với việc bạn chấp nhận điều khoản mới.</p>
         </Section>
+        </>)}
       </InfoPageLayout>
     </CustomerShell>
   );

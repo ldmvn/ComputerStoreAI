@@ -111,3 +111,22 @@ export async function sendResetOtp(email, otp) {
   console.info('[SMTP] OTP message accepted by mail server.');
   return info;
 }
+
+export async function sendTestMail(to) {
+  await ensureResetMailReady();
+  const info = await getResetMailTransport().sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: 'Email thử nghiệm — DUCMANH PC',
+    text: 'Đây là email thử nghiệm từ hệ thống DUCMANH PC.\n\nNếu bạn nhận được email này, cấu hình SMTP đang hoạt động tốt.',
+    html: '<div style="font-family:Arial,sans-serif;color:#0f172a;max-width:480px;padding:24px 32px;border:1px solid #e2e8f0;border-radius:12px">' +
+      '<h2 style="color:#C4480A;margin-bottom:8px">DUCMANH PC</h2>' +
+      '<p style="margin:0 0 12px">Đây là email thử nghiệm từ hệ thống DUCMANH PC.</p>' +
+      '<p style="margin:0 0 12px">Nếu bạn nhận được email này, cấu hình SMTP đang hoạt động tốt.</p>' +
+      '<hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0"/>' +
+      '<p style="font-size:12px;color:#94a3b8;margin:0">Email này được gửi từ trang quản trị DUCMANH PC. Vui lòng không trả lời.</p></div>',
+  });
+  if (!info.accepted?.length) throw smtpError('SMTP không chấp nhận người nhận.', 'SMTP_RECIPIENT_REJECTED');
+  console.info('[SMTP] Test email accepted by mail server.');
+  return info;
+}

@@ -1,5 +1,15 @@
 import { verifyAccessToken } from '../services/token.service.js';
 
+// Optional auth — attaches req.user if a valid Bearer token is present, but never rejects.
+export function optionalAuth(req, _res, next) {
+  const authorization = req.headers.authorization || '';
+  const [scheme, token] = authorization.split(' ');
+  if (scheme === 'Bearer' && token) {
+    try { req.user = verifyAccessToken(token); } catch { /* ignore */ }
+  }
+  return next();
+}
+
 export function authenticateToken(req, res, next) {
   const authorization = req.headers.authorization || '';
   const [scheme, token] = authorization.split(' ');

@@ -402,12 +402,13 @@ model User {
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
   adminRole    Role?           @relation(fields: [adminRoleId], references: [id], onDelete: SetNull)
-  reviews      ProductReview[]
-  wishlist     Wishlist?
-  addresses    Address[]
+  reviews         ProductReview[]
+  wishlist        Wishlist?
+  addresses       Address[]
   orders          Order[]
   returnRequests  ReturnRequest[]
   activityLogs    ActivityLog[]
+  supportTickets  SupportTicket[]
 
   @@index([role, isActive])
   @@index([adminRoleId])
@@ -468,6 +469,20 @@ model StoreSetting {
   updatedAt DateTime @updatedAt
 }
 
+
+// ── Policy Pages ───────────────────────────────────────────────────────────────
+// Fixed-key pages whose body is edited via Dashboard. Phase 1: warranty only.
+// Separate from the old ContentPage table (removed CMS) which is left untouched.
+
+model PolicyPage {
+  id               Int      @id @default(autoincrement())
+  pageKey          String   @unique @db.VarChar(100)
+  title            String   @db.VarChar(200)
+  description      String?  @db.VarChar(500)
+  contentHtml      String   @db.MediumText
+  updatedAt        DateTime @updatedAt
+  updatedByAdminId Int?
+}
 
 enum BannerGroup {
   MAIN
@@ -820,4 +835,89 @@ model BuildPcSettings {
   maxBudget          Int?
   allowSubstitution  Boolean  @default(true)
   updatedAt          DateTime @updatedAt
+}
+
+// ── Support Tickets ───────────────────────────────────────────────────────────
+
+enum SupportTicketStatus {
+  NEW
+  IN_PROGRESS
+  WAITING_ADMIN
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum SupportMessageSender {
+  CUSTOMER
+  ADMIN
+  SYSTEM
+}
+
+model SupportTicket {
+  id              Int                   @id @default(autoincrement())
+  code            String                @unique @db.VarChar(30)
+  // Contact info (may differ from user profile)
+  guestName       String                @db.VarChar(191)
+  guestPhone      String                @db.VarChar(30)
+  guestEmail      String?               @db.VarChar(191)
+  category        String                @db.VarChar(100)
+  // Linked user (if submitted while logged in)
+  userId          Int?
+  // Admin assigned to handle this ticket
+  assignedAdminId Int?
+  status          SupportTicketStatus   @default(WAITING_ADMIN)
+  // Secret token for guest access (UUID v4, stored as-is for simple lookup)
+  accessToken     String                @unique @db.Char(36)
+  // Honeypot / spam guard passed
+  ipAddress       String?               @db.VarChar(45)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  closedAt        DateTime?
+
+  user            User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages        SupportMessage[]
+  notifications   SupportNotification[]
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@index([assignedAdminId])
+  @@index([guestEmail])
+  @@index([createdAt])
+}
+
+model SupportMessage {
+  id         Int                  @id @default(autoincrement())
+  ticketId   Int
+  sender     SupportMessageSender
+  // Null sender details = system message
+  senderName String?              @db.VarChar(191)
+  // Admin userId if sender=ADMIN
+  adminId    Int?
+  body       String               @db.Text
+  createdAt  DateTime             @default(now())
+
+  ticket     SupportTicket        @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+}
+
+// Outbox for email notifications — idempotency key = ticketId + messageId
+model SupportNotification {
+  id           Int       @id @default(autoincrement())
+  ticketId     Int
+  messageId    Int?
+  // idempotency: prevent duplicate sends
+  idempotencyKey String  @unique @db.VarChar(100)
+  status       String    @default("pending") @db.VarChar(20)
+  attempts     Int       @default(0)
+  lastError    String?   @db.VarChar(500)
+  sentAt       DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([status, createdAt])
 }

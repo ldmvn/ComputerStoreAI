@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import CustomerShell from '@/components/layout/CustomerShell';
 import InfoPageLayout, { Section } from '@/components/layout/InfoPageLayout';
+import { getPublicPolicyPage } from '@/services/contentPage.service';
 
 export const metadata: Metadata = {
   title: 'Chính sách thanh toán — DUCMANH PC',
@@ -14,16 +15,34 @@ const toc = [
   { id: 'hoan-tien', label: 'Hoàn tiền' },
 ];
 
-export default function PaymentPolicyPage() {
+function DynamicContent({ html }: { html: string }) {
+  return (
+    <>
+      <div className="policy-content text-sm leading-relaxed text-slate-700" dangerouslySetInnerHTML={{ __html: html }} />
+      <style>{`
+        .policy-content h2 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 1.4em 0 0.5em; scroll-margin-top: 24px; }
+        .policy-content h3 { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 1.2em 0 0.4em; }
+        .policy-content p { margin: 0.4em 0; }
+        .policy-content ul { list-style: disc; padding-left: 1.5em; margin: 0.4em 0; }
+        .policy-content li { margin: 0.2em 0; }
+        .policy-content a { color: #c4480a; text-decoration: underline; }
+      `}</style>
+    </>
+  );
+}
+
+export default async function PaymentPolicyPage() {
+  const page = await getPublicPolicyPage('payment');
   return (
     <CustomerShell>
       <InfoPageLayout
         breadcrumbs={[{ label: 'Trang chủ', href: '/' }, { label: 'Chính sách thanh toán' }]}
-        title="Chính sách thanh toán"
-        description="DUCMANH PC hỗ trợ nhiều phương thức thanh toán linh hoạt, an toàn và tiện lợi."
+        title={page?.title ?? 'Chính sách thanh toán'}
+        description={page?.description ?? 'DUCMANH PC hỗ trợ nhiều phương thức thanh toán linh hoạt, an toàn và tiện lợi.'}
         badge="Chính sách"
         toc={toc}
       >
+        {page?.contentHtml ? <DynamicContent html={page.contentHtml} /> : (<>
         <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: 11/10/2026</p>
 
         <Section id="phuong-thuc" title="1. Phương thức thanh toán được chấp nhận">
@@ -58,6 +77,7 @@ export default function PaymentPolicyPage() {
         <Section id="hoan-tien" title="4. Hoàn tiền">
           <p>Trường hợp đơn hàng bị hủy sau khi đã thanh toán hoặc sản phẩm lỗi không có hàng đổi, DUCMANH PC sẽ hoàn tiền trong vòng 3–5 ngày làm việc qua phương thức thanh toán ban đầu hoặc chuyển khoản ngân hàng.</p>
         </Section>
+        </>)}
       </InfoPageLayout>
     </CustomerShell>
   );

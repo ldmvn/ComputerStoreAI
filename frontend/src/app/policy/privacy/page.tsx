@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import CustomerShell from '@/components/layout/CustomerShell';
 import InfoPageLayout, { Section } from '@/components/layout/InfoPageLayout';
+import { getPublicPolicyPage } from '@/services/contentPage.service';
 
 export const metadata: Metadata = {
   title: 'Chính sách bảo mật — DUCMANH PC',
@@ -17,16 +18,38 @@ const toc = [
   { id: 'lien-he', label: 'Liên hệ' },
 ];
 
-export default function PrivacyPolicyPage() {
+function DynamicContent({ html }: { html: string }) {
+  return (
+    <>
+      <div className="policy-content text-sm leading-relaxed text-slate-700" dangerouslySetInnerHTML={{ __html: html }} />
+      <style>{`
+        .policy-content h2 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 1.4em 0 0.5em; scroll-margin-top: 24px; }
+        .policy-content h3 { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 1.2em 0 0.4em; }
+        .policy-content p { margin: 0.4em 0; }
+        .policy-content ul { list-style: disc; padding-left: 1.5em; margin: 0.4em 0; }
+        .policy-content ol { list-style: decimal; padding-left: 1.5em; margin: 0.4em 0; }
+        .policy-content li { margin: 0.2em 0; }
+        .policy-content a { color: #c4480a; text-decoration: underline; }
+        .policy-content table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+        .policy-content th, .policy-content td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; }
+        .policy-content th { background: #f8fafc; font-weight: 600; }
+      `}</style>
+    </>
+  );
+}
+
+export default async function PrivacyPolicyPage() {
+  const page = await getPublicPolicyPage('privacy');
   return (
     <CustomerShell>
       <InfoPageLayout
         breadcrumbs={[{ label: 'Trang chủ', href: '/' }, { label: 'Chính sách bảo mật' }]}
-        title="Chính sách bảo mật"
-        description="DUCMANH PC coi trọng quyền riêng tư của khách hàng và cam kết bảo vệ thông tin cá nhân."
+        title={page?.title ?? 'Chính sách bảo mật'}
+        description={page?.description ?? 'DUCMANH PC coi trọng quyền riêng tư của khách hàng và cam kết bảo vệ thông tin cá nhân.'}
         badge="Chính sách"
         toc={toc}
       >
+        {page?.contentHtml ? <DynamicContent html={page.contentHtml} /> : (<>
         <p className="mb-6 text-sm text-slate-500">Cập nhật lần cuối: 11/10/2026</p>
 
         <Section id="thu-thap" title="1. Thông tin chúng tôi thu thập">
@@ -80,6 +103,7 @@ export default function PrivacyPolicyPage() {
             <li>📞 Hotline: <a href="tel:0386220065" className="text-primary-700 hover:underline">0386220065</a></li>
           </ul>
         </Section>
+        </>)}
       </InfoPageLayout>
     </CustomerShell>
   );

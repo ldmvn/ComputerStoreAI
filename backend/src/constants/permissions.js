@@ -78,6 +78,12 @@ export const PERMISSIONS = [
   // Settings
   { module: 'settings',       action: 'view',    label: 'Xem cài đặt cửa hàng',     description: 'Xem thông tin cửa hàng và cài đặt chung' },
   { module: 'settings',       action: 'manage',  label: 'Quản lý cài đặt cửa hàng', description: 'Chỉnh sửa thông tin cửa hàng, mạng xã hội, footer' },
+  // Support Tickets
+  { module: 'support',        action: 'view',    label: 'Xem phiếu hỗ trợ',         description: 'Xem danh sách và chi tiết phiếu hỗ trợ kỹ thuật' },
+  { module: 'support',        action: 'reply',   label: 'Trả lời phiếu hỗ trợ',     description: 'Gửi phản hồi cho khách hàng trong phiếu hỗ trợ' },
+  { module: 'support',        action: 'update',  label: 'Cập nhật trạng thái phiếu', description: 'Thay đổi trạng thái và ghi chú phiếu hỗ trợ' },
+  { module: 'support',        action: 'assign',  label: 'Phân công xử lý',           description: 'Phân công nhân viên xử lý phiếu hỗ trợ' },
+  { module: 'support',        action: 'manage',  label: 'Quản lý hỗ trợ',           description: 'Toàn quyền quản lý phiếu hỗ trợ, đóng, xóa' },
 ];
 
 // Quick lookup helpers

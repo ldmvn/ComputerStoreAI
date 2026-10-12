@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import CustomerShell from '@/components/layout/CustomerShell';
 import InfoPageLayout, { Section } from '@/components/layout/InfoPageLayout';
+import { getPublicPolicyPage } from '@/services/contentPage.service';
 
 export const metadata: Metadata = {
   title: 'Vận chuyển & Giao nhận — DUCMANH PC',
@@ -16,15 +17,38 @@ const toc = [
   { id: 'theo-doi', label: 'Theo dõi đơn hàng' },
 ];
 
-export default function ShippingPage() {
+function DynamicContent({ html }: { html: string }) {
+  return (
+    <>
+      <div className="policy-content text-sm leading-relaxed text-slate-700" dangerouslySetInnerHTML={{ __html: html }} />
+      <style>{`
+        .policy-content h2 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 1.4em 0 0.5em; scroll-margin-top: 24px; }
+        .policy-content h3 { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 1.2em 0 0.4em; }
+        .policy-content p { margin: 0.4em 0; }
+        .policy-content ul { list-style: disc; padding-left: 1.5em; margin: 0.4em 0; }
+        .policy-content ol { list-style: decimal; padding-left: 1.5em; margin: 0.4em 0; }
+        .policy-content li { margin: 0.2em 0; }
+        .policy-content em { font-style: italic; color: #94a3b8; font-size: 0.8rem; }
+        .policy-content a { color: #c4480a; text-decoration: underline; }
+        .policy-content table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+        .policy-content th, .policy-content td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; }
+        .policy-content th { background: #f8fafc; font-weight: 600; }
+      `}</style>
+    </>
+  );
+}
+
+export default async function ShippingPage() {
+  const page = await getPublicPolicyPage('shipping');
   return (
     <CustomerShell>
       <InfoPageLayout
         breadcrumbs={[{ label: 'Trang chủ', href: '/' }, { label: 'Vận chuyển & Giao nhận' }]}
-        title="Vận chuyển & Giao nhận"
-        description="DUCMANH PC giao hàng toàn quốc với nhiều đơn vị vận chuyển uy tín, đảm bảo hàng đến tay bạn nhanh chóng và an toàn."
+        title={page?.title ?? 'Vận chuyển & Giao nhận'}
+        description={page?.description ?? 'DUCMANH PC giao hàng toàn quốc với nhiều đơn vị vận chuyển uy tín, đảm bảo hàng đến tay bạn nhanh chóng và an toàn.'}
         toc={toc}
       >
+        {page?.contentHtml ? <DynamicContent html={page.contentHtml} /> : (<>
         <Section id="pham-vi" title="1. Phạm vi giao hàng">
           <p>DUCMANH PC giao hàng trên toàn lãnh thổ Việt Nam, bao gồm các tỉnh thành, huyện, xã có dịch vụ bưu chính/vận chuyển.</p>
           <p>Với các khu vực vùng sâu, vùng xa hoặc hải đảo, thời gian giao hàng có thể kéo dài hơn. Vui lòng liên hệ để xác nhận trước khi đặt hàng.</p>
@@ -73,6 +97,7 @@ export default function ShippingPage() {
         <Section id="theo-doi" title="6. Theo dõi đơn hàng">
           <p>Sau khi đơn hàng được xuất kho, bạn sẽ nhận thông báo kèm mã vận đơn qua email. Đăng nhập tài khoản và vào "Đơn hàng của tôi" để xem trạng thái cập nhật.</p>
         </Section>
+        </>)}
       </InfoPageLayout>
     </CustomerShell>
   );

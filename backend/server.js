@@ -38,6 +38,11 @@ import rolesRoutes from './src/routes/v1/roles.route.js';
 import adminUsersRoutes from './src/routes/v1/adminUsers.route.js';
 import activityLogRoutes from './src/routes/v1/activityLog.route.js';
 import adminSettingsRoutes from './src/routes/v1/adminSettings.route.js';
+import adminContentPageRoutes from './src/routes/v1/adminContentPage.route.js';
+import publicContentPageRoutes from './src/routes/v1/publicContentPage.route.js';
+import supportRoutes from './src/routes/v1/support.route.js';
+import customerSupportRoutes from './src/routes/v1/customerSupport.route.js';
+import adminSupportRoutes from './src/routes/v1/adminSupport.route.js';
 
 import { verifyResetMailConnection } from './src/services/passwordResetMail.service.js';
 import { cleanupExpiredPasswordResets } from './src/services/passwordReset.service.js';
@@ -118,6 +123,11 @@ app.use('/api/admin/roles', rolesRoutes);
 app.use('/api/admin/admin-users', adminUsersRoutes);
 app.use('/api/admin/activity-logs', activityLogRoutes);
 app.use('/api/admin/settings', adminSettingsRoutes);
+app.use('/api/content/pages',        publicContentPageRoutes);
+app.use('/api/admin/content-pages',  adminContentPageRoutes);
+app.use('/api/support',          supportRoutes);
+app.use('/api/customer/support', customerSupportRoutes);
+app.use('/api/admin/support-tickets', adminSupportRoutes);
 
 app.use('/media/banners', express.static(bannerMediaDirectory, {
   dotfiles: 'deny',

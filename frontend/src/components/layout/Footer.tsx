@@ -8,7 +8,6 @@ import { MapPin, Phone, Mail, Shield, Truck, RotateCcw, CreditCard, ChevronDown 
 const aboutLinks = [
   { label: 'Giới thiệu DUCMANH PC', href: '/about' },
   { label: 'Hệ thống cửa hàng', href: '/stores' },
-  { label: 'Liên hệ hợp tác', href: '/partner' },
 ];
 
 const supportLinks = [

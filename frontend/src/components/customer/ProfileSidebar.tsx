@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { ClipboardList, Heart, Lock, MapPin, Star, User, LogOut } from 'lucide-react';
+import { ClipboardList, Heart, Lock, MapPin, Star, User, LogOut, LifeBuoy } from 'lucide-react';
 import { mediaUrl } from '@/services/http.client';
 import { useAuthStore } from '@/store/auth.store';
 import type { AuthUser } from '@/types/user.type';
@@ -14,6 +14,7 @@ const navItems = [
   { href: '/customer/profile/reviews',   label: 'Đánh giá của tôi',    icon: Star                          },
   { href: '/customer/wishlist',          label: 'Yêu thích',           icon: Heart                         },
   { href: '/customer/profile/password',  label: 'Bảo mật tài khoản',   icon: Lock                          },
+  { href: '/customer/profile/support',   label: 'Yêu cầu hỗ trợ',      icon: LifeBuoy                       },
 ];
 
 function getInitials(name: string) {

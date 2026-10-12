@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Monitor, Cpu, Wrench, Users } from 'lucide-react';
 import CustomerShell from '@/components/layout/CustomerShell';
 import InfoPageLayout from '@/components/layout/InfoPageLayout';
+import { getPublicPolicyPage } from '@/services/contentPage.service';
 
 export const metadata: Metadata = {
   title: 'Giới thiệu DUCMANH PC',
@@ -16,14 +17,32 @@ const values = [
   { icon: Users, title: 'Khách hàng là trung tâm', desc: 'Mọi quyết định đều xuất phát từ lợi ích của khách hàng — từ giá cả đến dịch vụ và chính sách đổi trả.' },
 ];
 
-export default function AboutPage() {
+function DynamicContent({ html }: { html: string }) {
+  return (
+    <>
+      <div className="policy-content text-sm leading-relaxed text-slate-700" dangerouslySetInnerHTML={{ __html: html }} />
+      <style>{`
+        .policy-content h2 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 1.4em 0 0.5em; }
+        .policy-content h3 { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 1.2em 0 0.4em; }
+        .policy-content p { margin: 0.4em 0; }
+        .policy-content ul { list-style: disc; padding-left: 1.5em; margin: 0.4em 0; }
+        .policy-content li { margin: 0.2em 0; }
+        .policy-content a { color: #c4480a; text-decoration: underline; }
+      `}</style>
+    </>
+  );
+}
+
+export default async function AboutPage() {
+  const page = await getPublicPolicyPage('about');
   return (
     <CustomerShell>
       <InfoPageLayout
         breadcrumbs={[{ label: 'Trang chủ', href: '/' }, { label: 'Giới thiệu' }]}
-        title="Giới thiệu DUCMANH PC"
-        description="Cửa hàng PC & Laptop chính hãng, uy tín tại Phú Thọ — hơn 10 năm kinh nghiệm trong lĩnh vực công nghệ."
+        title={page?.title ?? 'Giới thiệu DUCMANH PC'}
+        description={page?.description ?? 'Cửa hàng PC & Laptop chính hãng, uy tín tại Phú Thọ — hơn 10 năm kinh nghiệm trong lĩnh vực công nghệ.'}
       >
+        {page?.contentHtml ? <DynamicContent html={page.contentHtml} /> : (<>
         {/* Story */}
         <section className="mb-10">
           <h2 className="mb-4 text-lg font-semibold text-slate-900">Câu chuyện của chúng tôi</h2>
@@ -74,6 +93,7 @@ export default function AboutPage() {
             <Link href="/customer/products" className="rounded-lg border border-primary-300 bg-white px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-50">Khám phá sản phẩm</Link>
           </div>
         </div>
+        </>)}
       </InfoPageLayout>
     </CustomerShell>
   );

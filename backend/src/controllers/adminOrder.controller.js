@@ -1,4 +1,5 @@
 import * as service from '../services/adminOrder.service.js';
+import { notifyStatusChanged, notifyOrderCancelled } from '../services/telegramNotification.service.js';
 
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
 
@@ -25,7 +26,18 @@ export const updateStatus = asyncHandler(async (req, res) => {
   if (!id) return res.status(400).json({ message: 'ID không hợp lệ.' });
   const { status, note, trackingNumber, shippingProvider } = req.body;
   if (!status) return res.status(400).json({ message: 'Vui lòng cung cấp trạng thái mới.' });
+
+  const before = await service.getAdminOrder(id);
   const order = await service.updateOrderStatus(id, { status, note, trackingNumber, shippingProvider }, req.user.userId);
+
+  if (before && order) {
+    if (status === 'CANCELLED') {
+      notifyOrderCancelled(order, 'Quản trị viên').catch(e => console.error('[Telegram]', e.message));
+    } else {
+      notifyStatusChanged(order, before.status).catch(e => console.error('[Telegram]', e.message));
+    }
+  }
+
   res.json({ order, message: 'Cập nhật trạng thái đơn hàng thành công.' });
 });
 

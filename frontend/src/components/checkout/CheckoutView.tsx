@@ -72,6 +72,9 @@ export default function CheckoutView() {
   // Tracks whether we already opened the auth modal for this checkout visit,
   // so we can detect "modal closed without login" and redirect back to cart.
   const didOpenModalRef = useRef(false);
+  // Set to true the moment order is confirmed — prevents the "empty session"
+  // effect below from racing with router.push and sending the user to /cart.
+  const orderPlacedRef = useRef(false);
 
   const [voucherInput, setVoucherInput] = useState('');
   const [voucherApplied, setVoucherApplied] = useState<VoucherValidation | null>(null);
@@ -123,6 +126,7 @@ export default function CheckoutView() {
 
   useEffect(() => {
     if (!isAuthHydrated) return;
+    if (orderPlacedRef.current) return; // order success — router.push already in flight
     if (!session || session.items.length === 0) {
       router.replace('/customer/cart');
     }
@@ -179,6 +183,9 @@ export default function CheckoutView() {
         voucherCode: voucherApplied?.code,
       }, token);
 
+      // Mark success BEFORE clearSession so the session-empty effect is suppressed
+      orderPlacedRef.current = true;
+
       if (session.source === 'cart') {
         for (const item of session.items) {
           removeItem(item.id);
@@ -186,8 +193,8 @@ export default function CheckoutView() {
       }
 
       clearSession();
-      toast.success('Đặt hàng thành công!', `Đơn hàng #${order.id} đã được xác nhận.`);
-      router.push(`/customer/orders/${order.id}`);
+      toast.success('Đặt hàng thành công!', `Đơn hàng #${order.id} đã được ghi nhận.`);
+      router.push(`/customer/profile/orders/${order.id}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Đặt hàng thất bại. Vui lòng thử lại.';
       toast.error('Đặt hàng thất bại', msg);

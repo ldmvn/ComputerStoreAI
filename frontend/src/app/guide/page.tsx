@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ShoppingCart, CreditCard, Package, CheckCircle } from 'lucide-react';
 import CustomerShell from '@/components/layout/CustomerShell';
 import InfoPageLayout from '@/components/layout/InfoPageLayout';
+import { getPublicPolicyPage } from '@/services/contentPage.service';
 
 export const metadata: Metadata = {
   title: 'Hướng dẫn mua hàng — DUCMANH PC',
@@ -40,14 +41,32 @@ const steps = [
   },
 ];
 
-export default function GuidePage() {
+function DynamicContent({ html }: { html: string }) {
+  return (
+    <>
+      <div className="policy-content text-sm leading-relaxed text-slate-700" dangerouslySetInnerHTML={{ __html: html }} />
+      <style>{`
+        .policy-content h2 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 1.4em 0 0.5em; }
+        .policy-content h3 { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 1.2em 0 0.4em; }
+        .policy-content p { margin: 0.4em 0; }
+        .policy-content ul { list-style: disc; padding-left: 1.5em; margin: 0.4em 0; }
+        .policy-content li { margin: 0.2em 0; }
+        .policy-content a { color: #c4480a; text-decoration: underline; }
+      `}</style>
+    </>
+  );
+}
+
+export default async function GuidePage() {
+  const page = await getPublicPolicyPage('guide');
   return (
     <CustomerShell>
       <InfoPageLayout
         breadcrumbs={[{ label: 'Trang chủ', href: '/' }, { label: 'Hướng dẫn mua hàng' }]}
-        title="Hướng dẫn mua hàng"
-        description="Quy trình đặt hàng tại DUCMANH PC đơn giản chỉ với 4 bước. Dưới đây là hướng dẫn chi tiết giúp bạn mua sắm nhanh chóng và an toàn."
+        title={page?.title ?? 'Hướng dẫn mua hàng'}
+        description={page?.description ?? 'Quy trình đặt hàng tại DUCMANH PC đơn giản chỉ với 4 bước. Dưới đây là hướng dẫn chi tiết giúp bạn mua sắm nhanh chóng và an toàn.'}
       >
+        {page?.contentHtml ? <DynamicContent html={page.contentHtml} /> : (<>
         {/* Steps */}
         <div className="space-y-6">
           {steps.map(({ icon: Icon, step, title, desc, tips }) => (
@@ -91,6 +110,7 @@ export default function GuidePage() {
             </div>
           </div>
         </div>
+        </>)}
       </InfoPageLayout>
     </CustomerShell>
   );
