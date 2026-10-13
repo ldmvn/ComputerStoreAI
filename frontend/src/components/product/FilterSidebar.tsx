@@ -2,12 +2,44 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, X } from 'lucide-react';
 import type { FilterAttribute, FilterBrand } from '@/services/product.service';
+import type { PublicCategory } from '@/services/category.service';
+
+const SHOW_LIMIT = 4;
+
+// Renders inside a <ul>: children(limit) returns <li> elements, button wrapped in <li>
+function ShowMoreWrapper({ total, activeIndex, children }: {
+  total: number;
+  activeIndex: number;
+  children: (limit: number) => React.ReactNode;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const forceOpen = activeIndex >= SHOW_LIMIT;
+  const limit = (expanded || forceOpen) ? total : Math.min(SHOW_LIMIT, total);
+  return (
+    <>
+      {children(limit)}
+      {total > SHOW_LIMIT && !forceOpen && (
+        <li className="pt-0.5">
+          <button
+            type="button"
+            onClick={() => setExpanded(v => !v)}
+            className="flex items-center gap-1 text-[11px] font-medium text-primary-700 hover:text-primary-800"
+          >
+            <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+            {expanded ? 'Thu gọn' : `Xem thêm (${total - SHOW_LIMIT})`}
+          </button>
+        </li>
+      )}
+    </>
+  );
+}
 
 export interface FilterState {
   brand: string;
   attr: Record<string, string>;
   minPrice?: number;
   maxPrice?: number;
+  category?: string;
 }
 
 interface FilterSidebarProps {
@@ -15,7 +47,9 @@ interface FilterSidebarProps {
   brands: FilterBrand[];
   attributes: FilterAttribute[];
   priceRange: { min: number | null; max: number | null };
+  allCategories: PublicCategory[];
   onNavigate: (changes: Record<string, string>) => void;
+  onCategorySelect: (slug: string) => void;
   onClearAll: () => void;
   activeFilterCount: number;
   mobileOpen: boolean;
@@ -23,6 +57,7 @@ interface FilterSidebarProps {
 }
 
 type PanelProps = Omit<FilterSidebarProps, 'mobileOpen' | 'onMobileClose'>;
+
 
 function Collapsible({ title, defaultOpen = true, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -97,7 +132,15 @@ function OptionRow({ name, checked, label, count, onSelect }: { name: string; ch
   );
 }
 
-function FilterPanel({ state, brands, attributes, priceRange, onNavigate, onClearAll, activeFilterCount }: PanelProps) {
+function FilterPanel({ state, brands, attributes, priceRange, allCategories, onNavigate, onCategorySelect, onClearAll, activeFilterCount }: PanelProps) {
+  // Show only leaf categories: if a parent has children, show the children instead of the parent
+  const leafCategories = allCategories.flatMap(cat =>
+    cat.children.length > 0
+      ? cat.children.map(c => ({ id: c.id, name: c.name, slug: c.slug }))
+      : [{ id: cat.id, name: cat.name, slug: cat.slug }]
+  );
+  const catActiveIndex = leafCategories.findIndex(c => c.slug === state.category);
+
   return (
     <div>
       {activeFilterCount > 0 && (
@@ -108,6 +151,25 @@ function FilterPanel({ state, brands, attributes, priceRange, onNavigate, onClea
         >
           Xóa tất cả bộ lọc ({activeFilterCount})
         </button>
+      )}
+
+      {leafCategories.length > 0 && (
+        <Collapsible title="Danh mục sản phẩm">
+          <ul className="space-y-1.5">
+            <OptionRow name="filter-category" checked={!state.category} label="Tất cả sản phẩm" onSelect={() => onCategorySelect('')} />
+            <ShowMoreWrapper total={leafCategories.length} activeIndex={catActiveIndex}>
+              {limit => leafCategories.slice(0, limit).map(cat => (
+                <OptionRow
+                  key={cat.id}
+                  name="filter-category"
+                  checked={state.category === cat.slug}
+                  label={cat.name}
+                  onSelect={() => onCategorySelect(cat.slug)}
+                />
+              ))}
+            </ShowMoreWrapper>
+          </ul>
+        </Collapsible>
       )}
 
       <Collapsible title="Giá">
@@ -123,16 +185,18 @@ function FilterPanel({ state, brands, attributes, priceRange, onNavigate, onClea
         <Collapsible title="Thương hiệu">
           <ul className="space-y-1.5">
             <OptionRow name="filter-brand" checked={!state.brand} label="Tất cả" onSelect={() => onNavigate({ brand: '', page: '1' })} />
-            {brands.map(brand => (
-              <OptionRow
-                key={brand.id}
-                name="filter-brand"
-                checked={state.brand === brand.slug}
-                label={brand.name}
-                count={brand.productCount}
-                onSelect={() => onNavigate({ brand: brand.slug, page: '1' })}
-              />
-            ))}
+            <ShowMoreWrapper total={brands.length} activeIndex={brands.findIndex(b => b.slug === state.brand)}>
+              {limit => brands.slice(0, limit).map(brand => (
+                <OptionRow
+                  key={brand.id}
+                  name="filter-brand"
+                  checked={state.brand === brand.slug}
+                  label={brand.name}
+                  count={brand.productCount}
+                  onSelect={() => onNavigate({ brand: brand.slug, page: '1' })}
+                />
+              ))}
+            </ShowMoreWrapper>
           </ul>
         </Collapsible>
       )}
@@ -149,16 +213,21 @@ function FilterPanel({ state, brands, attributes, priceRange, onNavigate, onClea
                 label="Tất cả"
                 onSelect={() => onNavigate({ [field]: '', page: '1' })}
               />
-              {attribute.values.map(value => (
-                <OptionRow
-                  key={value.id}
-                  name={field}
-                  checked={selected === String(value.id)}
-                  label={value.value}
-                  count={value.productCount}
-                  onSelect={() => onNavigate({ [field]: String(value.id), page: '1' })}
-                />
-              ))}
+              <ShowMoreWrapper
+                total={attribute.values.length}
+                activeIndex={attribute.values.findIndex(v => String(v.id) === selected)}
+              >
+                {limit => attribute.values.slice(0, limit).map(value => (
+                  <OptionRow
+                    key={value.id}
+                    name={field}
+                    checked={selected === String(value.id)}
+                    label={value.value}
+                    count={value.productCount}
+                    onSelect={() => onNavigate({ [field]: String(value.id), page: '1' })}
+                  />
+                ))}
+              </ShowMoreWrapper>
             </ul>
           </Collapsible>
         );

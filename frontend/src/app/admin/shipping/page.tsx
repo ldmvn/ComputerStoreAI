@@ -15,7 +15,7 @@ export default function AdminShippingPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const limit = 20;
+  const limit = 10;
 
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');

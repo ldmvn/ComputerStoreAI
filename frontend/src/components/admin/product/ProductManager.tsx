@@ -20,7 +20,7 @@ import ProductDetail from './ProductDetail';
 import ProductForm from './ProductForm';
 import { adminActionButtonClass, adminActionGroupClass } from '@/components/admin/adminActionStyles';
 
-const emptyQuery: ProductListQuery = { page: 1, limit: 20, sort: 'newest' };
+const emptyQuery: ProductListQuery = { page: 1, limit: 10, sort: 'newest' };
 const actionClass = adminActionButtonClass;
 
 export default function ProductManager() {
@@ -31,7 +31,7 @@ export default function ProductManager() {
   const [stats, setStats] = useState({ total: 0, active: 0, outOfStock: 0, inactive: 0 });
   const [query, setQuery] = useState<ProductListQuery>(emptyQuery);
   const [search, setSearch] = useState('');
-  const [meta, setMeta] = useState({ page: 1, limit: 20, total: 0, totalPages: 0 });
+  const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');

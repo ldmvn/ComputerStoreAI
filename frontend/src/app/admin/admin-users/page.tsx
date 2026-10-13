@@ -44,7 +44,7 @@ export default function AdminUsersPage() {
     setLoading(true);
     try {
       const [u, r] = await Promise.all([
-        getAdminUsers(token, { page: p, limit: 20, search: search || undefined, roleId: filterRole ? Number(filterRole) : undefined, isActive: filterActive !== '' ? filterActive === 'true' : undefined }),
+        getAdminUsers(token, { page: p, limit: 10, search: search || undefined, roleId: filterRole ? Number(filterRole) : undefined, isActive: filterActive !== '' ? filterActive === 'true' : undefined }),
         getRoles(token),
       ]);
       setUsers(u.users); setTotal(u.total); setPage(u.page); setTotalPages(u.totalPages);

@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowDown, ArrowUp, ChevronDown, ChevronRight,
   Edit3, Eye, EyeOff, LayoutGrid, PackageOpen, Plus, ShoppingBag, Trash2,
@@ -38,18 +38,73 @@ function sectionVisibility(section: ProductSection) {
 
 function ProductRow({
   product, index, total, busy,
-  onMoveUp, onMoveDown, onRemove,
+  onMoveTo, onRemove,
 }: {
   product: SectionProduct; index: number; total: number; busy: boolean;
-  onMoveUp: () => void; onMoveDown: () => void; onRemove: () => void;
+  onMoveTo: (toIndex: number) => void; onRemove: () => void;
 }) {
   const outOfStock = typeof product.stockQuantity === 'number' && product.stockQuantity === 0;
   const hidden = product.isActive === false;
 
+  const [inputVal, setInputVal] = useState(String(index + 1));
+  const [inputError, setInputError] = useState('');
+  const committedRef = useRef(false);
+
+  useEffect(() => {
+    setInputVal(String(index + 1));
+    setInputError('');
+  }, [index]);
+
+  const commit = () => {
+    const raw = inputVal.trim();
+    const num = Number(raw);
+    if (!raw || !Number.isInteger(num) || num < 1 || num > total) {
+      setInputError(`1–${total}`);
+      setInputVal(String(index + 1));
+      return;
+    }
+    const toIndex = num - 1;
+    if (toIndex === index) { setInputError(''); return; }
+    setInputError('');
+    committedRef.current = true;
+    onMoveTo(toIndex);
+  };
+
+  const cancel = () => {
+    setInputVal(String(index + 1));
+    setInputError('');
+  };
+
   return (
     <div className="flex items-center gap-2 rounded-lg border border-slate-100 bg-white px-3 py-2.5">
-      {/* rank */}
-      <span className="w-5 shrink-0 text-center text-xs font-semibold tabular-nums text-slate-400">{index + 1}</span>
+      {/* position input */}
+      <div className="relative shrink-0">
+        <input
+          type="number"
+          min={1}
+          max={total}
+          value={inputVal}
+          onChange={e => { setInputVal(e.target.value); setInputError(''); }}
+          onKeyDown={e => {
+            if (e.key === 'Enter') { e.preventDefault(); commit(); }
+            if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+          }}
+          onBlur={() => { if (!committedRef.current) cancel(); committedRef.current = false; }}
+          disabled={busy}
+          aria-label={`Vị trí của ${product.name}`}
+          title="Nhập số vị trí rồi nhấn Enter để di chuyển"
+          className={`w-10 rounded-md border py-1 text-center text-xs font-semibold tabular-nums focus:outline-none focus:ring-1 disabled:opacity-50 ${
+            inputError
+              ? 'border-red-300 text-red-600 focus:border-red-400 focus:ring-red-200'
+              : 'border-slate-200 text-slate-500 focus:border-primary-400 focus:ring-primary-200'
+          }`}
+        />
+        {inputError && (
+          <div className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded bg-red-600 px-1.5 py-0.5 text-[10px] text-white shadow">
+            {inputError}
+          </div>
+        )}
+      </div>
 
       {/* thumbnail */}
       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border border-slate-100 bg-slate-50">
@@ -72,8 +127,6 @@ function ProductRow({
 
       {/* actions */}
       <div className="flex shrink-0 items-center gap-0.5">
-        <button type="button" disabled={busy || index === 0} onClick={onMoveUp} className={btn} aria-label="Đưa lên"><ArrowUp className="h-3.5 w-3.5" /></button>
-        <button type="button" disabled={busy || index === total - 1} onClick={onMoveDown} className={btn} aria-label="Đưa xuống"><ArrowDown className="h-3.5 w-3.5" /></button>
         <button type="button" disabled={busy} onClick={onRemove} className={`${btn} text-red-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700`} aria-label={`Gỡ ${product.name} khỏi khối`}><Trash2 className="h-3.5 w-3.5" /></button>
       </div>
     </div>
@@ -138,11 +191,12 @@ export default function ProductSectionManager() {
     void action(() => reorderProductSections(token!, ids), 'Đã lưu thứ tự khối.');
   };
 
-  const moveProduct = (section: ProductSection, productId: number, direction: -1 | 1) => {
+  const moveProductToPosition = (section: ProductSection, productId: number, toIndex: number) => {
     const ids = section.products.map(p => p.id);
-    const idx = ids.indexOf(productId); const next = idx + direction;
-    if (idx < 0 || next < 0 || next >= ids.length) return;
-    [ids[idx], ids[next]] = [ids[next], ids[idx]];
+    const fromIndex = ids.indexOf(productId);
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= ids.length || fromIndex === toIndex) return;
+    ids.splice(fromIndex, 1);
+    ids.splice(toIndex, 0, productId);
     void action(() => reorderSectionProducts(token!, section.id, ids), 'Đã lưu thứ tự sản phẩm.');
   };
 
@@ -259,8 +313,7 @@ export default function ProductSectionManager() {
                             index={pIdx}
                             total={section.products.length}
                             busy={busy}
-                            onMoveUp={() => moveProduct(section, product.id, -1)}
-                            onMoveDown={() => moveProduct(section, product.id, 1)}
+                            onMoveTo={toIndex => moveProductToPosition(section, product.id, toIndex)}
                             onRemove={() => void action(
                               () => removeProductFromSection(token!, section.id, product.id),
                               'Đã gỡ sản phẩm khỏi khối.',
@@ -297,7 +350,7 @@ export default function ProductSectionManager() {
       {deleting && (
         <Modal title="Xóa khối sản phẩm" onClose={() => setDeleting(null)} busy={busy}>
           <p className="text-slate-600">
-            Xóa khối <strong>"{deleting.name}"</strong>? Các sản phẩm trong khối sẽ không bị xóa khỏi cơ sở dữ liệu.
+            Xóa khối <strong>&ldquo;{deleting.name}&rdquo;</strong>? Các sản phẩm trong khối sẽ không bị xóa khỏi cơ sở dữ liệu.
           </p>
           <div className="mt-6 flex justify-end gap-3">
             <button type="button" onClick={() => setDeleting(null)} disabled={busy} className="ui-button ui-button--neutral rounded-lg border border-slate-200 px-4 py-2.5 text-sm">Hủy</button>

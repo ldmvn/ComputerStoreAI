@@ -46,7 +46,7 @@ export default function AdminOrdersPage() {
   const [stats, setStats] = useState<AdminOrderStats | null>(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const limit = 15;
+  const limit = 10;
 
   const [statusFilter, setStatusFilter] = useState<OrderStatus | ''>('');
   const [search, setSearch] = useState('');

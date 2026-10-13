@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticateToken } from '../../middlewares/auth.middleware.js';
 import { requireAdmin } from '../../middlewares/admin.middleware.js';
 import { requirePermission } from '../../middlewares/permission.middleware.js';
-import { adminDetail, adminList, categories, create, deleteImage, publicDetail, publicFilters, publicList, publicView, remove, status, update } from '../../controllers/productCatalog.controller.js';
+import { adminDetail, adminList, categories, create, deleteImage, publicDetail, publicFilters, publicList, publicView, remove, status, update, uploadDescriptionImageMw, uploadDescriptionImage } from '../../controllers/productCatalog.controller.js';
 import { listReviews, createReview, deleteReview } from '../../controllers/productReview.controller.js';
 import { uploadProductImages } from '../../services/productMedia.service.js';
 import { uploadReviewImages } from '../../services/reviewMedia.service.js';
@@ -26,3 +26,4 @@ adminProductRouter.put('/:id', requirePermission('products', 'update'), uploadPr
 adminProductRouter.patch('/:id/status', requirePermission('products', 'update'), status);
 adminProductRouter.delete('/:id', requirePermission('products', 'delete'), remove);
 adminProductRouter.delete('/:id/images/:imageId', requirePermission('products', 'update'), deleteImage);
+adminProductRouter.post('/description-image', requirePermission('products', 'update'), uploadDescriptionImageMw, uploadDescriptionImage);

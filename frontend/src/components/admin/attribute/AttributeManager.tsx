@@ -3,7 +3,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ChevronDown, Eye, EyeOff, Filter, FolderOpen,
-  Layers, Pencil, Plus, Tags, Trash2, Users, X,
+  Layers, MoreHorizontal, Pencil, Plus, Tags, Trash2, Users, X,
 } from 'lucide-react';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminFeedback from '@/components/admin/AdminFeedback';
@@ -176,7 +176,7 @@ function ValueManagerModal({ token, attr, busy, onAction, onClose }: {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<{ value: string; sortOrder: number; isActive: boolean } | null>(null);
 
-  useEffect(() => { setNewVal(v => ({ ...v, sortOrder: attr.values.length * 10 })); }, [attr.values.length]);
+  useEffect(() => { setNewVal(v => ({ ...v, sortOrder: attr.values.reduce((m, x) => Math.max(m, x.sortOrder), -1) + 1 })); }, [attr.values]);
 
   const startEdit = (v: AttributeValue) => { setEditingId(v.id); setEditForm({ value: v.value, sortOrder: v.sortOrder, isActive: v.isActive }); };
   const remove = async (v: AttributeValue) => {
@@ -430,42 +430,79 @@ function GroupSidebar({ groups, selectedId, busy, onSelect, onEdit, onToggle, on
   onDelete: (g: AttributeGroup) => void;
   onMembers: (g: AttributeGroup) => void;
 }) {
-  const itemCls = (active: boolean) =>
-    `group flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-colors ${active ? 'bg-primary-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`;
+  const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (menuOpenId === null) return;
+    const close = () => setMenuOpenId(null);
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [menuOpenId]);
+
+  const rowBase = 'flex items-start gap-2 rounded-xl px-3 py-2.5 text-sm transition-colors';
+  const rowActive = 'bg-primary-600 text-white';
+  const rowIdle = 'text-slate-700 hover:bg-slate-100';
 
   return (
     <div className="flex flex-col gap-1">
-      <button type="button" onClick={() => onSelect(null)} className={itemCls(selectedId === null)}>
+      <button type="button" onClick={() => onSelect(null)}
+        className={`${rowBase} ${selectedId === null ? rowActive : rowIdle} cursor-pointer items-center`}>
         <Tags className="h-4 w-4 shrink-0" />
         <span className="flex-1 text-left font-medium">Tất cả thuộc tính</span>
       </button>
-      {groups.map(g => (
-        <div key={g.id} className={`${itemCls(selectedId === g.id)} relative`} onClick={() => onSelect(g.id)}>
-          <FolderOpen className="h-4 w-4 shrink-0" />
-          <span className="flex-1 truncate font-medium">{g.name}</span>
-          <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${selectedId === g.id ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500'}`}>
-            {g.members.length}
-          </span>
-          <div className="invisible ml-auto flex shrink-0 gap-0.5 group-hover:visible" onClick={e => e.stopPropagation()}>
-            <button type="button" disabled={busy} onClick={() => onMembers(g)} title="Quản lý thành viên"
-              className={`rounded p-1 ${selectedId === g.id ? 'text-white/70 hover:bg-white/20' : 'text-slate-400 hover:bg-slate-200 hover:text-slate-700'}`}>
-              <Users className="h-3.5 w-3.5" />
-            </button>
-            <button type="button" disabled={busy} onClick={() => onEdit(g)} title="Sửa nhóm"
-              className={`rounded p-1 ${selectedId === g.id ? 'text-white/70 hover:bg-white/20' : 'text-slate-400 hover:bg-slate-200 hover:text-slate-700'}`}>
-              <Pencil className="h-3.5 w-3.5" />
-            </button>
-            <button type="button" disabled={busy} onClick={() => onToggle(g)} title={g.isActive ? 'Tắt nhóm' : 'Bật nhóm'}
-              className={`rounded p-1 ${selectedId === g.id ? 'text-white hover:bg-white/20' : 'text-slate-400 hover:bg-slate-200 hover:text-slate-700'}`}>
-              {g.isActive ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-            </button>
-            <button type="button" disabled={busy} onClick={() => onDelete(g)} title="Xóa nhóm"
-              className={`rounded p-1 ${selectedId === g.id ? 'text-white hover:bg-red-400/50' : 'text-slate-400 hover:bg-red-50 hover:text-red-600'}`}>
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
+
+      {groups.map(g => {
+        const active = selectedId === g.id;
+        const menuOpen = menuOpenId === g.id;
+        return (
+          <div key={g.id}
+            className={`${rowBase} relative cursor-pointer ${active ? rowActive : rowIdle}`}
+            onClick={() => { onSelect(g.id); setMenuOpenId(null); }}>
+            <FolderOpen className="mt-0.5 h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 break-words font-medium leading-snug">{g.name}</span>
+            <span className={`mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+              {g.members.length}
+            </span>
+            {/* ··· menu */}
+            <div className="relative shrink-0" onClick={e => e.stopPropagation()}>
+              <button type="button" disabled={busy}
+                onClick={() => setMenuOpenId(menuOpen ? null : g.id)}
+                title="Thao tác"
+                className={`rounded p-0.5 transition-colors ${active ? 'text-white/70 hover:bg-white/20' : 'text-slate-400 hover:bg-slate-200 hover:text-slate-600'}`}>
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 top-full z-30 mt-1 min-w-[168px] rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
+                  <button type="button"
+                    onClick={() => { onMembers(g); setMenuOpenId(null); }}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50">
+                    <Users className="h-3.5 w-3.5 shrink-0 text-slate-400" />Quản lý thành viên
+                  </button>
+                  <button type="button"
+                    onClick={() => { onEdit(g); setMenuOpenId(null); }}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50">
+                    <Pencil className="h-3.5 w-3.5 shrink-0 text-slate-400" />Sửa nhóm
+                  </button>
+                  <button type="button"
+                    onClick={() => { onToggle(g); setMenuOpenId(null); }}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50">
+                    {g.isActive
+                      ? <EyeOff className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      : <Eye className="h-3.5 w-3.5 shrink-0 text-slate-400" />}
+                    {g.isActive ? 'Tắt nhóm' : 'Bật nhóm'}
+                  </button>
+                  <hr className="my-1 border-slate-100" />
+                  <button type="button"
+                    onClick={() => { onDelete(g); setMenuOpenId(null); }}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50">
+                    <Trash2 className="h-3.5 w-3.5 shrink-0" />Xóa nhóm
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -589,7 +626,7 @@ export default function AttributeManager() {
 
       <div className="flex gap-5 lg:items-start">
         {/* ── Left: Group sidebar (desktop only) ──────────────────────────── */}
-        <aside className="hidden w-56 shrink-0 lg:block">
+        <aside className="hidden w-64 shrink-0 lg:block">
           <div className="sticky top-24 rounded-xl border border-slate-200 bg-white p-3">
             <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Nhóm</p>
             {loading ? (
@@ -826,7 +863,7 @@ export default function AttributeManager() {
       {attrFormId !== undefined && (
         <AttributeFormModal
           attr={attrFormTarget}
-          sortHint={attributes.length * 10}
+          sortHint={attributes.reduce((m, a) => Math.max(m, a.sortOrder), -1) + 1}
           busy={busy}
           onClose={() => setAttrFormId(undefined)}
           onSave={data => void perform(

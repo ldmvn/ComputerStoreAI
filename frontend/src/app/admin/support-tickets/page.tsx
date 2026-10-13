@@ -38,7 +38,7 @@ export default function AdminSupportTicketsPage() {
   const [stats, setStats] = useState<AdminTicketStats | null>(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const limit = 20;
+  const limit = 10;
 
   const [statusFilter, setStatusFilter] = useState<TicketStatus | ''>('');
   const [search, setSearch] = useState('');

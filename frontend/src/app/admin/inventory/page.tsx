@@ -262,7 +262,7 @@ function HistoryModal({ product, token, onClose }: { product: InventoryProduct; 
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const limit = 15;
+  const limit = 10;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -366,7 +366,7 @@ export default function AdminInventoryPage() {
   const [stats, setStats] = useState<InventoryStats | null>(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const limit = 20;
+  const limit = 10;
 
   const [statusFilter, setStatusFilter] = useState<StockStatus | ''>('');
   const [searchInput, setSearchInput] = useState('');

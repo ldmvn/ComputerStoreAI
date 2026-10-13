@@ -39,7 +39,7 @@ export default function ActivityLogsPage() {
     setLoading(true);
     try {
       const res = await getActivityLogs(token, {
-        page: p, limit: 30,
+        page: p, limit: 10,
         module: filterModule || undefined,
         success: filterSuccess !== '' ? filterSuccess === 'true' : undefined,
         from: filterFrom || undefined,

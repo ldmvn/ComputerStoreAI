@@ -8,6 +8,7 @@ import {
   type ProductFilterMetadata,
   type ProductListQuery,
 } from '@/services/product.service';
+import { getPublicCategories, type PublicCategory } from '@/services/category.service';
 import type { ProductListResponse } from '@/types/product.type';
 import { formatProductPrice } from '@/lib/product';
 import { useToast } from '@/components/ui/Toast';
@@ -22,7 +23,7 @@ const SORT_OPTIONS = [
   { value: 'nameAsc',   label: 'Tên: A → Z' },
 ];
 
-const EMPTY_METADATA: ProductFilterMetadata = { brands: [], attributes: [], priceRange: { min: null, max: null } };
+const EMPTY_METADATA: ProductFilterMetadata = { brands: [], attributes: [], priceRange: { min: null, max: null }, categories: [] };
 
 const ATTR_PARAM = /^attr\[(.+)\]$/;
 
@@ -55,6 +56,7 @@ export default function ProductCatalog() {
   const categoryFilter = search.get('category') ?? '';
   const searchTerm = search.get('search') ?? '';
   const brandFilter = search.get('brand') ?? '';
+  const sectionFilter = search.get('section') ?? '';
   const minPriceRaw = search.get('minPrice');
   const maxPriceRaw = search.get('maxPrice');
 
@@ -77,6 +79,7 @@ export default function ProductCatalog() {
 
   const [result, setResult] = useState<Pick<ProductListResponse, 'products' | 'meta' | 'filters'> | null>(null);
   const [metadata, setMetadata] = useState<ProductFilterMetadata>(EMPTY_METADATA);
+  const [allCategories, setAllCategories] = useState<PublicCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
@@ -86,7 +89,7 @@ export default function ProductCatalog() {
     const controller = new AbortController();
     const params = new URLSearchParams(key);
     const query: ProductListQuery = { attr: {} };
-    for (const field of ['search', 'category', 'brand', 'attribute', 'attributeValue', 'sort'] as const) {
+    for (const field of ['search', 'category', 'brand', 'attribute', 'attributeValue', 'sort', 'section'] as const) {
       const v = params.get(field); if (v) query[field] = v;
     }
     for (const field of ['minPrice', 'maxPrice', 'page', 'brandId'] as const) {
@@ -108,11 +111,20 @@ export default function ProductCatalog() {
   // keeps brand and attribute options from collapsing once the user picks one.
   useEffect(() => {
     const controller = new AbortController();
-    getPublicProductFilters({ category: categoryFilter, search: searchTerm }, controller.signal)
+    getPublicProductFilters({ category: categoryFilter, search: searchTerm, section: sectionFilter }, controller.signal)
       .then(data => { if (!controller.signal.aborted) setMetadata(data); })
       .catch(() => { if (!controller.signal.aborted) setMetadata(EMPTY_METADATA); });
     return () => controller.abort();
-  }, [categoryFilter, searchTerm]);
+  }, [categoryFilter, searchTerm, sectionFilter]);
+
+  // All active categories — fetched once, used for the sidebar category selector.
+  useEffect(() => {
+    const controller = new AbortController();
+    getPublicCategories(controller.signal)
+      .then(data => { if (!controller.signal.aborted) setAllCategories(data.categories); })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
 
   const navigate = (changes: Record<string, string>) => {
     const params = new URLSearchParams(key);
@@ -122,13 +134,21 @@ export default function ProductCatalog() {
     router.push(`/customer/products?${params}`);
   };
 
-  // Narrowing filters only; `includeContext` also drops the category/search the user browsed in.
+  // Narrowing filters only; `includeContext` also drops the category/search/section the user browsed in.
   const clearChanges = (includeContext: boolean) => {
     const changes: Record<string, string> = { brand: '', minPrice: '', maxPrice: '', attribute: '', attributeValue: '', page: '1' };
     for (const slug of Object.keys(attrSelections)) changes[`attr[${slug}]`] = '';
     for (const attribute of metadata.attributes) changes[`attr[${attribute.slug}]`] = '';
-    if (includeContext) { changes.category = ''; changes.search = ''; }
+    if (includeContext) { changes.category = ''; changes.search = ''; changes.section = ''; }
     return changes;
+  };
+
+  // Switch category context: clear section + all narrowing filters, set new category.
+  const handleCategorySelect = (slug: string) => {
+    const changes = clearChanges(false);
+    changes.category = slug;
+    changes.section = '';
+    navigate(changes);
   };
 
   // Chips read their labels from the metadata so the user sees "Intel", not a raw slug or id.
@@ -163,13 +183,16 @@ export default function ProductCatalog() {
     attr: attrSelections,
     minPrice: minPriceRaw ? Number(minPriceRaw) : undefined,
     maxPrice: maxPriceRaw ? Number(maxPriceRaw) : undefined,
+    category: categoryFilter,
   };
 
   const pageTitle = searchTerm
     ? `Kết quả cho "${searchTerm}"`
     : categoryFilter
       ? (metadata.categoryName ?? categoryFilter)
-      : 'Tất cả sản phẩm';
+      : sectionFilter
+        ? (metadata.sectionName ?? sectionFilter)
+        : 'Tất cả sản phẩm';
 
   const sortSelect = (className: string) => (
     <select
@@ -243,7 +266,9 @@ export default function ProductCatalog() {
           brands={metadata.brands}
           attributes={metadata.attributes}
           priceRange={metadata.priceRange}
+          allCategories={allCategories}
           onNavigate={navigate}
+          onCategorySelect={handleCategorySelect}
           activeFilterCount={activeFilterCount}
           onClearAll={() => navigate(clearChanges(false))}
           mobileOpen={mobileFilterOpen}

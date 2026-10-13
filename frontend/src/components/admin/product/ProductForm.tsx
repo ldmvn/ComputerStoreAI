@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, ImagePlus, LayoutGrid, Plus, Search, Trash2 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
@@ -13,6 +13,8 @@ import { getCategoryAttributes, type CategoryBoundAttribute } from '@/services/a
 import { getProductSections } from '@/services/productSection.service';
 import type { ProductSection } from '@/types/productSection.type';
 import { useAuthStore } from '@/store/auth.store';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import { uploadProductDescriptionImage } from '@/services/product.service';
 
 function slugify(value: string) { return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
 
@@ -25,6 +27,10 @@ export default function ProductForm({ product, categories, brands, busy, error, 
   onSave: (data: FormData, sections: { add: number[]; remove: number[] }) => void;
 }) {
   const token = useAuthStore(state => state.token);
+  const uploadDescImage = useCallback(async (file: File) => {
+    if (!token) throw new Error('Chưa đăng nhập');
+    return uploadProductDescriptionImage(token, file);
+  }, [token]);
   const formId = useId();
   const [name, setName] = useState(product?.name || '');
   const [slug, setSlug] = useState(product?.slug || '');
@@ -238,33 +244,38 @@ export default function ProductForm({ product, categories, brands, busy, error, 
                 {brands.map(item => <option key={item.id} value={String(item.id)}>{item.name}{item.isActive ? '' : ' (đang ẩn)'}</option>)}
               </select>
             </label>
-            {/* Description + Section picker — 75/25 on sm+ */}
-            <div className="col-span-full grid items-start gap-3 sm:grid-cols-[3fr_1fr]">
-              <label className="text-sm font-medium">
-                Mô tả chi tiết
-                <textarea value={description} onChange={event => setDescription(event.target.value)} rows={3} className={`${inputCls} resize-y`} />
-              </label>
-              <div className="text-sm font-medium">
-                <span className="flex items-center justify-between">
-                  Khối sản phẩm
-                  {selectedSectionIds.length > 0 && (
-                    <span className="rounded-full bg-primary-100 px-1.5 py-0.5 text-[11px] font-semibold text-primary-700">{selectedSectionIds.length}</span>
-                  )}
+            {/* Section picker */}
+            <div className="text-sm font-medium">
+              <span className="flex items-center justify-between">
+                Khối sản phẩm
+                {selectedSectionIds.length > 0 && (
+                  <span className="rounded-full bg-primary-100 px-1.5 py-0.5 text-[11px] font-semibold text-primary-700">{selectedSectionIds.length}</span>
+                )}
+              </span>
+              <button
+                ref={sectionTriggerRef}
+                type="button"
+                onClick={openSectionDropdown}
+                aria-haspopup="listbox"
+                aria-expanded={sectionDropdownOpen}
+                className={`${inputCls} flex w-full items-center justify-between gap-1 text-left`}
+              >
+                <span className={`truncate ${selectedSectionIds.length ? 'text-slate-800' : 'text-slate-400'}`}>
+                  {sectionTriggerText ?? 'Chọn khối sản phẩm'}
                 </span>
-                <button
-                  ref={sectionTriggerRef}
-                  type="button"
-                  onClick={openSectionDropdown}
-                  aria-haspopup="listbox"
-                  aria-expanded={sectionDropdownOpen}
-                  className={`${inputCls} flex w-full items-center justify-between gap-1 text-left`}
-                >
-                  <span className={`truncate ${selectedSectionIds.length ? 'text-slate-800' : 'text-slate-400'}`}>
-                    {sectionTriggerText ?? 'Chọn khối sản phẩm'}
-                  </span>
-                  <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-150 ${sectionDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
+                <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-150 ${sectionDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+            {/* Description — rich text editor, full width */}
+            <div className="col-span-full">
+              <p className="mb-1.5 text-sm font-medium">Mô tả chi tiết</p>
+              <RichTextEditor
+                content={description}
+                onChange={setDescription}
+                onImageUpload={uploadDescImage}
+                height={240}
+                resizable
+              />
             </div>
           </div>
         </section>

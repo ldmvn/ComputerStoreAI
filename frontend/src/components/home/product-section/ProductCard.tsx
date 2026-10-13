@@ -29,7 +29,6 @@ export default function ProductCard({ product, showHighlightSpecs = true }: { pr
   return (
     <article className={`${styles.card} ${styles.productCard} ${highlightSpecs.length ? styles.withSpecifications : ''}`}>
       <div className={styles.productImage}>
-        {discounted && discount >= 1 && <span className={styles.discountBadge}>Giảm {discount}%</span>}
         {image ? (
           <img src={mediaUrl(image)} alt={product.name} loading="lazy" decoding="async" />
         ) : <PackageOpen size={40} aria-hidden="true" />}

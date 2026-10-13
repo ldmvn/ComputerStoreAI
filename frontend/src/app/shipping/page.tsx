@@ -95,7 +95,7 @@ export default async function ShippingPage() {
         </Section>
 
         <Section id="theo-doi" title="6. Theo dõi đơn hàng">
-          <p>Sau khi đơn hàng được xuất kho, bạn sẽ nhận thông báo kèm mã vận đơn qua email. Đăng nhập tài khoản và vào "Đơn hàng của tôi" để xem trạng thái cập nhật.</p>
+          <p>Sau khi đơn hàng được xuất kho, bạn sẽ nhận thông báo kèm mã vận đơn qua email. Đăng nhập tài khoản và vào &ldquo;Đơn hàng của tôi&rdquo; để xem trạng thái cập nhật.</p>
         </Section>
         </>)}
       </InfoPageLayout>

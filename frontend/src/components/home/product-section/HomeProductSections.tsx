@@ -5,7 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getHomeProductSections } from '@/services/productSection.service';
 import type { ProductSection } from '@/types/productSection.type';
-import ProductSectionCarousel from './ProductSectionCarousel';
+import ProductCard from './ProductCard';
 import styles from './HomeProductSections.module.css';
 
 export default function HomeProductSections() {
@@ -38,8 +38,8 @@ export default function HomeProductSections() {
           <span className="sr-only">Đang tải sản phẩm</span>
           <div aria-hidden="true">
             <div className={styles.header}><div className={`skeleton-shimmer ${styles.skeletonTitle}`} /></div>
-            <div className={styles.track}>
-              {Array.from({ length: 5 }, (_, index) => (
+            <div className={styles.grid}>
+              {Array.from({ length: 6 }, (_, index) => (
                 <div key={index} className={styles.card}>
                   <div className={`skeleton-shimmer ${styles.image}`} />
                   <div className={`skeleton-shimmer ${styles.skeletonName}`} />
@@ -62,7 +62,11 @@ export default function HomeProductSections() {
               </Link>
             )}
           </div>
-          <ProductSectionCarousel products={section.products} label={section.name} showHighlightSpecs={section.showHighlightSpecs} />
+          <div className={styles.grid}>
+            {section.products.slice(0, 6).map(product => (
+              <ProductCard key={product.id} product={product} showHighlightSpecs={section.showHighlightSpecs} />
+            ))}
+          </div>
         </section>
       ))}
     </div>

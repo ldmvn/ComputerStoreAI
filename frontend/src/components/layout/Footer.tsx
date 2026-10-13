@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useBrandingStore } from '@/store/branding.store';
 import { MapPin, Phone, Mail, Shield, Truck, RotateCcw, CreditCard, ChevronDown } from 'lucide-react';
 
 const aboutLinks = [
@@ -68,6 +69,10 @@ function LinkGroup({ title, links }: { title: string; links: { label: string; hr
 }
 
 export default function Footer({ compact = false }: { compact?: boolean }) {
+  const hydrateBranding = useBrandingStore(s => s.hydrate);
+  const logoUrl = useBrandingStore(s => s.logoUrl);
+  useEffect(() => { void hydrateBranding(); }, [hydrateBranding]);
+
   if (compact) {
     return (
       <footer className="mt-auto border-t border-slate-200 bg-white py-6">
@@ -104,7 +109,7 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
           {/* Col 1 — Brand */}
           <div>
             <Link href="/" className="mb-2 inline-block">
-              <Image src="/logo.png" alt="DUCMANH PC" width={160} height={69} quality={100} className="h-11 w-auto object-contain" />
+              <Image src={logoUrl || '/logo.png'} alt="DUCMANH PC" width={160} height={69} className="h-11 w-auto object-contain" unoptimized />
             </Link>
             <p className="mb-5 text-sm font-medium text-slate-600">Kết nối với chúng tôi</p>
             <ul className="space-y-2.5 text-sm text-slate-600">

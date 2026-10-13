@@ -17,14 +17,19 @@ import {
   Menu,
   X,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Wrench,
+  Puzzle,
+  Sparkles,
 } from 'lucide-react';
+import BuildPcDropdown from './BuildPcDropdown';
 import { getCategoryIcon } from '@/components/category/CategoryIcon';
 import { getPublicCategories, type PublicCategory } from '@/services/category.service';
 import { getPublicMenus, type PublicMenu } from '@/services/megaMenu.service';
 import { MegaMenuPanel, MobileMenuGroups } from '@/components/category/MegaMenuPanel';
 import SmartSearchBar from '@/components/layout/SmartSearchBar';
+import { useBrandingStore } from '@/store/branding.store';
 
 export default function Header() {
   const [categories, setCategories] = useState<PublicCategory[]>([]);
@@ -35,9 +40,12 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
-  const [expandedMobileCategory, setExpandedMobileCategory] = useState<number | null>(null);
+  const [mobileCatId, setMobileCatId] = useState<number | null>(null);
+  const [mobileGroupIdx, setMobileGroupIdx] = useState<number | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [buildPcOpen, setBuildPcOpen] = useState(false);
   const categoriesRef = useRef<HTMLDivElement>(null);
+  const buildPcRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
   const user = useAuthStore((state) => state.user);
   const isAdmin = useAuthStore((state) => state.isHydrated && Boolean(state.token) && state.user?.role === 'ADMIN');
@@ -63,11 +71,15 @@ export default function Header() {
   // Wait for auth to settle first: clearing on a not-yet-hydrated token marks the wishlist
   // as hydrated, which would make the real fetch below be skipped once the token arrives.
   const authHydrated = useAuthStore(state => state.isHydrated);
+  const hydrateBranding = useBrandingStore(s => s.hydrate);
+  const logoUrl = useBrandingStore(s => s.logoUrl);
   useEffect(() => {
     if (!authHydrated) return;
     if (wishlistToken) { if (!wishlistHydrated) void hydrateWishlist(wishlistToken); }
     else { clearWishlist(); }
   }, [authHydrated, wishlistToken, wishlistHydrated, hydrateWishlist, clearWishlist]);
+
+  useEffect(() => { void hydrateBranding(); }, [hydrateBranding]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -81,6 +93,9 @@ export default function Header() {
     const handleOutsideClick = (event: MouseEvent) => {
       if (categoriesRef.current && !categoriesRef.current.contains(event.target as Node)) {
         setCategoriesOpen(false);
+      }
+      if (buildPcRef.current && !buildPcRef.current.contains(event.target as Node)) {
+        setBuildPcOpen(false);
       }
     };
 
@@ -97,6 +112,7 @@ export default function Header() {
   }, [categoriesOpen, mobileMenuOpen]);
   useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
   useEffect(() => { drawerRef.current?.toggleAttribute('inert', !mobileMenuOpen); }, [mobileMenuOpen]);
+  useEffect(() => { if (!mobileMenuOpen) { setMobileCatId(null); setMobileGroupIdx(null); } }, [mobileMenuOpen]);
   const cancelClose = () => { if (closeTimer.current) clearTimeout(closeTimer.current); };
   const scheduleClose = () => { cancelClose(); closeTimer.current = setTimeout(() => { setCategoriesOpen(false); setActiveCategory(null); }, 150); };
   const closeCategories = () => { setCategoriesOpen(false); setActiveCategory(null); };
@@ -127,8 +143,10 @@ export default function Header() {
 
 
   const toggleCategories = () => {
-    setCategoriesOpen(true);
-    setActiveCategory(null);
+    setCategoriesOpen(prev => {
+      if (prev) setActiveCategory(null); // reset panel when closing
+      return !prev;
+    });
   };
 
   const categoryHref = (slug: string) => `/customer/products?category=${encodeURIComponent(slug)}`;
@@ -189,7 +207,7 @@ export default function Header() {
 
             <div
               id="desktop-category-menu"
-              className={`absolute left-0 top-full z-50 flex max-h-[calc(100dvh-100px)] w-[min(992px,calc(100vw-2rem))] xl:w-[min(1200px,calc(100vw-2rem))] items-stretch overflow-y-auto pt-3 origin-top-left transition-all duration-200 ${
+              className={`absolute left-0 top-full z-50 flex max-h-[calc(100dvh-100px)] items-stretch overflow-y-auto pt-3 origin-top-left transition-all duration-200 ${activeCategory !== null ? 'w-[min(992px,calc(100vw-2rem))] xl:w-[min(1200px,calc(100vw-2rem))]' : ''} ${
                 categoriesOpen
                   ? 'visible translate-y-0 scale-100 opacity-100'
                   : 'invisible -translate-y-2 scale-95 opacity-0 pointer-events-none'
@@ -234,8 +252,8 @@ export default function Header() {
 
               {menuLoading && !menus.length && <p role="status" className="p-5 text-sm text-slate-500">Đang tải Mega Menu...</p>}
               {menuError && <p role="alert" className="p-5 text-sm text-red-600">{menuError}</p>}
-              {(() => {
-                const selected = menus.find(menu => menu.category.id === (activeCategory ?? categories[0]?.id));
+              {activeCategory !== null && (() => {
+                const selected = menus.find(menu => menu.category.id === activeCategory);
                 return selected ? <MegaMenuPanel menu={selected} onNavigate={closeCategories} /> : null;
               })()}
             </div>
@@ -244,13 +262,13 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <Image
-              src="/logo.png"
-              alt="TechStore"
+              src={logoUrl || '/logo.png'}
+              alt="DUCMANH PC"
               width={220}
               height={95}
-              quality={100}
               className="h-auto w-20 object-contain min-[360px]:w-24 lg:h-12 lg:w-auto"
               priority
+              unoptimized
             />
           </Link>
 
@@ -261,16 +279,37 @@ export default function Header() {
 
           {/* Action Icons */}
           <div className="ml-auto flex shrink-0 items-center gap-0 min-[360px]:gap-1 xl:gap-3">
-            {/* Build PC */}
+            {/* Build PC — mobile: link to landing page */}
             <Link
               href="/customer/build-pc"
-              className="header-action"
+              className="header-action lg:hidden"
               aria-label="Build PC"
               title="Build PC"
             >
               <Wrench className="h-5 w-5" />
-              <span className="hidden lg:inline">Build PC</span>
             </Link>
+
+            {/* Build PC — desktop: dropdown */}
+            <div
+              ref={buildPcRef}
+              className="relative hidden self-stretch lg:flex lg:items-center"
+              onKeyDown={e => { if (e.key === 'Escape') { setBuildPcOpen(false); buildPcRef.current?.querySelector('button')?.focus(); } }}
+              onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setBuildPcOpen(false); }}
+            >
+              <button
+                type="button"
+                onClick={() => setBuildPcOpen(v => !v)}
+                className="ui-header-action inline-flex items-center gap-1.5 rounded-md px-2 py-2 text-sm font-medium text-slate-700 transition hover:bg-primary-50 hover:text-primary-600"
+                aria-expanded={buildPcOpen}
+                aria-controls="build-pc-menu"
+                aria-label="Build PC"
+              >
+                <Wrench className="h-5 w-5" aria-hidden="true" />
+                <span>Build PC</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${buildPcOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+              </button>
+              {buildPcOpen && <BuildPcDropdown onNavigate={() => setBuildPcOpen(false)} />}
+            </div>
 
             {/* Wishlist */}
             <Link
@@ -354,7 +393,7 @@ export default function Header() {
         >
           <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-4">
             <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex min-w-0 items-center">
-              <Image src="/logo.png" alt="DUCMANH PC" width={132} height={57} className="h-10 w-auto max-w-36 object-contain object-left" />
+              <Image src={logoUrl || '/logo.png'} alt="DUCMANH PC" width={132} height={57} className="h-10 w-auto max-w-36 object-contain object-left" unoptimized />
             </Link>
             <button
               type="button"
@@ -365,31 +404,137 @@ export default function Header() {
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto px-3 py-4">
-            <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Danh mục</p>
-            <nav className="space-y-1" aria-label="Danh sách danh mục">
-              {menuLoading && <p role="status" className="px-3 text-sm">Đang tải Mega Menu...</p>}
-              {menuError && <p role="alert" className="px-3 text-sm text-red-600">{menuError}</p>}
-              {categories.length === 0 && <p className="px-3 py-2 text-sm text-slate-500">Chưa có danh mục.</p>}
-              {categories.map((cat) => {
-                const Icon = getCategoryIcon(cat.icon);
-                return (
-                  <div key={cat.id}>
-                    <div className="flex items-center gap-1">
-                      <Link href={categoryHref(cat.slug)} onClick={() => setMobileMenuOpen(false)} className="ui-menu-item ui-category-item flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors duration-150 hover:bg-primary-50 hover:text-primary-600">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"><Icon className="h-4 w-4" aria-hidden="true" /></span>
-                        <span className="min-w-0 truncate">{cat.name}</span>
-                      </Link>
-                      {(cat.children.length > 0 || menus.some(menu => menu.category.id === cat.id && (menu.groups.length > 0 || menu.brands.length > 0))) && <button type="button" aria-label={`${expandedMobileCategory === cat.id ? 'Thu gọn' : 'Mở'} ${cat.name}`} aria-expanded={expandedMobileCategory === cat.id} onClick={() => setExpandedMobileCategory(current => current === cat.id ? null : cat.id)} className="ui-button flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-primary-50 hover:text-primary-600"><ChevronDown className={`h-4 w-4 transition-transform ${expandedMobileCategory === cat.id ? 'rotate-180' : ''}`} aria-hidden="true" /></button>}
-                    </div>
-                    {expandedMobileCategory === cat.id && (() => {
-                      const selected = menus.find(menu => menu.category.id === cat.id);
-                      return selected ? <MobileMenuGroups menu={selected} onNavigate={() => setMobileMenuOpen(false)} /> : <div className="ml-11 border-l py-1 pl-3">{cat.children.map(child => <Link key={child.id} href={categoryHref(child.slug)} onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm">{child.name}</Link>)}</div>;
-                    })()}
+          <div className="flex-1 overflow-y-auto">
+            {/* ── Level 0: Build PC + category list ──────────────────────────── */}
+            {mobileCatId === null && (
+              <div className="px-3 py-4">
+                <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Build PC</p>
+                <div className="mb-4 space-y-1">
+                  <Link href="/customer/build-pc/manual" onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-primary-50 hover:text-primary-600">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"><Puzzle className="h-4 w-4" aria-hidden="true" /></span>
+                    <span className="min-w-0 truncate">Tự chọn linh kiện</span>
+                  </Link>
+                  <Link href="/customer/build-pc/ai" onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[#C4480A] transition-colors hover:bg-orange-50">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-[#C4480A]"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
+                    <span className="min-w-0 flex-1 truncate">Tối ưu cùng AI</span>
+                    <span className="shrink-0 rounded-full bg-[#C4480A] px-1.5 py-0.5 text-[10px] font-bold text-white">Mới</span>
+                  </Link>
+                </div>
+                <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Danh mục</p>
+                {menuLoading && <p role="status" className="px-3 text-sm text-slate-500">Đang tải danh mục...</p>}
+                {menuError && <p role="alert" className="px-3 text-sm text-red-600">{menuError}</p>}
+              </div>
+            )}
+            {mobileCatId === null && (
+              <nav aria-label="Danh sách danh mục">
+                {categories.map(cat => {
+                  const Icon = getCategoryIcon(cat.icon);
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setMobileCatId(cat.id)}
+                      className="flex w-full min-h-12 items-center gap-3 border-b border-slate-100 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-primary-50 hover:text-primary-600"
+                    >
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors group-hover:bg-primary-100">
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-left">{cat.name}</span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                    </button>
+                  );
+                })}
+              </nav>
+            )}
+
+            {/* ── Level 1: Groups / children within selected category ─────────── */}
+            {mobileCatId !== null && mobileGroupIdx === null && (() => {
+              const cat = categories.find(c => c.id === mobileCatId);
+              const menu = menus.find(m => m.category.id === mobileCatId);
+              if (!cat) return null;
+              const groups = menu?.groups ?? [];
+              const children = groups.length === 0 ? cat.children : [];
+              return (
+                <>
+                  {/* Back header */}
+                  <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">
+                    <button type="button" onClick={() => setMobileCatId(null)} aria-label="Quay lại danh sách danh mục" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100">
+                      <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">{cat.name}</span>
                   </div>
-                );
-              })}
-            </nav>
+                  {/* View all link */}
+                  <Link href={categoryHref(cat.slug)} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 border-b border-slate-100 px-4 py-3 text-sm font-medium text-primary-600 hover:bg-primary-50">
+                    <span className="flex-1">Xem tất cả {cat.name}</span>
+                    <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  </Link>
+                  {/* Groups */}
+                  {groups.map((group, idx) => (
+                    <button
+                      key={group.id}
+                      type="button"
+                      onClick={() => setMobileGroupIdx(idx)}
+                      className="flex w-full min-h-12 items-center gap-3 border-b border-slate-100 px-4 py-3 text-sm text-slate-700 hover:bg-primary-50"
+                    >
+                      <span className="flex-1 text-left">{group.title}</span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                    </button>
+                  ))}
+                  {/* Children when no groups */}
+                  {children.map(child => (
+                    <Link
+                      key={child.id}
+                      href={categoryHref(child.slug)}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex min-h-12 items-center gap-3 border-b border-slate-100 px-4 py-3 text-sm text-slate-700 hover:bg-primary-50"
+                    >
+                      <span className="flex-1">{child.name}</span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                    </Link>
+                  ))}
+                  {/* Brands */}
+                  {(menu?.brands.length ?? 0) > 0 && (
+                    <div className="px-4 pt-3">
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Thương hiệu nổi bật</p>
+                      {menu!.brands.map(brand => (
+                        <Link key={brand.id} href={brand.href} onClick={() => setMobileMenuOpen(false)} className="block border-b border-slate-100 py-3 text-sm text-slate-700 hover:text-primary-600">
+                          {brand.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
+            {/* ── Level 2: Items within selected group ────────────────────────── */}
+            {mobileCatId !== null && mobileGroupIdx !== null && (() => {
+              const menu = menus.find(m => m.category.id === mobileCatId);
+              const group = menu?.groups[mobileGroupIdx];
+              if (!group) return null;
+              return (
+                <>
+                  {/* Back header */}
+                  <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">
+                    <button type="button" onClick={() => setMobileGroupIdx(null)} aria-label="Quay lại nhóm danh mục" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100">
+                      <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">{group.title}</span>
+                  </div>
+                  {/* Items — no arrows, divider lines */}
+                  {group.items.map(item => (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block border-b border-slate-100 px-4 py-3 text-sm text-slate-700 hover:bg-primary-50 hover:text-primary-600"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </>
+              );
+            })()}
           </div>
         </aside>
       <LoginModal isOpen={authModalOpen} onClose={closeAuthModal} />

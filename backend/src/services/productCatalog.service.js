@@ -44,6 +44,7 @@ async function whereForQuery(filters, resolvedBrand) {
       conditions.push({ OR: [{ categoryId: { in: [...ids] } }, { categoryId: null, category: { in: categories.filter(row => ids.has(row.id)).map(row => row.name) } }] });
     } else conditions.push({ category: filters.category });
   }
+  if (filters.sectionSlug) conditions.push({ sectionItems: { some: { section: { slug: filters.sectionSlug } } } });
   if (filters.brand || filters.brandId) conditions.push(resolvedBrand
     ? { OR: [{ brandId: resolvedBrand.id }, { brandId: null, brand: resolvedBrand.name }] }
     : { id: -1 });
@@ -168,10 +169,11 @@ export async function listProducts(filters) {
 export async function getFilterMetadata(context) {
   const scope = await whereForQuery(context, null);
 
-  const [brandGroups, valueGroups, priceAggregate] = await Promise.all([
+  const [brandGroups, valueGroups, priceAggregate, categoryGroups] = await Promise.all([
     prisma.product.groupBy({ by: ['brandId'], where: { ...scope, brandId: { not: null } }, _count: { _all: true } }),
     prisma.productAttributeValue.groupBy({ by: ['attributeValueId'], where: { attributeValueId: { not: null }, product: scope }, _count: { _all: true } }),
     prisma.product.aggregate({ where: scope, _min: { price: true }, _max: { price: true } }),
+    prisma.product.groupBy({ by: ['categoryId'], where: { ...scope, categoryId: { not: null } }, _count: { _all: true } }),
   ]);
 
   const brandCounts = new Map(brandGroups.map(row => [row.brandId, row._count._all]));
@@ -214,11 +216,26 @@ export async function getFilterMetadata(context) {
     }))
     .filter(attribute => attribute.values.length > 0);
 
+  const categoryCounts = new Map(categoryGroups.map(row => [row.categoryId, row._count._all]));
+  const categories = categoryCounts.size
+    ? (await prisma.category.findMany({
+        where: { id: { in: [...categoryCounts.keys()] }, isActive: true },
+        select: { id: true, name: true, slug: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      })).map(cat => ({ ...cat, productCount: categoryCounts.get(cat.id) || 0 }))
+    : [];
+
+  const section = context.sectionSlug
+    ? await prisma.productSection.findFirst({ where: { slug: context.sectionSlug }, select: { id: true, name: true } })
+    : null;
+
   return {
     brands,
     attributes,
     priceRange: { min: priceAggregate._min.price ?? null, max: priceAggregate._max.price ?? null },
     categoryName: category?.name ?? null,
+    sectionName: section?.name ?? null,
+    categories,
   };
 }
 

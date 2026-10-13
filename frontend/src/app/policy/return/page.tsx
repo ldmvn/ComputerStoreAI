@@ -68,7 +68,7 @@ export default async function ReturnPolicyPage() {
           <ul className="list-disc pl-5 space-y-1">
             <li>Sản phẩm đã được kích hoạt bản quyền phần mềm.</li>
             <li>Sản phẩm bị hư hỏng do lỗi người dùng.</li>
-            <li>Sản phẩm trong chương trình khuyến mãi đặc biệt có ghi rõ "Không đổi trả".</li>
+            <li>Sản phẩm trong chương trình khuyến mãi đặc biệt có ghi rõ &ldquo;Không đổi trả&rdquo;.</li>
             <li>Vật tư tiêu hao (pin, mực in, v.v.).</li>
           </ul>
         </Section>

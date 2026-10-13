@@ -19,6 +19,7 @@ import { bannerMediaDirectory } from './src/services/media.service.js';
 import { productMediaDirectory } from './src/services/productMedia.service.js';
 import { brandMediaDirectory } from './src/services/brandMedia.service.js';
 import { reviewMediaDirectory } from './src/services/reviewMedia.service.js';
+import { brandingMediaDirectory } from './src/services/brandingMedia.service.js';
 
 import { adminAttributeRouter, publicAttributeRouter } from './src/routes/v1/attribute.route.js';
 import wishlistRoutes from './src/routes/v1/wishlist.route.js';
@@ -43,6 +44,8 @@ import publicContentPageRoutes from './src/routes/v1/publicContentPage.route.js'
 import supportRoutes from './src/routes/v1/support.route.js';
 import customerSupportRoutes from './src/routes/v1/customerSupport.route.js';
 import adminSupportRoutes from './src/routes/v1/adminSupport.route.js';
+import adminBrandingRoutes from './src/routes/v1/adminBranding.route.js';
+import { getPublicBranding } from './src/controllers/storeBranding.controller.js';
 
 import { verifyResetMailConnection } from './src/services/passwordResetMail.service.js';
 import { cleanupExpiredPasswordResets } from './src/services/passwordReset.service.js';
@@ -128,6 +131,8 @@ app.use('/api/admin/content-pages',  adminContentPageRoutes);
 app.use('/api/support',          supportRoutes);
 app.use('/api/customer/support', customerSupportRoutes);
 app.use('/api/admin/support-tickets', adminSupportRoutes);
+app.use('/api/admin/branding', adminBrandingRoutes);
+app.get('/api/content/branding', getPublicBranding);
 
 app.use('/media/banners', express.static(bannerMediaDirectory, {
   dotfiles: 'deny',
@@ -142,6 +147,12 @@ app.use('/media/products', express.static(productMediaDirectory, {
   setHeaders: res => res.set('X-Content-Type-Options', 'nosniff'),
 }));
 app.use('/media/brands', express.static(brandMediaDirectory, {
+  dotfiles: 'deny',
+  immutable: true,
+  maxAge: '1y',
+  setHeaders: res => res.set('X-Content-Type-Options', 'nosniff'),
+}));
+app.use('/media/branding', express.static(brandingMediaDirectory, {
   dotfiles: 'deny',
   immutable: true,
   maxAge: '1y',

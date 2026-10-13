@@ -219,7 +219,7 @@ export default function AdminPromotionsPage() {
   const [stats, setStats] = useState<VoucherStats | null>(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const limit = 20;
+  const limit = 10;
 
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');

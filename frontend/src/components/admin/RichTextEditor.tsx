@@ -10,7 +10,7 @@ import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   AlignLeft, AlignCenter, AlignRight,
@@ -156,9 +156,35 @@ interface RichTextEditorProps {
   onChange: (html: string) => void;
   disabled?: boolean;
   minHeight?: number;
+  height?: number;
+  resizable?: boolean;
+  onImageUpload?: (file: File) => Promise<string>;
 }
 
-export default function RichTextEditor({ content, onChange, disabled = false, minHeight = 500 }: RichTextEditorProps) {
+export default function RichTextEditor({ content, onChange, disabled = false, minHeight = 500, height, resizable = false, onImageUpload }: RichTextEditorProps) {
+  const onImageUploadRef = useRef(onImageUpload);
+  useEffect(() => { onImageUploadRef.current = onImageUpload; }, [onImageUpload]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [contentHeight, setContentHeight] = useState<number | null>(height ?? null);
+
+  const handleResizeStart = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!resizable || contentHeight === null) return;
+    e.preventDefault();
+    const startY = e.clientY;
+    const startH = contentHeight;
+    const onMove = (ev: PointerEvent) => {
+      setContentHeight(Math.max(120, startH + ev.clientY - startY));
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }, [resizable, contentHeight]);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3, 4] } }),
@@ -175,6 +201,34 @@ export default function RichTextEditor({ content, onChange, disabled = false, mi
     editable: !disabled,
     onUpdate({ editor }) {
       onChange(editor.getHTML());
+    },
+    editorProps: {
+      handlePaste(_, event) {
+        const items = Array.from(event.clipboardData?.items ?? []);
+        const imageItem = items.find(item => item.type.startsWith('image/'));
+        if (!imageItem || !onImageUploadRef.current) return false;
+        const file = imageItem.getAsFile();
+        if (!file) return false;
+        event.preventDefault();
+        setUploading(true);
+        onImageUploadRef.current(file)
+          .then(url => { editor?.chain().focus().setImage({ src: url }).run(); })
+          .catch(() => {})
+          .finally(() => setUploading(false));
+        return true;
+      },
+      handleDrop(_, event) {
+        const files = Array.from(event.dataTransfer?.files ?? []);
+        const imageFile = files.find(f => f.type.startsWith('image/'));
+        if (!imageFile || !onImageUploadRef.current) return false;
+        event.preventDefault();
+        setUploading(true);
+        onImageUploadRef.current(imageFile)
+          .then(url => { editor?.chain().focus().setImage({ src: url }).run(); })
+          .catch(() => {})
+          .finally(() => setUploading(false));
+        return true;
+      },
     },
   });
 
@@ -198,9 +252,28 @@ export default function RichTextEditor({ content, onChange, disabled = false, mi
 
   const insertImage = useCallback(() => {
     if (!editor) return;
-    const url = window.prompt('Nhập URL hình ảnh:');
-    if (!url) return;
-    editor.chain().focus().setImage({ src: url }).run();
+    if (onImageUploadRef.current && fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    } else {
+      const url = window.prompt('Nhập URL hình ảnh:');
+      if (!url) return;
+      editor.chain().focus().setImage({ src: url }).run();
+    }
+  }, [editor]);
+
+  const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !onImageUploadRef.current) return;
+    setUploading(true);
+    try {
+      const url = await onImageUploadRef.current(file);
+      editor?.chain().focus().setImage({ src: url }).run();
+    } catch {
+      // upload failed silently — user can retry
+    } finally {
+      setUploading(false);
+    }
   }, [editor]);
 
   if (!editor) return (
@@ -209,6 +282,16 @@ export default function RichTextEditor({ content, onChange, disabled = false, mi
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      {onImageUpload && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={handleFileChange}
+          aria-hidden="true"
+        />
+      )}
       {/* ── Toolbar ── */}
       <div className={`flex flex-wrap items-center gap-0.5 border-b border-slate-200 bg-slate-50 px-2 py-1.5 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
 
@@ -254,7 +337,7 @@ export default function RichTextEditor({ content, onChange, disabled = false, mi
         <ToolBtn onClick={insertLink} active={editor.isActive('link')} title="Chèn/sửa liên kết">
           <LinkIcon className="h-3.5 w-3.5" />
         </ToolBtn>
-        <ToolBtn onClick={insertImage} title="Chèn hình ảnh (URL)">
+        <ToolBtn onClick={insertImage} title={onImageUpload ? 'Chèn hình ảnh (tải lên)' : 'Chèn hình ảnh (URL)'}>
           <ImageIcon className="h-3.5 w-3.5" />
         </ToolBtn>
         <Divider />
@@ -279,7 +362,7 @@ export default function RichTextEditor({ content, onChange, disabled = false, mi
       <style>{`
         .rte-content .ProseMirror {
           outline: none;
-          min-height: ${minHeight}px;
+          min-height: ${contentHeight !== null ? '100%' : `${minHeight}px`};
           padding: 20px 24px;
           font-size: 14px;
           line-height: 1.7;
@@ -304,9 +387,32 @@ export default function RichTextEditor({ content, onChange, disabled = false, mi
         .rte-content .ProseMirror p.is-empty::before { content: attr(data-placeholder); float: left; color: #94a3b8; pointer-events: none; height: 0; }
       `}</style>
 
-      <div className="rte-content">
+      <div
+        className="rte-content relative"
+        style={contentHeight !== null ? { height: contentHeight, overflowY: 'auto' } : undefined}
+      >
         <EditorContent editor={editor} />
+        {uploading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70">
+            <span className="text-sm text-slate-500">Đang tải ảnh…</span>
+          </div>
+        )}
       </div>
+
+      {resizable && contentHeight !== null && (
+        <div
+          onPointerDown={handleResizeStart}
+          className="flex h-4 cursor-row-resize select-none items-center justify-center border-t border-slate-100 bg-slate-50"
+          aria-label="Kéo để thay đổi chiều cao editor"
+          role="separator"
+        >
+          <span className="flex gap-[3px]">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <span key={i} className="block h-1 w-1 rounded-full bg-slate-300" />
+            ))}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

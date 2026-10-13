@@ -61,3 +61,44 @@ export async function removeProductImage(key) {
   if (!/^[a-f0-9-]+\.webp$/.test(key || '')) return;
   await unlink(path.join(productMediaDirectory, key)).catch(error => { if (error.code !== 'ENOENT') console.error('Cannot remove product image:', error.code); });
 }
+
+// ── Description image upload (single file, reuses products directory) ─────────
+
+const descAllowed = { 'image/jpeg': ['.jpg', '.jpeg'], 'image/png': ['.png'], 'image/webp': ['.webp'] };
+
+const uploadDescSingle = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, callback) => mkdir(tempDirectory, { recursive: true }).then(() => callback(null, tempDirectory), callback),
+    filename: (_req, _file, callback) => callback(null, randomUUID()),
+  }),
+  limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 0, parts: 2 },
+  fileFilter: (_req, file, callback) => descAllowed[file.mimetype]?.includes(path.extname(file.originalname).toLowerCase()) ? callback(null, true) : callback(productError('Chỉ chấp nhận ảnh JPG, PNG hoặc WEBP.')),
+}).single('image');
+
+export function uploadDescriptionImageMiddleware(req, res, next) {
+  uploadDescSingle(req, res, error => {
+    if (!error) return next();
+    next(productError(error.code === 'LIMIT_FILE_SIZE' ? 'Ảnh mô tả tối đa 5 MB.' : error.statusCode ? error.message : 'Upload ảnh không hợp lệ.'));
+  });
+}
+
+export async function saveDescriptionImage(file) {
+  if (!file) throw productError('Không có ảnh được gửi lên.');
+  const detected = await fileTypeFromFile(file.path);
+  if (!detected || !descAllowed[file.mimetype]?.includes(path.extname(file.originalname).toLowerCase()) || detected.mime !== file.mimetype) {
+    await unlink(file.path).catch(() => {});
+    throw productError('Nội dung ảnh không khớp MIME khai báo.');
+  }
+  await mkdir(productMediaDirectory, { recursive: true });
+  const key = `desc-${randomUUID()}.webp`;
+  const destination = path.join(productMediaDirectory, key);
+  try {
+    await sharp(file.path, { limitInputPixels: 40000000, failOn: 'error' }).rotate().webp({ quality: 88 }).toFile(destination);
+  } catch {
+    await unlink(destination).catch(() => {});
+    throw productError('Ảnh không hợp lệ hoặc vượt giới hạn 40 triệu pixel.');
+  } finally {
+    await unlink(file.path).catch(() => {});
+  }
+  return { key, url: `${(process.env.MEDIA_PUBLIC_URL || '/media').replace(/\/$/, '')}/products/${key}` };
+}

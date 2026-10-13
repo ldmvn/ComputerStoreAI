@@ -393,7 +393,7 @@ export default function MegaMenuManager() {
       id: group?.id ?? null,
       data: group
         ? { title: group.title, sortOrder: group.sortOrder, columnSpan: group.columnSpan, isActive: group.isActive }
-        : { ...emptyGroup, sortOrder: (menu?.groups.length || 0) * 10 },
+        : { ...emptyGroup, sortOrder: (menu?.groups ?? []).reduce((m, g) => Math.max(m, g.sortOrder), -1) + 1 },
     });
 
   const moveGroup = (group: MenuGroup, dir: -1 | 1) => {
@@ -412,7 +412,7 @@ export default function MegaMenuManager() {
     setItemEditor({
       groupId: group.id,
       id: item?.id ?? null,
-      data: item ? { ...item } : { ...emptyItem, sortOrder: group.items.length * 10 },
+      data: item ? { ...item } : { ...emptyItem, sortOrder: group.items.reduce((m, x) => Math.max(m, x.sortOrder), -1) + 1 },
     });
 
   const moveItem = (group: MenuGroup, item: MenuItem, dir: -1 | 1) => {

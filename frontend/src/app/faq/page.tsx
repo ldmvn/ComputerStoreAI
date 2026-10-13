@@ -100,7 +100,7 @@ export default function FaqPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <p className="text-sm text-slate-500">Không tìm thấy câu hỏi phù hợp với "{query}".</p>
+          <p className="text-sm text-slate-500">Không tìm thấy câu hỏi phù hợp với &ldquo;{query}&rdquo;.</p>
         ) : (
           <div className="space-y-8">
             {filtered.map(group => (

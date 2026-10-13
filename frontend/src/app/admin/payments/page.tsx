@@ -29,7 +29,7 @@ export default function AdminPaymentsPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const limit = 20;
+  const limit = 10;
 
   const [paymentFilter, setPaymentFilter] = useState('');
   const [searchInput, setSearchInput] = useState('');

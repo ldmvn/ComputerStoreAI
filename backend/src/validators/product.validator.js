@@ -123,11 +123,11 @@ export function parseProductListQuery(query = {}) {
   const sortMap = { newest: [{ updatedAt: 'desc' }], oldest: [{ createdAt: 'asc' }], priceAsc: [{ price: 'asc' }], priceDesc: [{ price: 'desc' }], nameAsc: [{ name: 'asc' }], nameDesc: [{ name: 'desc' }], stockAsc: [{ stockQuantity: 'asc' }], stockDesc: [{ stockQuantity: 'desc' }] };
   // `attribute`/`attributeValue` stay on the result for existing callers; `attributeFilters` is the
   // normalized list the query builder reads.
-  return { page, limit, minPrice, maxPrice, attributeFilters, attribute: String(query.attribute || '').trim(), attributeValue: String(query.attributeValue || '').trim(), brandId, search: String(query.search || '').trim(), category: String(query.category || '').trim(), brand: String(query.brand || '').trim(), status: String(query.status || '').trim(), stock: String(query.stock || '').trim(), orderBy: sortMap[query.sort] || sortMap.newest };
+  return { page, limit, minPrice, maxPrice, attributeFilters, attribute: String(query.attribute || '').trim(), attributeValue: String(query.attributeValue || '').trim(), brandId, search: String(query.search || '').trim(), category: String(query.category || '').trim(), brand: String(query.brand || '').trim(), status: String(query.status || '').trim(), stock: String(query.stock || '').trim(), sectionSlug: String(query.section || '').trim(), orderBy: sortMap[query.sort] || sortMap.newest };
 }
 
 // Filter metadata is scoped by browsing context only (category + search), never by the
 // active brand/attribute selections — otherwise the option lists collapse to the current result.
 export function parseFilterContextQuery(query = {}) {
-  return { category: String(query.category || '').trim(), search: String(query.search || '').trim(), status: 'active' };
+  return { category: String(query.category || '').trim(), search: String(query.search || '').trim(), sectionSlug: String(query.section || '').trim(), status: 'active' };
 }

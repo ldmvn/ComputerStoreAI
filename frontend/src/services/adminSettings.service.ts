@@ -1,4 +1,4 @@
-import { apiRequest, API_BASE_URL } from './http.client';
+import { apiRequest, API_BASE_URL, mediaUrl } from './http.client';
 
 export type StoreSettings = Record<string, string>;
 
@@ -29,4 +29,48 @@ export const sendTestEmail = (token: string, to: string, signal?: AbortSignal) =
     { method: 'POST', body: JSON.stringify({ to }), signal },
     token,
   );
+
+// ── Branding ────────────────────────────────────────────────────────────────
+
+export type BrandingData = { logoUrl: string; faviconUrl: string; version: string };
+
+export const getAdminBranding = (token: string, signal?: AbortSignal) =>
+  apiRequest<{ success: boolean; data: BrandingData }>('/admin/branding', { signal }, token);
+
+export async function uploadBrandingLogo(token: string, file: File): Promise<{ logoUrl: string }> {
+  const form = new FormData();
+  form.append('logo', file);
+  const res = await apiRequest<{ success: boolean; data: { logoUrl: string } }>(
+    '/admin/branding/logo',
+    { method: 'POST', body: form },
+    token,
+  );
+  return { logoUrl: mediaUrl(res.data.logoUrl) };
+}
+
+export async function uploadBrandingFavicon(token: string, file: File): Promise<{ faviconUrl: string }> {
+  const form = new FormData();
+  form.append('favicon', file);
+  const res = await apiRequest<{ success: boolean; data: { faviconUrl: string } }>(
+    '/admin/branding/favicon',
+    { method: 'POST', body: form },
+    token,
+  );
+  return { faviconUrl: mediaUrl(res.data.faviconUrl) };
+}
+
+export const deleteBrandingLogo = (token: string) =>
+  apiRequest<{ success: boolean; message: string }>('/admin/branding/logo', { method: 'DELETE' }, token);
+
+export const deleteBrandingFavicon = (token: string) =>
+  apiRequest<{ success: boolean; message: string }>('/admin/branding/favicon', { method: 'DELETE' }, token);
+
+export async function getPublicBrandingInfo(): Promise<BrandingData> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/content/branding`, { cache: 'no-store' });
+    if (!res.ok) return { logoUrl: '', faviconUrl: '', version: '' };
+    const json = (await res.json()) as { data: BrandingData };
+    return json.data ?? { logoUrl: '', faviconUrl: '', version: '' };
+  } catch { return { logoUrl: '', faviconUrl: '', version: '' }; }
+}
 
