@@ -30,7 +30,7 @@ function serialize(product, detail = false, publicView = false) {
   };
 }
 
-async function whereForQuery(filters, resolvedBrand) {
+export async function whereForQuery(filters, resolvedBrand) {
   const where = { isDeleted: false };
   const conditions = [];
   if (filters.search) conditions.push({ OR: [{ name: { contains: filters.search } }, { sku: { contains: filters.search } }, { slug: { contains: filters.search } }] });
@@ -137,7 +137,9 @@ async function replaceProductAttributes(tx, productId, categoryId, entries) {
     } else if (entry.valueText !== null && entry.valueText !== '') {
       if (attribute.type === 'NUMBER' && !Number.isFinite(Number(entry.valueText))) throw productError(`Thuộc tính “${attribute.name}” phải là số.`);
       if (attribute.type === 'BOOLEAN' && !['true', 'false'].includes(entry.valueText)) throw productError(`Thuộc tính “${attribute.name}” phải là Có/Không.`);
-      rows.push({ productId, attributeId: attribute.id, valueText: entry.valueText });
+      const row = { productId, attributeId: attribute.id, valueText: entry.valueText };
+      if (attribute.type === 'NUMBER') row.valueNumber = Number(entry.valueText);
+      rows.push(row);
     }
   }
   if (rows.length) await tx.productAttributeValue.createMany({ data: rows });
