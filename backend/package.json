@@ -25,7 +25,8 @@
     "test:brands": "node --test tests/unit/brand.validator.test.mjs",
     "test:categories:integration": "node tests/category.integration.mjs",
     "prisma:studio": "prisma studio",
-    "prisma:seed": "node prisma/seed.js"
+    "prisma:seed": "node prisma/seed.js",
+    "seed:build-pc": "node src/scripts/seedBuildPc.js"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
