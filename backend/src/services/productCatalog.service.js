@@ -13,7 +13,7 @@ function serialize(product, detail = false, publicView = false) {
   const primary = product.images?.find(image => image.isPrimary) || product.images?.[0] || null;
   const normalized = new Map();
   for (const row of product.attributeValues || []) {
-    const current = normalized.get(row.attributeId) || { id: row.attributeId, name: row.attribute.name, slug: row.attribute.slug, type: row.attribute.type, sortOrder: row.attribute.sortOrder, valueIds: [], values: [] };
+    const current = normalized.get(row.attributeId) || { id: row.attributeId, name: row.attribute.name, slug: row.attribute.slug, type: row.attribute.type, unit: row.attribute.unit, sortOrder: row.attribute.sortOrder, valueIds: [], values: [] };
     if (row.attributeValue) { current.valueIds.push(row.attributeValue.id); current.values.push(row.attributeValue.value); }
     else if (row.valueText !== null) current.values.push(row.attribute.type === 'BOOLEAN' ? (row.valueText === 'true' ? 'Có' : 'Không') : row.valueText);
     normalized.set(row.attributeId, current);

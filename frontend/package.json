@@ -5,6 +5,7 @@
   "description": "Frontend for ComputerStoreAI - E-commerce platform for PCs and Laptops",
   "scripts": {
     "test:product-detail": "node tests/product-detail.cjs",
+    "test:specifications-modal": "node tests/product-specifications-modal.cjs",
     "test:brand-filter": "node tests/brand-filter.cjs",
     "test:mega-menu": "node tests/mega-menu.cjs",
     "test:google-auth": "node tests/google-auth.cjs",

@@ -23,9 +23,8 @@ function ProductMenuImage({ product }: { product: Pick<Product, 'name' | 'primar
   ) : <Images aria-hidden="true" strokeWidth={1.75} className="h-5 w-5 text-slate-400 min-[360px]:h-[22px] min-[360px]:w-[22px] sm:h-6 sm:w-6" />;
 }
 
-export default function ProductDetailNavigation({ product, hasSpecs = true, onOpenSpecifications }: { product: Pick<Product, 'id' | 'name' | 'primaryImage' | 'images'>; hasSpecs?: boolean; onOpenSpecifications?: () => void }) {
+export default function ProductDetailNavigation({ product, onOpenSpecifications }: { product: Pick<Product, 'id' | 'name' | 'primaryImage' | 'images'>; onOpenSpecifications?: () => void }) {
   const [activeId, setActiveId] = useState<string>('product-gallery');
-  const visibleItems = items.filter(item => item.id !== 'product-specifications' || hasSpecs);
 
   const handleClick = (id: string, action: Action, event: React.MouseEvent<HTMLAnchorElement>) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -49,7 +48,7 @@ export default function ProductDetailNavigation({ product, hasSpecs = true, onOp
   return (
     <nav aria-label="Nội dung chi tiết sản phẩm" className="rounded-2xl border border-slate-200 bg-slate-50/80 px-2 py-2.5 sm:px-3">
       <div className="flex items-center justify-center gap-1 sm:gap-3">
-        {visibleItems.map(({ id, label, lines, icon: Icon, action }) => (
+        {items.map(({ id, label, lines, icon: Icon, action }) => (
           <a
             key={id}
             href={action === 'modal' ? '#' : `#${id}`}

@@ -39,6 +39,7 @@ model Product {
   wishlistItems     WishlistItem[]
   orderItems        OrderItem[]
   inventoryLogs     InventoryLog[]
+  pcBuildItems      PcBuildItem[]
   categoryRecord    Category?               @relation("ProductCategory", fields: [categoryId], references: [id], onDelete: Restrict)
   brandRecord       Brand?                  @relation("ProductBrand", fields: [brandId], references: [id], onDelete: Restrict)
 
@@ -262,6 +263,7 @@ model ProductAttributeValue {
   attributeId      Int
   attributeValueId Int?
   valueText        String?         @db.VarChar(1000)
+  valueNumber      Decimal?        @db.Decimal(12, 4)
   createdAt        DateTime        @default(now())
   product          Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   attribute        Attribute       @relation(fields: [attributeId], references: [id], onDelete: Restrict)
@@ -409,6 +411,7 @@ model User {
   returnRequests  ReturnRequest[]
   activityLogs    ActivityLog[]
   supportTickets  SupportTicket[]
+  pcBuilds        PcBuild[]
 
   @@index([role, isActive])
   @@index([adminRoleId])
@@ -781,21 +784,50 @@ model ActivityLog {
 // ── Build PC ──────────────────────────────────────────────────────────────────
 
 model BuildPcGroup {
-  id          Int                    @id @default(autoincrement())
-  name        String                 @db.VarChar(100)
-  slug        String                 @unique @db.VarChar(100)
-  description String?                @db.VarChar(300)
-  icon        String?                @db.VarChar(100)
-  isRequired  Boolean                @default(true)
-  minCount    Int                    @default(1)
-  maxCount    Int                    @default(1)
-  sortOrder   Int                    @default(0)
-  isActive    Boolean                @default(true)
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @updatedAt
-  categories  BuildPcGroupCategory[]
+  id             Int                    @id @default(autoincrement())
+  name           String                 @db.VarChar(100)
+  slug           String                 @unique @db.VarChar(100)
+  description    String?                @db.VarChar(300)
+  icon           String?                @db.VarChar(100)
+  isRequired     Boolean                @default(true)
+  minCount       Int                    @default(1)
+  maxCount       Int                    @default(1)
+  exclusiveGroup String?                @db.VarChar(50)
+  badgeText      String?                @db.VarChar(50)
+  sortOrder      Int                    @default(0)
+  isActive       Boolean                @default(true)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  categories     BuildPcGroupCategory[]
+  buildItems     PcBuildItem[]
 
   @@index([sortOrder, isActive])
+}
+
+model PcBuild {
+  id        Int           @id @default(autoincrement())
+  shareCode String        @unique @db.VarChar(20)
+  userId    Int?
+  createdAt DateTime      @default(now())
+  user      User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items     PcBuildItem[]
+
+  @@index([userId])
+}
+
+model PcBuildItem {
+  id        Int          @id @default(autoincrement())
+  buildId   Int
+  groupId   Int
+  productId Int
+  quantity  Int          @default(1)
+  build     PcBuild      @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  group     BuildPcGroup @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([buildId, groupId])
+  @@index([groupId])
+  @@index([productId])
 }
 
 model BuildPcGroupCategory {

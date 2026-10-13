@@ -8,6 +8,7 @@
   "scripts": {
     "test:product-detail": "node tests/productDetail.integration.mjs",
     "test:attributes": "node tests/attribute.integration.mjs",
+    "test:specification-sources": "node tests/productSpecificationSources.integration.mjs",
     "test:brand-filter": "node tests/brandFilter.integration.mjs",
     "brands:normalize-slugs": "node scripts/normalize-brand-slugs.mjs",
     "test:mega-menu": "node --test tests/unit/megaMenu.validator.test.mjs && node tests/megaMenu.integration.mjs",

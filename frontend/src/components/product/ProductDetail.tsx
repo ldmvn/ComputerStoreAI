@@ -67,7 +67,7 @@ export default function ProductDetail({ slug }: { slug: string }) {
         <div id="product-gallery" tabIndex={-1} aria-label="Gallery hình ảnh sản phẩm" className="scroll-mt-36">
           <ProductGallery key={product.id} name={product.name} images={product.images || []} primaryImage={product.primaryImage} />
         </div>
-        <ProductDetailNavigation key={product.id} product={product} hasSpecs={hasSpecs} onOpenSpecifications={() => setIsSpecsModalOpen(true)} />
+        <ProductDetailNavigation key={product.id} product={product} onOpenSpecifications={() => setIsSpecsModalOpen(true)} />
       </div>
 
       {/* Right column — col 2, spans rows 1+2 so Price/CTA and Specs flow without grid-row gap; mobile: second */}
