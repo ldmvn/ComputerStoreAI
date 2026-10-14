@@ -87,7 +87,7 @@ const NEW_ATTRIBUTES = [
 
 // AttributeValues for new MULTI_SELECT attributes
 const ATTR_VALUES = {
-  'radiator-size': ['120', '240', '280', '360', '420'],
+  'radiator-size': ['120', '240', '280', '360', '420', '140'],
 };
 
 // 20 BuildPcGroups (sortOrder 1–20)
@@ -266,7 +266,7 @@ async function seedAttributes(existingAttrMap) {
 }
 
 async function seedAttributeValues(existingAttrMap) {
-  console.log('\n─── AttributeValues (radiator-size: 5 values) ───────────────────');
+  console.log('\n─── AttributeValues (radiator-size: 6 values) ───────────────────');
   for (const [attrSlug, values] of Object.entries(ATTR_VALUES)) {
     const attr = existingAttrMap[attrSlug];
     if (!attr) { console.warn(`  WARN: attribute "${attrSlug}" not in map`); continue; }

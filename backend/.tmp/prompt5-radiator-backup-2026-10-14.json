@@ -1,0 +1,720 @@
+{
+  "createdAt": "2026-10-14T02:57:23.764Z",
+  "purpose": "Snapshot trước khi thêm duy nhất radiator-size=140",
+  "attribute": {
+    "id": 56,
+    "name": "Kích thước két nước AIO",
+    "slug": "radiator-size",
+    "type": "MULTI_SELECT",
+    "unit": "mm",
+    "description": null,
+    "sortOrder": 97,
+    "isActive": true,
+    "showInDetail": true,
+    "usedInFilter": false,
+    "usedInBuildPC": true,
+    "createdAt": "2026-10-13T15:33:47.447Z",
+    "updatedAt": "2026-10-13T15:33:47.447Z",
+    "values": [
+      {
+        "id": 110,
+        "attributeId": 56,
+        "value": "120",
+        "sortOrder": 0,
+        "isActive": true,
+        "createdAt": "2026-10-13T15:33:47.450Z",
+        "updatedAt": "2026-10-13T15:33:47.450Z"
+      },
+      {
+        "id": 111,
+        "attributeId": 56,
+        "value": "240",
+        "sortOrder": 1,
+        "isActive": true,
+        "createdAt": "2026-10-13T15:33:47.453Z",
+        "updatedAt": "2026-10-13T15:33:47.453Z"
+      },
+      {
+        "id": 112,
+        "attributeId": 56,
+        "value": "280",
+        "sortOrder": 2,
+        "isActive": true,
+        "createdAt": "2026-10-13T15:33:47.455Z",
+        "updatedAt": "2026-10-13T15:33:47.455Z"
+      },
+      {
+        "id": 113,
+        "attributeId": 56,
+        "value": "360",
+        "sortOrder": 3,
+        "isActive": true,
+        "createdAt": "2026-10-13T15:33:47.458Z",
+        "updatedAt": "2026-10-13T15:33:47.458Z"
+      },
+      {
+        "id": 114,
+        "attributeId": 56,
+        "value": "420",
+        "sortOrder": 4,
+        "isActive": true,
+        "createdAt": "2026-10-13T15:33:47.460Z",
+        "updatedAt": "2026-10-13T15:33:47.460Z"
+      }
+    ],
+    "productValues": [
+      {
+        "id": 383,
+        "productId": 269,
+        "attributeId": 56,
+        "attributeValueId": 110,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.107Z",
+        "product": {
+          "sku": "SEED-CASE-001"
+        },
+        "attributeValue": {
+          "id": 110,
+          "attributeId": 56,
+          "value": "120",
+          "sortOrder": 0,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.450Z",
+          "updatedAt": "2026-10-13T15:33:47.450Z"
+        }
+      },
+      {
+        "id": 384,
+        "productId": 269,
+        "attributeId": 56,
+        "attributeValueId": 111,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.107Z",
+        "product": {
+          "sku": "SEED-CASE-001"
+        },
+        "attributeValue": {
+          "id": 111,
+          "attributeId": 56,
+          "value": "240",
+          "sortOrder": 1,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.453Z",
+          "updatedAt": "2026-10-13T15:33:47.453Z"
+        }
+      },
+      {
+        "id": 385,
+        "productId": 269,
+        "attributeId": 56,
+        "attributeValueId": 112,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.107Z",
+        "product": {
+          "sku": "SEED-CASE-001"
+        },
+        "attributeValue": {
+          "id": 112,
+          "attributeId": 56,
+          "value": "280",
+          "sortOrder": 2,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.455Z",
+          "updatedAt": "2026-10-13T15:33:47.455Z"
+        }
+      },
+      {
+        "id": 386,
+        "productId": 269,
+        "attributeId": 56,
+        "attributeValueId": 113,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.107Z",
+        "product": {
+          "sku": "SEED-CASE-001"
+        },
+        "attributeValue": {
+          "id": 113,
+          "attributeId": 56,
+          "value": "360",
+          "sortOrder": 3,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.458Z",
+          "updatedAt": "2026-10-13T15:33:47.458Z"
+        }
+      },
+      {
+        "id": 387,
+        "productId": 269,
+        "attributeId": 56,
+        "attributeValueId": 114,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.107Z",
+        "product": {
+          "sku": "SEED-CASE-001"
+        },
+        "attributeValue": {
+          "id": 114,
+          "attributeId": 56,
+          "value": "420",
+          "sortOrder": 4,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.460Z",
+          "updatedAt": "2026-10-13T15:33:47.460Z"
+        }
+      },
+      {
+        "id": 393,
+        "productId": 270,
+        "attributeId": 56,
+        "attributeValueId": 110,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.111Z",
+        "product": {
+          "sku": "SEED-CASE-002"
+        },
+        "attributeValue": {
+          "id": 110,
+          "attributeId": 56,
+          "value": "120",
+          "sortOrder": 0,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.450Z",
+          "updatedAt": "2026-10-13T15:33:47.450Z"
+        }
+      },
+      {
+        "id": 394,
+        "productId": 270,
+        "attributeId": 56,
+        "attributeValueId": 111,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.111Z",
+        "product": {
+          "sku": "SEED-CASE-002"
+        },
+        "attributeValue": {
+          "id": 111,
+          "attributeId": 56,
+          "value": "240",
+          "sortOrder": 1,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.453Z",
+          "updatedAt": "2026-10-13T15:33:47.453Z"
+        }
+      },
+      {
+        "id": 395,
+        "productId": 270,
+        "attributeId": 56,
+        "attributeValueId": 113,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.111Z",
+        "product": {
+          "sku": "SEED-CASE-002"
+        },
+        "attributeValue": {
+          "id": 113,
+          "attributeId": 56,
+          "value": "360",
+          "sortOrder": 3,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.458Z",
+          "updatedAt": "2026-10-13T15:33:47.458Z"
+        }
+      },
+      {
+        "id": 401,
+        "productId": 271,
+        "attributeId": 56,
+        "attributeValueId": 110,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.115Z",
+        "product": {
+          "sku": "SEED-CASE-003"
+        },
+        "attributeValue": {
+          "id": 110,
+          "attributeId": 56,
+          "value": "120",
+          "sortOrder": 0,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.450Z",
+          "updatedAt": "2026-10-13T15:33:47.450Z"
+        }
+      },
+      {
+        "id": 402,
+        "productId": 271,
+        "attributeId": 56,
+        "attributeValueId": 111,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.115Z",
+        "product": {
+          "sku": "SEED-CASE-003"
+        },
+        "attributeValue": {
+          "id": 111,
+          "attributeId": 56,
+          "value": "240",
+          "sortOrder": 1,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.453Z",
+          "updatedAt": "2026-10-13T15:33:47.453Z"
+        }
+      },
+      {
+        "id": 403,
+        "productId": 271,
+        "attributeId": 56,
+        "attributeValueId": 112,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.115Z",
+        "product": {
+          "sku": "SEED-CASE-003"
+        },
+        "attributeValue": {
+          "id": 112,
+          "attributeId": 56,
+          "value": "280",
+          "sortOrder": 2,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.455Z",
+          "updatedAt": "2026-10-13T15:33:47.455Z"
+        }
+      },
+      {
+        "id": 408,
+        "productId": 272,
+        "attributeId": 56,
+        "attributeValueId": 110,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.120Z",
+        "product": {
+          "sku": "SEED-CASE-004"
+        },
+        "attributeValue": {
+          "id": 110,
+          "attributeId": 56,
+          "value": "120",
+          "sortOrder": 0,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.450Z",
+          "updatedAt": "2026-10-13T15:33:47.450Z"
+        }
+      },
+      {
+        "id": 409,
+        "productId": 272,
+        "attributeId": 56,
+        "attributeValueId": 111,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.120Z",
+        "product": {
+          "sku": "SEED-CASE-004"
+        },
+        "attributeValue": {
+          "id": 111,
+          "attributeId": 56,
+          "value": "240",
+          "sortOrder": 1,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.453Z",
+          "updatedAt": "2026-10-13T15:33:47.453Z"
+        }
+      },
+      {
+        "id": 414,
+        "productId": 273,
+        "attributeId": 56,
+        "attributeValueId": 110,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.123Z",
+        "product": {
+          "sku": "SEED-CASE-005"
+        },
+        "attributeValue": {
+          "id": 110,
+          "attributeId": 56,
+          "value": "120",
+          "sortOrder": 0,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.450Z",
+          "updatedAt": "2026-10-13T15:33:47.450Z"
+        }
+      },
+      {
+        "id": 415,
+        "productId": 273,
+        "attributeId": 56,
+        "attributeValueId": 111,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.123Z",
+        "product": {
+          "sku": "SEED-CASE-005"
+        },
+        "attributeValue": {
+          "id": 111,
+          "attributeId": 56,
+          "value": "240",
+          "sortOrder": 1,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.453Z",
+          "updatedAt": "2026-10-13T15:33:47.453Z"
+        }
+      },
+      {
+        "id": 419,
+        "productId": 274,
+        "attributeId": 56,
+        "attributeValueId": 110,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.127Z",
+        "product": {
+          "sku": "SEED-CASE-006"
+        },
+        "attributeValue": {
+          "id": 110,
+          "attributeId": 56,
+          "value": "120",
+          "sortOrder": 0,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.450Z",
+          "updatedAt": "2026-10-13T15:33:47.450Z"
+        }
+      },
+      {
+        "id": 420,
+        "productId": 274,
+        "attributeId": 56,
+        "attributeValueId": 111,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.127Z",
+        "product": {
+          "sku": "SEED-CASE-006"
+        },
+        "attributeValue": {
+          "id": 111,
+          "attributeId": 56,
+          "value": "240",
+          "sortOrder": 1,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.453Z",
+          "updatedAt": "2026-10-13T15:33:47.453Z"
+        }
+      },
+      {
+        "id": 426,
+        "productId": 275,
+        "attributeId": 56,
+        "attributeValueId": 110,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.131Z",
+        "product": {
+          "sku": "SEED-CASE-007"
+        },
+        "attributeValue": {
+          "id": 110,
+          "attributeId": 56,
+          "value": "120",
+          "sortOrder": 0,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.450Z",
+          "updatedAt": "2026-10-13T15:33:47.450Z"
+        }
+      },
+      {
+        "id": 427,
+        "productId": 275,
+        "attributeId": 56,
+        "attributeValueId": 111,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.131Z",
+        "product": {
+          "sku": "SEED-CASE-007"
+        },
+        "attributeValue": {
+          "id": 111,
+          "attributeId": 56,
+          "value": "240",
+          "sortOrder": 1,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.453Z",
+          "updatedAt": "2026-10-13T15:33:47.453Z"
+        }
+      },
+      {
+        "id": 428,
+        "productId": 275,
+        "attributeId": 56,
+        "attributeValueId": 112,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.131Z",
+        "product": {
+          "sku": "SEED-CASE-007"
+        },
+        "attributeValue": {
+          "id": 112,
+          "attributeId": 56,
+          "value": "280",
+          "sortOrder": 2,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.455Z",
+          "updatedAt": "2026-10-13T15:33:47.455Z"
+        }
+      },
+      {
+        "id": 429,
+        "productId": 275,
+        "attributeId": 56,
+        "attributeValueId": 113,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.131Z",
+        "product": {
+          "sku": "SEED-CASE-007"
+        },
+        "attributeValue": {
+          "id": 113,
+          "attributeId": 56,
+          "value": "360",
+          "sortOrder": 3,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.458Z",
+          "updatedAt": "2026-10-13T15:33:47.458Z"
+        }
+      },
+      {
+        "id": 436,
+        "productId": 276,
+        "attributeId": 56,
+        "attributeValueId": 110,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.136Z",
+        "product": {
+          "sku": "SEED-CASE-008"
+        },
+        "attributeValue": {
+          "id": 110,
+          "attributeId": 56,
+          "value": "120",
+          "sortOrder": 0,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.450Z",
+          "updatedAt": "2026-10-13T15:33:47.450Z"
+        }
+      },
+      {
+        "id": 437,
+        "productId": 276,
+        "attributeId": 56,
+        "attributeValueId": 111,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.136Z",
+        "product": {
+          "sku": "SEED-CASE-008"
+        },
+        "attributeValue": {
+          "id": 111,
+          "attributeId": 56,
+          "value": "240",
+          "sortOrder": 1,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.453Z",
+          "updatedAt": "2026-10-13T15:33:47.453Z"
+        }
+      },
+      {
+        "id": 438,
+        "productId": 276,
+        "attributeId": 56,
+        "attributeValueId": 112,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.136Z",
+        "product": {
+          "sku": "SEED-CASE-008"
+        },
+        "attributeValue": {
+          "id": 112,
+          "attributeId": 56,
+          "value": "280",
+          "sortOrder": 2,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.455Z",
+          "updatedAt": "2026-10-13T15:33:47.455Z"
+        }
+      },
+      {
+        "id": 439,
+        "productId": 276,
+        "attributeId": 56,
+        "attributeValueId": 113,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.136Z",
+        "product": {
+          "sku": "SEED-CASE-008"
+        },
+        "attributeValue": {
+          "id": 113,
+          "attributeId": 56,
+          "value": "360",
+          "sortOrder": 3,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.458Z",
+          "updatedAt": "2026-10-13T15:33:47.458Z"
+        }
+      },
+      {
+        "id": 440,
+        "productId": 276,
+        "attributeId": 56,
+        "attributeValueId": 114,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.136Z",
+        "product": {
+          "sku": "SEED-CASE-008"
+        },
+        "attributeValue": {
+          "id": 114,
+          "attributeId": 56,
+          "value": "420",
+          "sortOrder": 4,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.460Z",
+          "updatedAt": "2026-10-13T15:33:47.460Z"
+        }
+      },
+      {
+        "id": 468,
+        "productId": 314,
+        "attributeId": 56,
+        "attributeValueId": 113,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.304Z",
+        "product": {
+          "sku": "SEED-AIO-001"
+        },
+        "attributeValue": {
+          "id": 113,
+          "attributeId": 56,
+          "value": "360",
+          "sortOrder": 3,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.458Z",
+          "updatedAt": "2026-10-13T15:33:47.458Z"
+        }
+      },
+      {
+        "id": 473,
+        "productId": 315,
+        "attributeId": 56,
+        "attributeValueId": 113,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.307Z",
+        "product": {
+          "sku": "SEED-AIO-002"
+        },
+        "attributeValue": {
+          "id": 113,
+          "attributeId": 56,
+          "value": "360",
+          "sortOrder": 3,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.458Z",
+          "updatedAt": "2026-10-13T15:33:47.458Z"
+        }
+      },
+      {
+        "id": 478,
+        "productId": 316,
+        "attributeId": 56,
+        "attributeValueId": 111,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.311Z",
+        "product": {
+          "sku": "SEED-AIO-003"
+        },
+        "attributeValue": {
+          "id": 111,
+          "attributeId": 56,
+          "value": "240",
+          "sortOrder": 1,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.453Z",
+          "updatedAt": "2026-10-13T15:33:47.453Z"
+        }
+      },
+      {
+        "id": 483,
+        "productId": 317,
+        "attributeId": 56,
+        "attributeValueId": 112,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T15:55:16.314Z",
+        "product": {
+          "sku": "SEED-AIO-004"
+        },
+        "attributeValue": {
+          "id": 112,
+          "attributeId": 56,
+          "value": "280",
+          "sortOrder": 2,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.455Z",
+          "updatedAt": "2026-10-13T15:33:47.455Z"
+        }
+      },
+      {
+        "id": 491,
+        "productId": 275,
+        "attributeId": 56,
+        "attributeValueId": 114,
+        "valueText": null,
+        "valueNumber": null,
+        "createdAt": "2026-10-13T18:46:34.566Z",
+        "product": {
+          "sku": "SEED-CASE-007"
+        },
+        "attributeValue": {
+          "id": 114,
+          "attributeId": 56,
+          "value": "420",
+          "sortOrder": 4,
+          "isActive": true,
+          "createdAt": "2026-10-13T15:33:47.460Z",
+          "updatedAt": "2026-10-13T15:33:47.460Z"
+        }
+      }
+    ]
+  },
+  "restoreNote": "Chỉ xóa AttributeValue được tạo nếu không có ProductAttributeValue tham chiếu; năm tùy chọn trong snapshot phải giữ nguyên."
+}

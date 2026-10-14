@@ -1,0 +1,2450 @@
+{
+  "createdAt": "2026-10-14T03:08:12.923Z",
+  "reportFile": "F:\\ComputerStoreAI\\backend\\src\\scripts\\data\\seedProductNormalization.json",
+  "operationPlan": [
+    {
+      "action": "UPDATE",
+      "kind": "enum-replace",
+      "sku": "SEED-CASE-006",
+      "field": "radiator-size",
+      "old": [
+        "120",
+        "240"
+      ],
+      "new": [
+        "120",
+        "140"
+      ],
+      "source": "https://www.fractal-design.com/app/uploads/2019/06/Node-304-Manual-V2.pdf"
+    }
+  ],
+  "products": [
+    {
+      "id": 315,
+      "name": "Tản nhiệt nước AIO Corsair iCUE H150i Elite LCD XT 360mm (CW-9060074-WW) AM4/AM5/LGA1700/LGA1851",
+      "slug": "seed-aio-002",
+      "sku": "SEED-AIO-002",
+      "category": null,
+      "categoryId": 156,
+      "brand": null,
+      "brandId": 93,
+      "shortDescription": null,
+      "description": null,
+      "price": 4290000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 5,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.307Z",
+      "updatedAt": "2026-10-13T15:55:16.307Z",
+      "brandRecord": {
+        "name": "Corsair",
+        "slug": "corsair"
+      },
+      "specifications": [
+        {
+          "id": 1040,
+          "productId": 315,
+          "name": "Quạt",
+          "value": "3x 120 mm",
+          "sortOrder": 1,
+          "createdAt": "2026-10-13T18:46:36.575Z"
+        },
+        {
+          "id": 1041,
+          "productId": 315,
+          "name": "Màn hình LCD trên khối bơm",
+          "value": "Có",
+          "sortOrder": 2,
+          "createdAt": "2026-10-13T18:46:36.578Z"
+        },
+        {
+          "id": 663,
+          "productId": 315,
+          "name": "Bảo hành",
+          "value": "36 tháng",
+          "sortOrder": 9999,
+          "createdAt": "2026-10-13T15:55:16.310Z"
+        }
+      ],
+      "attributeValues": [
+        {
+          "id": 469,
+          "productId": 315,
+          "attributeId": 32,
+          "attributeValueId": 71,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.307Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 71,
+            "attributeId": 32,
+            "value": "AM4",
+            "sortOrder": 4,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:24.960Z",
+            "updatedAt": "2026-10-13T14:02:24.960Z"
+          }
+        },
+        {
+          "id": 470,
+          "productId": 315,
+          "attributeId": 32,
+          "attributeValueId": 72,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.307Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 72,
+            "attributeId": 32,
+            "value": "AM5",
+            "sortOrder": 5,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:29.092Z",
+            "updatedAt": "2026-10-13T14:02:29.092Z"
+          }
+        },
+        {
+          "id": 471,
+          "productId": 315,
+          "attributeId": 32,
+          "attributeValueId": 69,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.307Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 69,
+            "attributeId": 32,
+            "value": "LGA 1700",
+            "sortOrder": 2,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:11.736Z",
+            "updatedAt": "2026-10-13T14:02:11.736Z"
+          }
+        },
+        {
+          "id": 472,
+          "productId": 315,
+          "attributeId": 32,
+          "attributeValueId": 70,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.307Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 70,
+            "attributeId": 32,
+            "value": "LGA 1851",
+            "sortOrder": 3,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:20.797Z",
+            "updatedAt": "2026-10-13T14:02:20.797Z"
+          }
+        },
+        {
+          "id": 473,
+          "productId": 315,
+          "attributeId": 56,
+          "attributeValueId": 113,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.307Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 113,
+            "attributeId": 56,
+            "value": "360",
+            "sortOrder": 3,
+            "isActive": true,
+            "createdAt": "2026-10-13T15:33:47.458Z",
+            "updatedAt": "2026-10-13T15:33:47.458Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 316,
+      "name": "Tản nhiệt nước AIO Deepcool LT240 240mm (R-LT240-BKAMNF-G) AM4/AM5/LGA1700/LGA1851",
+      "slug": "seed-aio-003",
+      "sku": "SEED-AIO-003",
+      "category": null,
+      "categoryId": 156,
+      "brand": null,
+      "brandId": 108,
+      "shortDescription": null,
+      "description": null,
+      "price": 2490000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 10,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.311Z",
+      "updatedAt": "2026-10-13T15:55:16.311Z",
+      "brandRecord": {
+        "name": "Deepcool",
+        "slug": "deepcool"
+      },
+      "specifications": [
+        {
+          "id": 1042,
+          "productId": 316,
+          "name": "Quạt",
+          "value": "2x 120 mm",
+          "sortOrder": 1,
+          "createdAt": "2026-10-13T18:46:36.594Z"
+        },
+        {
+          "id": 664,
+          "productId": 316,
+          "name": "Bảo hành",
+          "value": "36 tháng",
+          "sortOrder": 9999,
+          "createdAt": "2026-10-13T15:55:16.313Z"
+        }
+      ],
+      "attributeValues": [
+        {
+          "id": 474,
+          "productId": 316,
+          "attributeId": 32,
+          "attributeValueId": 71,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.311Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 71,
+            "attributeId": 32,
+            "value": "AM4",
+            "sortOrder": 4,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:24.960Z",
+            "updatedAt": "2026-10-13T14:02:24.960Z"
+          }
+        },
+        {
+          "id": 475,
+          "productId": 316,
+          "attributeId": 32,
+          "attributeValueId": 72,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.311Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 72,
+            "attributeId": 32,
+            "value": "AM5",
+            "sortOrder": 5,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:29.092Z",
+            "updatedAt": "2026-10-13T14:02:29.092Z"
+          }
+        },
+        {
+          "id": 476,
+          "productId": 316,
+          "attributeId": 32,
+          "attributeValueId": 69,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.311Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 69,
+            "attributeId": 32,
+            "value": "LGA 1700",
+            "sortOrder": 2,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:11.736Z",
+            "updatedAt": "2026-10-13T14:02:11.736Z"
+          }
+        },
+        {
+          "id": 477,
+          "productId": 316,
+          "attributeId": 32,
+          "attributeValueId": 70,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.311Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 70,
+            "attributeId": 32,
+            "value": "LGA 1851",
+            "sortOrder": 3,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:20.797Z",
+            "updatedAt": "2026-10-13T14:02:20.797Z"
+          }
+        },
+        {
+          "id": 478,
+          "productId": 316,
+          "attributeId": 56,
+          "attributeValueId": 111,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.311Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 111,
+            "attributeId": 56,
+            "value": "240",
+            "sortOrder": 1,
+            "isActive": true,
+            "createdAt": "2026-10-13T15:33:47.453Z",
+            "updatedAt": "2026-10-13T15:33:47.453Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 269,
+      "name": "Vỏ Case Fractal Design Torrent Black Solid (FD-C-TOR1A-01) Full Tower E-ATX",
+      "slug": "seed-case-001",
+      "sku": "SEED-CASE-001",
+      "category": null,
+      "categoryId": 154,
+      "brand": null,
+      "brandId": 106,
+      "shortDescription": null,
+      "description": null,
+      "price": 3490000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 5,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.107Z",
+      "updatedAt": "2026-10-13T15:55:16.107Z",
+      "brandRecord": {
+        "name": "Fractal Design",
+        "slug": "fractal-design"
+      },
+      "specifications": [
+        {
+          "id": 1019,
+          "productId": 269,
+          "name": "Loại",
+          "value": "Full Tower",
+          "sortOrder": 1,
+          "createdAt": "2026-10-13T18:46:36.390Z"
+        },
+        {
+          "id": 1020,
+          "productId": 269,
+          "name": "Bảng bên",
+          "value": "Thép (Solid)",
+          "sortOrder": 2,
+          "createdAt": "2026-10-13T18:46:36.392Z"
+        },
+        {
+          "id": 617,
+          "productId": 269,
+          "name": "Bảo hành",
+          "value": "24 tháng",
+          "sortOrder": 9999,
+          "createdAt": "2026-10-13T15:55:16.110Z"
+        }
+      ],
+      "attributeValues": [
+        {
+          "id": 377,
+          "productId": 269,
+          "attributeId": 34,
+          "attributeValueId": 87,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.107Z",
+          "attribute": {
+            "id": 34,
+            "name": "Kích thước Mainboard",
+            "slug": "kich-thuoc-mainboard",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 3,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:04:04.308Z",
+            "updatedAt": "2026-10-13T15:33:47.432Z"
+          },
+          "attributeValue": {
+            "id": 87,
+            "attributeId": 34,
+            "value": "E-ATX",
+            "sortOrder": 3,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:04:33.489Z",
+            "updatedAt": "2026-10-13T14:04:33.489Z"
+          }
+        },
+        {
+          "id": 378,
+          "productId": 269,
+          "attributeId": 34,
+          "attributeValueId": 84,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.107Z",
+          "attribute": {
+            "id": 34,
+            "name": "Kích thước Mainboard",
+            "slug": "kich-thuoc-mainboard",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 3,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:04:04.308Z",
+            "updatedAt": "2026-10-13T15:33:47.432Z"
+          },
+          "attributeValue": {
+            "id": 84,
+            "attributeId": 34,
+            "value": "ATX",
+            "sortOrder": 0,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:04:17.291Z",
+            "updatedAt": "2026-10-13T14:04:17.291Z"
+          }
+        },
+        {
+          "id": 379,
+          "productId": 269,
+          "attributeId": 34,
+          "attributeValueId": 85,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.107Z",
+          "attribute": {
+            "id": 34,
+            "name": "Kích thước Mainboard",
+            "slug": "kich-thuoc-mainboard",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 3,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:04:04.308Z",
+            "updatedAt": "2026-10-13T15:33:47.432Z"
+          },
+          "attributeValue": {
+            "id": 85,
+            "attributeId": 34,
+            "value": "Micro-ATX",
+            "sortOrder": 1,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:04:22.711Z",
+            "updatedAt": "2026-10-13T14:04:22.711Z"
+          }
+        },
+        {
+          "id": 380,
+          "productId": 269,
+          "attributeId": 34,
+          "attributeValueId": 86,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.107Z",
+          "attribute": {
+            "id": 34,
+            "name": "Kích thước Mainboard",
+            "slug": "kich-thuoc-mainboard",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 3,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:04:04.308Z",
+            "updatedAt": "2026-10-13T15:33:47.432Z"
+          },
+          "attributeValue": {
+            "id": 86,
+            "attributeId": 34,
+            "value": "Mini-ITX",
+            "sortOrder": 2,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:04:27.499Z",
+            "updatedAt": "2026-10-13T14:04:27.499Z"
+          }
+        },
+        {
+          "id": 381,
+          "productId": 269,
+          "attributeId": 50,
+          "attributeValueId": null,
+          "valueText": "461",
+          "valueNumber": "461",
+          "createdAt": "2026-10-13T15:55:16.107Z",
+          "attribute": {
+            "id": 50,
+            "name": "Chiều dài VGA tối đa (Case)",
+            "slug": "case-max-vga-length",
+            "type": "NUMBER",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 91,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.436Z",
+            "updatedAt": "2026-10-13T17:30:34.411Z"
+          },
+          "attributeValue": null
+        },
+        {
+          "id": 382,
+          "productId": 269,
+          "attributeId": 54,
+          "attributeValueId": null,
+          "valueText": "188",
+          "valueNumber": "188",
+          "createdAt": "2026-10-13T15:55:16.107Z",
+          "attribute": {
+            "id": 54,
+            "name": "Chiều cao tản nhiệt tối đa",
+            "slug": "case-max-cooler-height",
+            "type": "NUMBER",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 95,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.443Z",
+            "updatedAt": "2026-10-13T17:30:34.418Z"
+          },
+          "attributeValue": null
+        },
+        {
+          "id": 383,
+          "productId": 269,
+          "attributeId": 56,
+          "attributeValueId": 110,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.107Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 110,
+            "attributeId": 56,
+            "value": "120",
+            "sortOrder": 0,
+            "isActive": true,
+            "createdAt": "2026-10-13T15:33:47.450Z",
+            "updatedAt": "2026-10-13T15:33:47.450Z"
+          }
+        },
+        {
+          "id": 384,
+          "productId": 269,
+          "attributeId": 56,
+          "attributeValueId": 111,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.107Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 111,
+            "attributeId": 56,
+            "value": "240",
+            "sortOrder": 1,
+            "isActive": true,
+            "createdAt": "2026-10-13T15:33:47.453Z",
+            "updatedAt": "2026-10-13T15:33:47.453Z"
+          }
+        },
+        {
+          "id": 385,
+          "productId": 269,
+          "attributeId": 56,
+          "attributeValueId": 112,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.107Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 112,
+            "attributeId": 56,
+            "value": "280",
+            "sortOrder": 2,
+            "isActive": true,
+            "createdAt": "2026-10-13T15:33:47.455Z",
+            "updatedAt": "2026-10-13T15:33:47.455Z"
+          }
+        },
+        {
+          "id": 386,
+          "productId": 269,
+          "attributeId": 56,
+          "attributeValueId": 113,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.107Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 113,
+            "attributeId": 56,
+            "value": "360",
+            "sortOrder": 3,
+            "isActive": true,
+            "createdAt": "2026-10-13T15:33:47.458Z",
+            "updatedAt": "2026-10-13T15:33:47.458Z"
+          }
+        },
+        {
+          "id": 387,
+          "productId": 269,
+          "attributeId": 56,
+          "attributeValueId": 114,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.107Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 114,
+            "attributeId": 56,
+            "value": "420",
+            "sortOrder": 4,
+            "isActive": true,
+            "createdAt": "2026-10-13T15:33:47.460Z",
+            "updatedAt": "2026-10-13T15:33:47.460Z"
+          }
+        },
+        {
+          "id": 520,
+          "productId": 269,
+          "attributeId": 56,
+          "attributeValueId": 122,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-14T02:57:52.951Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 122,
+            "attributeId": 56,
+            "value": "140",
+            "sortOrder": 5,
+            "isActive": true,
+            "createdAt": "2026-10-14T02:57:23.772Z",
+            "updatedAt": "2026-10-14T02:57:23.772Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 273,
+      "name": "Vỏ Case Deepcool MATREXX 30 (R-MATREXX30-BKN0H-G) Micro-ATX",
+      "slug": "seed-case-005",
+      "sku": "SEED-CASE-005",
+      "category": null,
+      "categoryId": 154,
+      "brand": null,
+      "brandId": 108,
+      "shortDescription": null,
+      "description": null,
+      "price": 590000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 15,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.123Z",
+      "updatedAt": "2026-10-13T15:55:16.123Z",
+      "brandRecord": {
+        "name": "Deepcool",
+        "slug": "deepcool"
+      },
+      "specifications": [
+        {
+          "id": 621,
+          "productId": 273,
+          "name": "Bảo hành",
+          "value": "24 tháng",
+          "sortOrder": 0,
+          "createdAt": "2026-10-13T15:55:16.126Z"
+        }
+      ],
+      "attributeValues": [
+        {
+          "id": 410,
+          "productId": 273,
+          "attributeId": 34,
+          "attributeValueId": 85,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.123Z",
+          "attribute": {
+            "id": 34,
+            "name": "Kích thước Mainboard",
+            "slug": "kich-thuoc-mainboard",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 3,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:04:04.308Z",
+            "updatedAt": "2026-10-13T15:33:47.432Z"
+          },
+          "attributeValue": {
+            "id": 85,
+            "attributeId": 34,
+            "value": "Micro-ATX",
+            "sortOrder": 1,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:04:22.711Z",
+            "updatedAt": "2026-10-13T14:04:22.711Z"
+          }
+        },
+        {
+          "id": 411,
+          "productId": 273,
+          "attributeId": 34,
+          "attributeValueId": 86,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.123Z",
+          "attribute": {
+            "id": 34,
+            "name": "Kích thước Mainboard",
+            "slug": "kich-thuoc-mainboard",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 3,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:04:04.308Z",
+            "updatedAt": "2026-10-13T15:33:47.432Z"
+          },
+          "attributeValue": {
+            "id": 86,
+            "attributeId": 34,
+            "value": "Mini-ITX",
+            "sortOrder": 2,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:04:27.499Z",
+            "updatedAt": "2026-10-13T14:04:27.499Z"
+          }
+        },
+        {
+          "id": 412,
+          "productId": 273,
+          "attributeId": 50,
+          "attributeValueId": null,
+          "valueText": "270",
+          "valueNumber": "270",
+          "createdAt": "2026-10-13T15:55:16.123Z",
+          "attribute": {
+            "id": 50,
+            "name": "Chiều dài VGA tối đa (Case)",
+            "slug": "case-max-vga-length",
+            "type": "NUMBER",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 91,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.436Z",
+            "updatedAt": "2026-10-13T17:30:34.411Z"
+          },
+          "attributeValue": null
+        },
+        {
+          "id": 413,
+          "productId": 273,
+          "attributeId": 54,
+          "attributeValueId": null,
+          "valueText": "155",
+          "valueNumber": "155",
+          "createdAt": "2026-10-13T15:55:16.123Z",
+          "attribute": {
+            "id": 54,
+            "name": "Chiều cao tản nhiệt tối đa",
+            "slug": "case-max-cooler-height",
+            "type": "NUMBER",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 95,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.443Z",
+            "updatedAt": "2026-10-13T17:30:34.418Z"
+          },
+          "attributeValue": null
+        },
+        {
+          "id": 414,
+          "productId": 273,
+          "attributeId": 56,
+          "attributeValueId": 110,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.123Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 110,
+            "attributeId": 56,
+            "value": "120",
+            "sortOrder": 0,
+            "isActive": true,
+            "createdAt": "2026-10-13T15:33:47.450Z",
+            "updatedAt": "2026-10-13T15:33:47.450Z"
+          }
+        },
+        {
+          "id": 415,
+          "productId": 273,
+          "attributeId": 56,
+          "attributeValueId": 111,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.123Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 111,
+            "attributeId": 56,
+            "value": "240",
+            "sortOrder": 1,
+            "isActive": true,
+            "createdAt": "2026-10-13T15:33:47.453Z",
+            "updatedAt": "2026-10-13T15:33:47.453Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 274,
+      "name": "Vỏ Case Fractal Design Node 304 (FD-CA-NODE-304-BL) Mini-ITX",
+      "slug": "seed-case-006",
+      "sku": "SEED-CASE-006",
+      "category": null,
+      "categoryId": 154,
+      "brand": null,
+      "brandId": 106,
+      "shortDescription": null,
+      "description": null,
+      "price": 1690000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 4,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.127Z",
+      "updatedAt": "2026-10-13T15:55:16.127Z",
+      "brandRecord": {
+        "name": "Fractal Design",
+        "slug": "fractal-design"
+      },
+      "specifications": [
+        {
+          "id": 622,
+          "productId": 274,
+          "name": "Bảo hành",
+          "value": "24 tháng",
+          "sortOrder": 0,
+          "createdAt": "2026-10-13T15:55:16.129Z"
+        }
+      ],
+      "attributeValues": [
+        {
+          "id": 416,
+          "productId": 274,
+          "attributeId": 34,
+          "attributeValueId": 86,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.127Z",
+          "attribute": {
+            "id": 34,
+            "name": "Kích thước Mainboard",
+            "slug": "kich-thuoc-mainboard",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 3,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:04:04.308Z",
+            "updatedAt": "2026-10-13T15:33:47.432Z"
+          },
+          "attributeValue": {
+            "id": 86,
+            "attributeId": 34,
+            "value": "Mini-ITX",
+            "sortOrder": 2,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:04:27.499Z",
+            "updatedAt": "2026-10-13T14:04:27.499Z"
+          }
+        },
+        {
+          "id": 417,
+          "productId": 274,
+          "attributeId": 50,
+          "attributeValueId": null,
+          "valueText": "310",
+          "valueNumber": "310",
+          "createdAt": "2026-10-13T15:55:16.127Z",
+          "attribute": {
+            "id": 50,
+            "name": "Chiều dài VGA tối đa (Case)",
+            "slug": "case-max-vga-length",
+            "type": "NUMBER",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 91,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.436Z",
+            "updatedAt": "2026-10-13T17:30:34.411Z"
+          },
+          "attributeValue": null
+        },
+        {
+          "id": 418,
+          "productId": 274,
+          "attributeId": 54,
+          "attributeValueId": null,
+          "valueText": "165",
+          "valueNumber": "165",
+          "createdAt": "2026-10-13T15:55:16.127Z",
+          "attribute": {
+            "id": 54,
+            "name": "Chiều cao tản nhiệt tối đa",
+            "slug": "case-max-cooler-height",
+            "type": "NUMBER",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 95,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.443Z",
+            "updatedAt": "2026-10-13T17:30:34.418Z"
+          },
+          "attributeValue": null
+        },
+        {
+          "id": 419,
+          "productId": 274,
+          "attributeId": 56,
+          "attributeValueId": 110,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.127Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 110,
+            "attributeId": 56,
+            "value": "120",
+            "sortOrder": 0,
+            "isActive": true,
+            "createdAt": "2026-10-13T15:33:47.450Z",
+            "updatedAt": "2026-10-13T15:33:47.450Z"
+          }
+        },
+        {
+          "id": 420,
+          "productId": 274,
+          "attributeId": 56,
+          "attributeValueId": 111,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.127Z",
+          "attribute": {
+            "id": 56,
+            "name": "Kích thước két nước AIO",
+            "slug": "radiator-size",
+            "type": "MULTI_SELECT",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 97,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.447Z",
+            "updatedAt": "2026-10-13T15:33:47.447Z"
+          },
+          "attributeValue": {
+            "id": 111,
+            "attributeId": 56,
+            "value": "240",
+            "sortOrder": 1,
+            "isActive": true,
+            "createdAt": "2026-10-13T15:33:47.453Z",
+            "updatedAt": "2026-10-13T15:33:47.453Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 304,
+      "name": "Ghế gaming E-WIN Champion Series CPA Gaming Chair",
+      "slug": "seed-chair-003",
+      "sku": "SEED-CHAIR-003",
+      "category": null,
+      "categoryId": 165,
+      "brand": null,
+      "brandId": 127,
+      "shortDescription": null,
+      "description": null,
+      "price": 6490000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 5,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.268Z",
+      "updatedAt": "2026-10-14T02:57:52.981Z",
+      "brandRecord": {
+        "name": "E-Win",
+        "slug": "e-win"
+      },
+      "specifications": [
+        {
+          "id": 652,
+          "productId": 304,
+          "name": "Bảo hành",
+          "value": "24 tháng",
+          "sortOrder": 0,
+          "createdAt": "2026-10-13T15:55:16.270Z"
+        },
+        {
+          "id": 1151,
+          "productId": 304,
+          "name": "Chất liệu",
+          "value": "E-WIN 2.0 PU Leather",
+          "sortOrder": 1,
+          "createdAt": "2026-10-14T02:57:52.982Z"
+        }
+      ],
+      "attributeValues": []
+    },
+    {
+      "id": 318,
+      "name": "Tản nhiệt nước Custom Bykski Full DIY Kit 360mm (AM4/AM5/LGA1700/LGA1851) Soft Tubing",
+      "slug": "seed-custom-001",
+      "sku": "SEED-CUSTOM-001",
+      "category": null,
+      "categoryId": 157,
+      "brand": null,
+      "brandId": 125,
+      "shortDescription": null,
+      "description": null,
+      "price": 8990000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 2,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.318Z",
+      "updatedAt": "2026-10-13T18:46:34.589Z",
+      "brandRecord": {
+        "name": "Bykski",
+        "slug": "bykski"
+      },
+      "specifications": [
+        {
+          "id": 666,
+          "productId": 318,
+          "name": "Bảo hành",
+          "value": "12 tháng",
+          "sortOrder": 0,
+          "createdAt": "2026-10-13T15:55:16.320Z"
+        }
+      ],
+      "attributeValues": [
+        {
+          "id": 484,
+          "productId": 318,
+          "attributeId": 32,
+          "attributeValueId": 71,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.318Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 71,
+            "attributeId": 32,
+            "value": "AM4",
+            "sortOrder": 4,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:24.960Z",
+            "updatedAt": "2026-10-13T14:02:24.960Z"
+          }
+        },
+        {
+          "id": 485,
+          "productId": 318,
+          "attributeId": 32,
+          "attributeValueId": 72,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.318Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 72,
+            "attributeId": 32,
+            "value": "AM5",
+            "sortOrder": 5,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:29.092Z",
+            "updatedAt": "2026-10-13T14:02:29.092Z"
+          }
+        },
+        {
+          "id": 486,
+          "productId": 318,
+          "attributeId": 32,
+          "attributeValueId": 69,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.318Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 69,
+            "attributeId": 32,
+            "value": "LGA 1700",
+            "sortOrder": 2,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:11.736Z",
+            "updatedAt": "2026-10-13T14:02:11.736Z"
+          }
+        },
+        {
+          "id": 487,
+          "productId": 318,
+          "attributeId": 32,
+          "attributeValueId": 70,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.318Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 70,
+            "attributeId": 32,
+            "value": "LGA 1851",
+            "sortOrder": 3,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:20.797Z",
+            "updatedAt": "2026-10-13T14:02:20.797Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 319,
+      "name": "Tản nhiệt nước Custom EK Quantum Power Kit 360 (AM5/LGA1851) Hard Tubing",
+      "slug": "seed-custom-002",
+      "sku": "SEED-CUSTOM-002",
+      "category": null,
+      "categoryId": 157,
+      "brand": null,
+      "brandId": 126,
+      "shortDescription": null,
+      "description": null,
+      "price": 14990000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 1,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.321Z",
+      "updatedAt": "2026-10-13T18:46:34.597Z",
+      "brandRecord": {
+        "name": "EK Water Blocks",
+        "slug": "ek"
+      },
+      "specifications": [
+        {
+          "id": 667,
+          "productId": 319,
+          "name": "Bảo hành",
+          "value": "12 tháng",
+          "sortOrder": 0,
+          "createdAt": "2026-10-13T15:55:16.324Z"
+        }
+      ],
+      "attributeValues": [
+        {
+          "id": 488,
+          "productId": 319,
+          "attributeId": 32,
+          "attributeValueId": 72,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.321Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 72,
+            "attributeId": 32,
+            "value": "AM5",
+            "sortOrder": 5,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:29.092Z",
+            "updatedAt": "2026-10-13T14:02:29.092Z"
+          }
+        },
+        {
+          "id": 489,
+          "productId": 319,
+          "attributeId": 32,
+          "attributeValueId": 70,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:16.321Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 70,
+            "attributeId": 32,
+            "value": "LGA 1851",
+            "sortOrder": 3,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:20.797Z",
+            "updatedAt": "2026-10-13T14:02:20.797Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 308,
+      "name": "Quạt case Deepcool RF120M 120mm RGB Triple Pack (DP-FRGB-RF120M-3P)",
+      "slug": "seed-fan-004",
+      "sku": "SEED-FAN-004",
+      "category": null,
+      "categoryId": 158,
+      "brand": null,
+      "brandId": 108,
+      "shortDescription": null,
+      "description": null,
+      "price": 590000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 25,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.282Z",
+      "updatedAt": "2026-10-13T15:55:16.282Z",
+      "brandRecord": {
+        "name": "Deepcool",
+        "slug": "deepcool"
+      },
+      "specifications": [
+        {
+          "id": 656,
+          "productId": 308,
+          "name": "Bảo hành",
+          "value": "24 tháng",
+          "sortOrder": 0,
+          "createdAt": "2026-10-13T15:55:16.283Z"
+        }
+      ],
+      "attributeValues": []
+    },
+    {
+      "id": 284,
+      "name": "Bộ Bàn phím + Chuột SteelSeries Apex 3 TKL + Rival 3 Gaming Combo",
+      "slug": "seed-kbc-003",
+      "sku": "SEED-KBC-003",
+      "category": null,
+      "categoryId": 163,
+      "brand": null,
+      "brandId": 117,
+      "shortDescription": null,
+      "description": null,
+      "price": 1990000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 8,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.169Z",
+      "updatedAt": "2026-10-13T15:55:16.169Z",
+      "brandRecord": {
+        "name": "SteelSeries",
+        "slug": "steelseries"
+      },
+      "specifications": [
+        {
+          "id": 632,
+          "productId": 284,
+          "name": "Bảo hành",
+          "value": "12 tháng",
+          "sortOrder": 0,
+          "createdAt": "2026-10-13T15:55:16.172Z"
+        }
+      ],
+      "attributeValues": []
+    },
+    {
+      "id": 220,
+      "name": "Bo mạch chủ MSI B550M PRO-VDH WIFI (Socket AM4, DDR4, Micro-ATX)",
+      "slug": "seed-mb-001",
+      "sku": "SEED-MB-001",
+      "category": null,
+      "categoryId": 146,
+      "brand": null,
+      "brandId": 97,
+      "shortDescription": null,
+      "description": null,
+      "price": 2490000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 8,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:15.931Z",
+      "updatedAt": "2026-10-13T15:55:15.931Z",
+      "brandRecord": {
+        "name": "MSI",
+        "slug": "msi"
+      },
+      "specifications": [
+        {
+          "id": 832,
+          "productId": 220,
+          "name": "Wi-Fi",
+          "value": "Có",
+          "sortOrder": 1,
+          "createdAt": "2026-10-13T18:46:35.036Z"
+        },
+        {
+          "id": 833,
+          "productId": 220,
+          "name": "Cổng xuất hình",
+          "value": "VGA, DVI-D, HDMI",
+          "sortOrder": 2,
+          "createdAt": "2026-10-13T18:46:35.038Z"
+        },
+        {
+          "id": 568,
+          "productId": 220,
+          "name": "Bảo hành",
+          "value": "36 tháng",
+          "sortOrder": 9999,
+          "createdAt": "2026-10-13T15:55:15.934Z"
+        }
+      ],
+      "attributeValues": [
+        {
+          "id": 205,
+          "productId": 220,
+          "attributeId": 32,
+          "attributeValueId": 71,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:15.931Z",
+          "attribute": {
+            "id": 32,
+            "name": "Socket CPU",
+            "slug": "socket-cpu",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 1,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T13:59:40.343Z",
+            "updatedAt": "2026-10-13T15:33:47.430Z"
+          },
+          "attributeValue": {
+            "id": 71,
+            "attributeId": 32,
+            "value": "AM4",
+            "sortOrder": 4,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:02:24.960Z",
+            "updatedAt": "2026-10-13T14:02:24.960Z"
+          }
+        },
+        {
+          "id": 206,
+          "productId": 220,
+          "attributeId": 29,
+          "attributeValueId": 48,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:15.931Z",
+          "attribute": {
+            "id": 29,
+            "name": "Loại RAM",
+            "slug": "loai-ram",
+            "type": "SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 0,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T00:18:25.170Z",
+            "updatedAt": "2026-10-13T14:05:25.807Z"
+          },
+          "attributeValue": {
+            "id": 48,
+            "attributeId": 29,
+            "value": "DDR4",
+            "sortOrder": 0,
+            "isActive": true,
+            "createdAt": "2026-10-13T00:18:56.409Z",
+            "updatedAt": "2026-10-13T00:18:56.409Z"
+          }
+        },
+        {
+          "id": 207,
+          "productId": 220,
+          "attributeId": 34,
+          "attributeValueId": 85,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:15.931Z",
+          "attribute": {
+            "id": 34,
+            "name": "Kích thước Mainboard",
+            "slug": "kich-thuoc-mainboard",
+            "type": "MULTI_SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 3,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:04:04.308Z",
+            "updatedAt": "2026-10-13T15:33:47.432Z"
+          },
+          "attributeValue": {
+            "id": 85,
+            "attributeId": 34,
+            "value": "Micro-ATX",
+            "sortOrder": 1,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:04:22.711Z",
+            "updatedAt": "2026-10-13T14:04:22.711Z"
+          }
+        },
+        {
+          "id": 208,
+          "productId": 220,
+          "attributeId": 33,
+          "attributeValueId": 81,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:15.931Z",
+          "attribute": {
+            "id": 33,
+            "name": "Chipset",
+            "slug": "chipset",
+            "type": "SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 2,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:02:53.725Z",
+            "updatedAt": "2026-10-13T14:02:53.725Z"
+          },
+          "attributeValue": {
+            "id": 81,
+            "attributeId": 33,
+            "value": "B550",
+            "sortOrder": 8,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:03:42.672Z",
+            "updatedAt": "2026-10-13T14:03:42.672Z"
+          }
+        },
+        {
+          "id": 209,
+          "productId": 220,
+          "attributeId": 35,
+          "attributeValueId": null,
+          "valueText": "4",
+          "valueNumber": "4",
+          "createdAt": "2026-10-13T15:55:15.931Z",
+          "attribute": {
+            "id": 35,
+            "name": "Số khe RAM",
+            "slug": "so-khe-ram",
+            "type": "NUMBER",
+            "unit": "Khe",
+            "description": null,
+            "sortOrder": 4,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:05:46.511Z",
+            "updatedAt": "2026-10-13T14:13:43.043Z"
+          },
+          "attributeValue": null
+        },
+        {
+          "id": 210,
+          "productId": 220,
+          "attributeId": 36,
+          "attributeValueId": null,
+          "valueText": "128",
+          "valueNumber": "128",
+          "createdAt": "2026-10-13T15:55:15.931Z",
+          "attribute": {
+            "id": 36,
+            "name": "RAM tối đa",
+            "slug": "ram-toi-da",
+            "type": "NUMBER",
+            "unit": "GB",
+            "description": null,
+            "sortOrder": 5,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:06:31.947Z",
+            "updatedAt": "2026-10-13T14:13:52.981Z"
+          },
+          "attributeValue": null
+        },
+        {
+          "id": 211,
+          "productId": 220,
+          "attributeId": 37,
+          "attributeValueId": 96,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:15.931Z",
+          "attribute": {
+            "id": 37,
+            "name": "PCIe cho VGA",
+            "slug": "pcie-cho-vga",
+            "type": "SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 6,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:07:38.454Z",
+            "updatedAt": "2026-10-13T14:07:38.454Z"
+          },
+          "attributeValue": {
+            "id": 96,
+            "attributeId": 37,
+            "value": "4.0",
+            "sortOrder": 1,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:07:53.829Z",
+            "updatedAt": "2026-10-13T14:07:53.829Z"
+          }
+        },
+        {
+          "id": 212,
+          "productId": 220,
+          "attributeId": 38,
+          "attributeValueId": null,
+          "valueText": "2",
+          "valueNumber": "2",
+          "createdAt": "2026-10-13T15:55:15.931Z",
+          "attribute": {
+            "id": 38,
+            "name": "Số khe M.2",
+            "slug": "so-khe-m-2",
+            "type": "NUMBER",
+            "unit": "Khe",
+            "description": null,
+            "sortOrder": 7,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:08:08.965Z",
+            "updatedAt": "2026-10-13T14:14:05.577Z"
+          },
+          "attributeValue": null
+        },
+        {
+          "id": 213,
+          "productId": 220,
+          "attributeId": 39,
+          "attributeValueId": 102,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:15.931Z",
+          "attribute": {
+            "id": 39,
+            "name": "Nguồn Mainboard",
+            "slug": "nguon-mainboard",
+            "type": "SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 8,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:08:41.407Z",
+            "updatedAt": "2026-10-13T14:08:41.407Z"
+          },
+          "attributeValue": {
+            "id": 102,
+            "attributeId": 39,
+            "value": "ATX 24-pin",
+            "sortOrder": 0,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:08:56.654Z",
+            "updatedAt": "2026-10-13T14:08:56.654Z"
+          }
+        },
+        {
+          "id": 214,
+          "productId": 220,
+          "attributeId": 40,
+          "attributeValueId": 104,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:15.931Z",
+          "attribute": {
+            "id": 40,
+            "name": "Nguồn CPU",
+            "slug": "nguon-cpu",
+            "type": "SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 9,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T14:09:07.266Z",
+            "updatedAt": "2026-10-13T14:09:07.266Z"
+          },
+          "attributeValue": {
+            "id": 104,
+            "attributeId": 40,
+            "value": "EPS 8-pin",
+            "sortOrder": 1,
+            "isActive": true,
+            "createdAt": "2026-10-13T14:09:31.734Z",
+            "updatedAt": "2026-10-13T14:09:50.803Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 236,
+      "name": "RAM Desktop Corsair Dominator Platinum RGB (CMT32GX5M1B5600C36) 32GB (1x32GB) DDR5 5600MHz",
+      "slug": "seed-ram-005",
+      "sku": "SEED-RAM-005",
+      "category": null,
+      "categoryId": 145,
+      "brand": null,
+      "brandId": 93,
+      "shortDescription": null,
+      "description": null,
+      "price": 2390000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 10,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:15.995Z",
+      "updatedAt": "2026-10-13T15:55:15.995Z",
+      "brandRecord": {
+        "name": "Corsair",
+        "slug": "corsair"
+      },
+      "specifications": [
+        {
+          "id": 584,
+          "productId": 236,
+          "name": "Bảo hành",
+          "value": "36 tháng",
+          "sortOrder": 0,
+          "createdAt": "2026-10-13T15:55:15.997Z"
+        }
+      ],
+      "attributeValues": [
+        {
+          "id": 341,
+          "productId": 236,
+          "attributeId": 29,
+          "attributeValueId": 49,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:15.995Z",
+          "attribute": {
+            "id": 29,
+            "name": "Loại RAM",
+            "slug": "loai-ram",
+            "type": "SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 0,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": true,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T00:18:25.170Z",
+            "updatedAt": "2026-10-13T14:05:25.807Z"
+          },
+          "attributeValue": {
+            "id": 49,
+            "attributeId": 29,
+            "value": "DDR5",
+            "sortOrder": 0,
+            "isActive": true,
+            "createdAt": "2026-10-13T00:19:03.717Z",
+            "updatedAt": "2026-10-13T00:19:03.717Z"
+          }
+        },
+        {
+          "id": 342,
+          "productId": 236,
+          "attributeId": 6,
+          "attributeValueId": 8,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:15.995Z",
+          "attribute": {
+            "id": 6,
+            "name": "Dung lượng RAM",
+            "slug": "ram",
+            "type": "SELECT",
+            "unit": null,
+            "description": null,
+            "sortOrder": 0,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": false,
+            "createdAt": "2026-10-07T02:13:41.324Z",
+            "updatedAt": "2026-10-13T00:20:23.424Z"
+          },
+          "attributeValue": {
+            "id": 8,
+            "attributeId": 6,
+            "value": "32GB",
+            "sortOrder": 20,
+            "isActive": true,
+            "createdAt": "2026-10-07T02:14:03.242Z",
+            "updatedAt": "2026-10-07T02:14:03.242Z"
+          }
+        },
+        {
+          "id": 343,
+          "productId": 236,
+          "attributeId": 30,
+          "attributeValueId": 59,
+          "valueText": null,
+          "valueNumber": null,
+          "createdAt": "2026-10-13T15:55:15.995Z",
+          "attribute": {
+            "id": 30,
+            "name": "Tốc độ Bus RAM",
+            "slug": "toc-do-bus-ram",
+            "type": "SELECT",
+            "unit": "GHz",
+            "description": null,
+            "sortOrder": 0,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": false,
+            "createdAt": "2026-10-13T00:20:48.783Z",
+            "updatedAt": "2026-10-13T00:25:54.400Z"
+          },
+          "attributeValue": {
+            "id": 59,
+            "attributeId": 30,
+            "value": "5600 MHz",
+            "sortOrder": 9,
+            "isActive": true,
+            "createdAt": "2026-10-13T00:39:28.622Z",
+            "updatedAt": "2026-10-13T00:39:28.622Z"
+          }
+        },
+        {
+          "id": 344,
+          "productId": 236,
+          "attributeId": 55,
+          "attributeValueId": null,
+          "valueText": "1",
+          "valueNumber": "1",
+          "createdAt": "2026-10-13T15:55:15.995Z",
+          "attribute": {
+            "id": 55,
+            "name": "Số module RAM (mỗi thanh)",
+            "slug": "ram-modules",
+            "type": "NUMBER",
+            "unit": null,
+            "description": null,
+            "sortOrder": 96,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.445Z",
+            "updatedAt": "2026-10-13T17:30:34.419Z"
+          },
+          "attributeValue": null
+        }
+      ]
+    },
+    {
+      "id": 255,
+      "name": "Card màn hình MSI Gaming Trio GeForce RTX 4070 Ti SUPER 16GB GDDR6X (RTX 4070 Ti SUPER 16G GAMING TRIO)",
+      "slug": "seed-vga-004",
+      "sku": "SEED-VGA-004",
+      "category": null,
+      "categoryId": 151,
+      "brand": null,
+      "brandId": 97,
+      "shortDescription": null,
+      "description": null,
+      "price": 22990000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 4,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.058Z",
+      "updatedAt": "2026-10-13T15:55:16.058Z",
+      "brandRecord": {
+        "name": "MSI",
+        "slug": "msi"
+      },
+      "specifications": [
+        {
+          "id": 723,
+          "productId": 255,
+          "name": "Chip đồ họa",
+          "value": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "sortOrder": 10,
+          "createdAt": "2026-10-13T17:30:34.801Z"
+        },
+        {
+          "id": 724,
+          "productId": 255,
+          "name": "Bộ nhớ VRAM",
+          "value": "16 GB GDDR6X",
+          "sortOrder": 20,
+          "createdAt": "2026-10-13T17:30:34.803Z"
+        },
+        {
+          "id": 725,
+          "productId": 255,
+          "name": "Cổng xuất hình",
+          "value": "3× DisplayPort 1.4a, 1× HDMI 2.1",
+          "sortOrder": 30,
+          "createdAt": "2026-10-13T17:30:34.804Z"
+        },
+        {
+          "id": 603,
+          "productId": 255,
+          "name": "Bảo hành",
+          "value": "36 tháng",
+          "sortOrder": 9999,
+          "createdAt": "2026-10-13T15:55:16.060Z"
+        }
+      ],
+      "attributeValues": [
+        {
+          "id": 355,
+          "productId": 255,
+          "attributeId": 49,
+          "attributeValueId": null,
+          "valueText": "337",
+          "valueNumber": "337",
+          "createdAt": "2026-10-13T15:55:16.058Z",
+          "attribute": {
+            "id": 49,
+            "name": "Chiều dài VGA",
+            "slug": "vga-length",
+            "type": "NUMBER",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 90,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.434Z",
+            "updatedAt": "2026-10-13T17:30:34.409Z"
+          },
+          "attributeValue": null
+        },
+        {
+          "id": 356,
+          "productId": 255,
+          "attributeId": 51,
+          "attributeValueId": null,
+          "valueText": "285",
+          "valueNumber": "285",
+          "createdAt": "2026-10-13T15:55:16.058Z",
+          "attribute": {
+            "id": 51,
+            "name": "TDP",
+            "slug": "tdp",
+            "type": "NUMBER",
+            "unit": "W",
+            "description": null,
+            "sortOrder": 92,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.438Z",
+            "updatedAt": "2026-10-13T17:30:34.413Z"
+          },
+          "attributeValue": null
+        }
+      ]
+    },
+    {
+      "id": 260,
+      "name": "Card màn hình Like New ASUS DUAL GeForce RTX 3080 OC 10GB GDDR6X",
+      "slug": "seed-vgaln-001",
+      "sku": "SEED-VGALN-001",
+      "category": null,
+      "categoryId": 152,
+      "brand": null,
+      "brandId": 96,
+      "shortDescription": null,
+      "description": null,
+      "price": 12990000,
+      "originalPrice": null,
+      "costPrice": null,
+      "stockQuantity": 2,
+      "lowStockThreshold": 5,
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-10-13T15:55:16.076Z",
+      "updatedAt": "2026-10-13T15:55:16.076Z",
+      "brandRecord": {
+        "name": "ASUS",
+        "slug": "asus"
+      },
+      "specifications": [
+        {
+          "id": 982,
+          "productId": 260,
+          "name": "Chip đồ họa",
+          "value": "NVIDIA GeForce RTX 3080",
+          "sortOrder": 1,
+          "createdAt": "2026-10-13T18:46:36.158Z"
+        },
+        {
+          "id": 983,
+          "productId": 260,
+          "name": "Bộ nhớ",
+          "value": "10GB GDDR6X, 320-bit",
+          "sortOrder": 2,
+          "createdAt": "2026-10-13T18:46:36.160Z"
+        },
+        {
+          "id": 984,
+          "productId": 260,
+          "name": "Công suất card (TGP)",
+          "value": "320 W",
+          "sortOrder": 3,
+          "createdAt": "2026-10-13T18:46:36.162Z"
+        },
+        {
+          "id": 985,
+          "productId": 260,
+          "name": "Nguồn khuyến nghị",
+          "value": "750 W",
+          "sortOrder": 4,
+          "createdAt": "2026-10-13T18:46:36.165Z"
+        },
+        {
+          "id": 986,
+          "productId": 260,
+          "name": "Tình trạng",
+          "value": "Like New (đã qua sử dụng)",
+          "sortOrder": 5,
+          "createdAt": "2026-10-13T18:46:36.167Z"
+        },
+        {
+          "id": 608,
+          "productId": 260,
+          "name": "Bảo hành",
+          "value": "12 tháng",
+          "sortOrder": 9999,
+          "createdAt": "2026-10-13T15:55:16.077Z"
+        }
+      ],
+      "attributeValues": [
+        {
+          "id": 365,
+          "productId": 260,
+          "attributeId": 49,
+          "attributeValueId": null,
+          "valueText": "313",
+          "valueNumber": "313",
+          "createdAt": "2026-10-13T15:55:16.076Z",
+          "attribute": {
+            "id": 49,
+            "name": "Chiều dài VGA",
+            "slug": "vga-length",
+            "type": "NUMBER",
+            "unit": "mm",
+            "description": null,
+            "sortOrder": 90,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.434Z",
+            "updatedAt": "2026-10-13T17:30:34.409Z"
+          },
+          "attributeValue": null
+        },
+        {
+          "id": 366,
+          "productId": 260,
+          "attributeId": 51,
+          "attributeValueId": null,
+          "valueText": "320",
+          "valueNumber": "320",
+          "createdAt": "2026-10-13T15:55:16.076Z",
+          "attribute": {
+            "id": 51,
+            "name": "TDP",
+            "slug": "tdp",
+            "type": "NUMBER",
+            "unit": "W",
+            "description": null,
+            "sortOrder": 92,
+            "isActive": true,
+            "showInDetail": true,
+            "usedInFilter": false,
+            "usedInBuildPC": true,
+            "createdAt": "2026-10-13T15:33:47.438Z",
+            "updatedAt": "2026-10-13T17:30:34.413Z"
+          },
+          "attributeValue": null
+        }
+      ]
+    }
+  ],
+  "restoreNote": "Khôi phục đúng các UPDATE theo ID và giá trị old trong operationPlan."
+}

@@ -28,7 +28,9 @@
     "prisma:seed": "node prisma/seed.js",
     "seed:build-pc": "node src/scripts/seedBuildPc.js",
     "seed:build-pc-products": "node src/scripts/seedBuildPcProducts.js",
-    "seed:build-pc-admin-data": "node src/scripts/seedBuildPcAdminData.js"
+    "seed:build-pc-admin-data": "node src/scripts/seedBuildPcAdminData.js",
+    "fix:build-pc-specs": "node src/scripts/applyBuildPcSpecFixes.js",
+    "fix:seed-product-normalization": "node src/scripts/normalizeSeedProducts.js"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
