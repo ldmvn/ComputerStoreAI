@@ -27,7 +27,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
       <button
         onClick={() => onPageChange(page - 1)}
         disabled={page === 1}
-        className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="ui-button flex h-8 w-8 items-center justify-center rounded-lg text-primary-700 hover:bg-primary-50 active:bg-primary-100 disabled:cursor-not-allowed disabled:text-primary-300"
         aria-label="Trang trước"
       >
         <ChevronLeft size={16} />
@@ -43,10 +43,10 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
             key={p}
             onClick={() => onPageChange(p)}
             aria-current={p === page ? 'page' : undefined}
-            className={`flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium transition-colors ${
+            className={`ui-button flex h-8 w-8 items-center justify-center rounded-lg text-sm font-medium ${
               p === page
-                ? 'bg-[#C4480A] text-white'
-                : 'text-slate-600 hover:bg-slate-100'
+                ? 'ui-button--primary bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800'
+                : 'text-primary-700 hover:bg-primary-50 active:bg-primary-100'
             }`}
           >
             {p}
@@ -57,7 +57,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
       <button
         onClick={() => onPageChange(page + 1)}
         disabled={page === totalPages}
-        className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="ui-button flex h-8 w-8 items-center justify-center rounded-lg text-primary-700 hover:bg-primary-50 active:bg-primary-100 disabled:cursor-not-allowed disabled:text-primary-300"
         aria-label="Trang sau"
       >
         <ChevronRight size={16} />

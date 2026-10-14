@@ -32,6 +32,7 @@ export type BuildPcProduct = {
   primaryImage: string | null;
   brand: { id: number; name: string } | null;
   warranty: string | null;
+  compat?: 'ok' | 'unknown';
 };
 
 export type BuildPcProductMeta = {
@@ -39,6 +40,8 @@ export type BuildPcProductMeta = {
   page: number;
   limit: number;
   totalPages: number;
+  compatApplicable?: boolean;
+  hiddenByCompat?: number;
 };
 
 export type BuildPcProductsResponse = {
@@ -76,6 +79,8 @@ export type BuildPcFilters = {
   attrFilters: Record<string, string>;
   sort: 'default' | 'price_asc' | 'price_desc' | 'name_asc';
   page: number;
+  compatOnly?: boolean;
+  selected?: string;
 };
 
 export type PickedItem = {
@@ -126,10 +131,51 @@ export type ValidateData = {
   issues: CompatibilityIssue[];
   missing: MissingItem[];
   canAddToCart: boolean;
+  isComplete: boolean;
 };
 
 export type ValidateResponse = {
   data: ValidateData;
+  meta: Record<string, never>;
+  message: string;
+};
+
+// ── Save & share ──────────────────────────────────────────────────────────────
+
+export type SaveBuildRequest = {
+  items: ValidateRequestItem[];
+};
+
+export type SaveBuildData = {
+  shareCode: string;
+  path: string;
+};
+
+export type SaveBuildResponse = {
+  data: SaveBuildData;
+  message: string;
+};
+
+export type LoadBuildUnavailable = {
+  slot: string;
+  productName: string;
+  reason: 'ngừng bán' | 'đã xóa';
+};
+
+export type LoadBuildData = {
+  shareCode: string;
+  createdAt: string;
+  items: ValidateItem[];
+  unavailable: LoadBuildUnavailable[];
+  total: number;
+  issues: CompatibilityIssue[];
+  missing: MissingItem[];
+  canAddToCart: boolean;
+  isComplete: boolean;
+};
+
+export type LoadBuildResponse = {
+  data: LoadBuildData;
   meta: Record<string, never>;
   message: string;
 };

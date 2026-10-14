@@ -1,11 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Trash2, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import {
+  ShoppingCart, Trash2, AlertCircle, CheckCircle2,
+  Loader2, Share2, Copy, X,
+  Zap, Save, Download, Printer,
+} from 'lucide-react';
 import { useCartStore } from '@/store/cart.store';
+import { useCheckoutStore } from '@/store/checkout.store';
 import { formatProductPrice } from '@/lib/product';
-import { validateBuildPc } from '@/services/buildPc.service';
+import { getReusableShareCode, revalidateBuildAction } from '@/lib/buildPcActions';
+import {
+  buildCsv,
+  buildPrintHtml,
+  getBuildFingerprint,
+  type BuildExportItem,
+} from '@/lib/buildPcExport';
+import { validateBuildPc, saveBuild } from '@/services/buildPc.service';
 import { useBuild } from './BuildProvider';
 import type { Product } from '@/types/product.type';
 import type { ValidateItem } from '@/types/buildPc.type';
@@ -36,62 +49,110 @@ function toCartProduct(item: ValidateItem): Product {
 }
 
 export default function BuildSummary() {
-  const { slots, items, clearAll, validationStatus, validationResult, validationNetworkError } = useBuild();
+  const router = useRouter();
+  const {
+    slots, items, clearAll, validationResult,
+    savedBuild, setSavedBuild,
+  } = useBuild();
   const { addItem, setQuantity } = useCartStore();
+  const prepareCheckout = useCheckoutStore(state => state.prepare);
+
   const [cartStatus, setCartStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [cartMsg, setCartMsg] = useState('');
-  const [infoExpanded, setInfoExpanded] = useState(false);
+  const [cartWarning, setCartWarning] = useState('');
+  const [orderStatus, setOrderStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [orderMsg, setOrderMsg] = useState('');
+  const orderLockRef = useRef(false);
+
+  // Save state
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [saveMsg, setSaveMsg] = useState('');
+  const [savedShareLink, setSavedShareLink] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [shareNotice, setShareNotice] = useState('');
+  const [printError, setPrintError] = useState('');
 
   const selectedItems = Object.entries(items);
+  const currentFingerprint = getBuildFingerprint(
+    selectedItems.map(([slot, item]) => ({ slot, productId: item.product.id, quantity: item.quantity })),
+  );
 
-  // Client-side totals and missing (used before server result available)
+  // Client-side total is shown until a matching server validation result arrives.
   const clientTotal = selectedItems.reduce((sum, [, item]) => sum + item.product.price * item.quantity, 0);
-  const requiredSlots = slots.filter(s => s.isRequired);
-  const clientMissing = requiredSlots.filter(s => !items[s.slug]).map(s => s.name);
 
-  // Server-derived values
-  const serverResult  = validationResult;
-  const total         = serverResult ? serverResult.total : clientTotal;
-  const missing       = serverResult ? serverResult.missing : clientMissing.map(n => ({ slots: [], message: `Còn thiếu: ${n}` }));
-  const issues        = serverResult?.issues ?? [];
-  const canAddToCart  = serverResult ? serverResult.canAddToCart : clientMissing.length === 0;
+  const serverResult = validationResult
+    && getBuildFingerprint(validationResult.items) === currentFingerprint
+    ? validationResult
+    : null;
+  const total        = serverResult ? serverResult.total : clientTotal;
+  const issues       = serverResult?.issues ?? [];
+  const canAddToCart = serverResult ? serverResult.canAddToCart : selectedItems.length > 0;
 
-  const errorIssues   = issues.filter(i => i.level === 'error');
-  const warnIssues    = issues.filter(i => i.level === 'warning');
-  const infoIssues    = issues.filter(i => i.level === 'info');
+  const errorIssues = issues.filter(i => i.level === 'error');
 
-  async function handleAddToCart() {
-    if (selectedItems.length === 0) return;
-    setCartStatus('loading');
+  // Display items: use server-validated prices if available
+  const displayItems = useMemo<BuildExportItem[]>(() => {
+    if (serverResult?.items?.length) {
+      return serverResult.items.map(it => ({
+        slot: it.slot, productId: it.productId, name: it.name, sku: it.sku,
+        quantity: it.quantity, price: it.price, lineTotal: it.lineTotal,
+      }));
+    }
+    return selectedItems.map(([slot, item]) => ({
+      slot, productId: item.product.id, name: item.product.name, sku: item.product.sku ?? '',
+      quantity: item.quantity, price: item.product.price,
+      lineTotal: item.product.price * item.quantity,
+    }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverResult, items]);
 
-    // Re-validate to get latest prices and stock
+  const blockReason = !canAddToCart && selectedItems.length > 0
+    ? (errorIssues.length > 0 ? `${errorIssues.length} lỗi tương thích / hết hàng` : '')
+    : '';
+
+  // ── Add to cart ──────────────────────────────────────────────────────────────
+
+  async function revalidateBuild(allowFailOpen: boolean): Promise<
+    | { ok: true; items: ValidateItem[]; networkFail: boolean }
+    | { ok: false; message: string }
+  > {
     const body = {
       items: selectedItems.map(([slot, item]) => ({ slot, productId: item.product.id, quantity: item.quantity })),
     };
+    const fallbackItems: ValidateItem[] = selectedItems.map(([slot, item]) => ({
+      slot, productId: item.product.id,
+      slug: item.product.slug ?? '', sku: item.product.sku ?? '',
+      name: item.product.name, price: item.product.price,
+      quantity: item.quantity, lineTotal: item.product.price * item.quantity,
+      stockQuantity: item.product.stockQuantity ?? item.quantity,
+      primaryImage: item.product.primaryImage ?? null,
+    }));
+    return revalidateBuildAction({ validate: validateBuildPc, body, fallbackItems, allowFailOpen });
+  }
 
-    let freshItems: ValidateItem[];
-    try {
-      const res = await validateBuildPc(body);
-      if (res.data.issues.some(i => i.level === 'error') || res.data.missing.length > 0) {
-        setCartMsg('Vẫn còn lỗi tương thích. Vui lòng kiểm tra lại.');
-        setCartStatus('error');
-        setTimeout(() => setCartStatus('idle'), 5000);
-        return;
-      }
-      freshItems = res.data.items;
-    } catch {
-      setCartMsg('Không thể xác nhận tương thích. Vui lòng thử lại.');
+  async function handleAddToCart() {
+    if (selectedItems.length === 0 || !canAddToCart || cartStatus === 'loading') return;
+    setCartStatus('loading');
+    setCartMsg('');
+    setCartWarning('');
+
+    const result = await revalidateBuild(true);
+    if (!result.ok) {
+      setCartMsg(result.message);
       setCartStatus('error');
       setTimeout(() => setCartStatus('idle'), 5000);
       return;
     }
+    const { items: freshItems, networkFail } = result;
 
     let failed = 0;
     for (const item of freshItems) {
-      const prod = toCartProduct(item);
-      addItem(prod);
-      const ok = setQuantity(item.productId, item.quantity);
-      if (!ok) failed++;
+      addItem(toCartProduct(item));
+      if (!setQuantity(item.productId, item.quantity)) failed++;
+    }
+
+    if (networkFail) {
+      setCartWarning('Không kiểm tra được tương thích lúc này. Giá và tồn kho sẽ được kiểm tra lại khi đặt hàng.');
     }
 
     if (failed > 0) {
@@ -103,16 +164,175 @@ export default function BuildSummary() {
     setTimeout(() => setCartStatus('idle'), 4000);
   }
 
-  // Reason canAddToCart is false (short summary for button)
-  const blockReason = !canAddToCart
-    ? (errorIssues.length > 0 ? `${errorIssues.length} lỗi tương thích` : missing.length > 0 ? 'Còn thiếu linh kiện' : '')
-    : '';
+  // ── Order now ────────────────────────────────────────────────────────────────
+
+  async function handleOrderNow() {
+    if (selectedItems.length === 0 || !canAddToCart || orderLockRef.current) return;
+    orderLockRef.current = true;
+    setOrderStatus('loading');
+    setOrderMsg('');
+
+    const result = await revalidateBuild(false);
+    if (!result.ok) {
+      orderLockRef.current = false;
+      setOrderMsg(result.message);
+      setOrderStatus('error');
+      setTimeout(() => setOrderStatus('idle'), 5000);
+      return;
+    }
+    const { items: freshItems } = result;
+
+    prepareCheckout('buynow', freshItems.map(item => ({
+      id: item.productId,
+      slug: item.slug,
+      name: item.name,
+      price: item.price,
+      primaryImage: item.primaryImage,
+      stockQuantity: item.stockQuantity,
+      quantity: item.quantity,
+    })));
+    router.push('/customer/checkout');
+  }
+
+  // ── Save ─────────────────────────────────────────────────────────────────────
+
+  async function ensureSaved(): Promise<string | null> {
+    const reusableShareCode = getReusableShareCode(currentFingerprint, savedBuild);
+    if (reusableShareCode) {
+      const existingLink = `${window.location.origin}/customer/build-pc/manual?code=${encodeURIComponent(reusableShareCode)}`;
+      setSavedShareLink(existingLink);
+      return existingLink;
+    }
+
+    setSaveStatus('loading');
+    setSaveMsg('');
+    try {
+      const body = {
+        items: selectedItems.map(([slot, item]) => ({ slot, productId: item.product.id, quantity: item.quantity })),
+      };
+      const res = await saveBuild(body);
+      const link = `${window.location.origin}${res.data.path}`;
+      setSavedBuild({ fingerprint: currentFingerprint, shareCode: res.data.shareCode });
+      setSavedShareLink(link);
+      return link;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '';
+      setSaveMsg(
+        msg.includes('429') || msg.includes('quá nhiều')
+          ? 'Bạn đã tạo quá nhiều cấu hình. Vui lòng thử lại sau 1 giờ.'
+          : msg || 'Không thể lưu cấu hình.'
+      );
+      setSaveStatus('error');
+      return null;
+    }
+  }
+
+  async function handleSave() {
+    if (selectedItems.length === 0 || saveStatus === 'loading') return;
+    const link = await ensureSaved();
+    if (link) setSaveStatus('done');
+  }
+
+  async function handleCopy() {
+    if (!savedShareLink) return;
+    try {
+      await navigator.clipboard.writeText(savedShareLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const el = document.getElementById('share-link-input') as HTMLInputElement | null;
+      if (el) { el.select(); document.execCommand('copy'); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+    }
+  }
+
+  // ── Share ────────────────────────────────────────────────────────────────────
+
+  async function handleShare() {
+    if (selectedItems.length === 0 || saveStatus === 'loading') return;
+    const link = await ensureSaved();
+    if (!link) return;
+    setSaveStatus('idle'); // don't show save panel; just share
+
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: 'Cấu hình PC - DUCMANH PC', url: link });
+      } catch { /* cancelled */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(link);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = link;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setShareNotice('Đã sao chép link!');
+      setTimeout(() => setShareNotice(''), 2500);
+    }
+  }
+
+  // ── Download CSV ─────────────────────────────────────────────────────────────
+
+  function handleDownloadCsv() {
+    if (displayItems.length === 0) return;
+    const slotNameMap = new Map(slots.map(s => [s.slug, s.name]));
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const fileName = `cau-hinh-pc-${dateStr}.csv`;
+    const blob = new Blob([buildCsv(displayItems, slotNameMap)], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ── Print ────────────────────────────────────────────────────────────────────
+
+  function handlePrint() {
+    if (displayItems.length === 0) return;
+    setPrintError('');
+    const slotNameMap = new Map(slots.map(s => [s.slug, s.name]));
+    const dateStr = new Date().toLocaleString('vi-VN', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit',
+    });
+
+    const win = window.open('', '_blank', 'width=850,height=700');
+    if (!win) {
+      setPrintError('Trình duyệt đang chặn cửa sổ in. Hãy cho phép cửa sổ bật lên cho trang này rồi thử lại.');
+      return;
+    }
+    win.document.write(buildPrintHtml({
+      items: displayItems,
+      slotNames: slotNameMap,
+      storeName: 'DUCMANH PC',
+      printedAt: dateStr,
+      note: 'Giá và tồn kho có thể thay đổi theo thời điểm.',
+    }));
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); }, 300);
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+
+  const noItems = selectedItems.length === 0;
+  const busySave = saveStatus === 'loading';
+
+  const secondaryBtnClass =
+    'ui-button ui-button--neutral flex h-9 items-center justify-center gap-1.5 rounded-lg border border-primary-200 bg-white px-2.5 text-xs font-medium text-primary-700 hover:border-primary-300 hover:bg-primary-50 active:bg-primary-100 disabled:cursor-not-allowed disabled:border-primary-100 disabled:bg-primary-50 disabled:text-primary-300';
 
   return (
     <aside className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-slate-800">Tổng kết cấu hình</h2>
-        {selectedItems.length > 0 && (
+        {!noItems && (
           <button
             onClick={clearAll}
             className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500"
@@ -124,7 +344,7 @@ export default function BuildSummary() {
       </div>
 
       {/* Selected items */}
-      {selectedItems.length === 0 ? (
+      {noItems ? (
         <p className="text-sm text-slate-400">Chưa chọn linh kiện nào.</p>
       ) : (
         <ul className="space-y-2">
@@ -146,79 +366,6 @@ export default function BuildSummary() {
         </ul>
       )}
 
-      {/* Compatibility check block */}
-      {selectedItems.length > 0 && (
-        <div className="rounded-md border border-slate-100 p-3 space-y-1.5" aria-live="polite">
-          <p className="text-xs font-semibold text-slate-600 mb-1">Kiểm tra tương thích</p>
-
-          {validationNetworkError && (
-            <p className="text-xs text-amber-600 flex items-center gap-1">
-              <AlertCircle size={12} className="shrink-0" />
-              Không kiểm tra được tương thích lúc này
-            </p>
-          )}
-
-          {validationStatus === 'loading' && !serverResult && (
-            <p className="text-xs text-slate-400 flex items-center gap-1">
-              <Loader2 size={12} className="animate-spin shrink-0" />
-              Đang kiểm tra...
-            </p>
-          )}
-
-          {serverResult && errorIssues.length === 0 && warnIssues.length === 0 && missing.length === 0 && (
-            <p className="text-xs text-green-700 flex items-center gap-1">
-              <CheckCircle2 size={13} className="shrink-0" />
-              Các linh kiện đã chọn tương thích
-            </p>
-          )}
-
-          {errorIssues.map((issue, idx) => (
-            <p key={idx} className="text-xs text-red-600 flex items-start gap-1">
-              <AlertCircle size={12} className="mt-0.5 shrink-0" />
-              {issue.message}
-            </p>
-          ))}
-
-          {warnIssues.map((issue, idx) => (
-            <p key={idx} className="text-xs text-amber-600 flex items-start gap-1">
-              <AlertCircle size={12} className="mt-0.5 shrink-0" />
-              {issue.message}
-            </p>
-          ))}
-
-          {infoIssues.length > 0 && (
-            <div>
-              <button
-                onClick={() => setInfoExpanded(v => !v)}
-                className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600"
-              >
-                {infoExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                Chưa đủ dữ liệu để kiểm tra {infoIssues.length} mục
-              </button>
-              {infoExpanded && (
-                <ul className="mt-1 space-y-0.5 pl-4">
-                  {infoIssues.map((issue, idx) => (
-                    <li key={idx} className="text-xs text-slate-400">{issue.message}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Missing items */}
-      {missing.length > 0 && (
-        <div className="rounded-md bg-amber-50 px-3 py-2">
-          <p className="text-xs font-medium text-amber-700 mb-1">Thiếu linh kiện:</p>
-          <ul className="text-xs text-amber-600 space-y-0.5">
-            {missing.map((m, idx) => (
-              <li key={idx}>• {m.message}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       {/* Total */}
       <div className="border-t border-slate-100 pt-3">
         <div className="flex items-baseline justify-between">
@@ -229,12 +376,116 @@ export default function BuildSummary() {
         </div>
       </div>
 
-      {/* Cart status feedback */}
+      {/* Primary buttons: Add to cart + Order now */}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+        <button
+          onClick={handleAddToCart}
+          disabled={noItems || !canAddToCart || cartStatus === 'loading'}
+          className="ui-button ui-button--primary flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 text-sm font-semibold text-white hover:bg-primary-700 active:bg-primary-800 disabled:cursor-not-allowed disabled:bg-primary-200 disabled:text-white/80"
+        >
+          {cartStatus === 'loading' ? <Loader2 size={15} className="animate-spin" /> : <ShoppingCart size={15} />}
+          {cartStatus === 'loading' ? 'Đang xử lý...' : 'Thêm vào giỏ hàng'}
+        </button>
+        <button
+          onClick={handleOrderNow}
+          disabled={noItems || !canAddToCart || orderStatus === 'loading'}
+          className="ui-button ui-button--neutral flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-primary-300 bg-white px-4 text-sm font-semibold text-primary-700 hover:border-primary-400 hover:bg-primary-50 active:bg-primary-100 disabled:cursor-not-allowed disabled:border-primary-100 disabled:bg-primary-50 disabled:text-primary-300"
+        >
+          {orderStatus === 'loading' ? <Loader2 size={15} className="animate-spin" /> : <Zap size={15} />}
+          Đặt hàng ngay
+        </button>
+      </div>
+
+      {blockReason && (
+        <p className="text-center text-xs text-slate-400 -mt-2">{blockReason}</p>
+      )}
+
+      {/* Secondary buttons */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={handleSave}
+          disabled={noItems || busySave}
+          className={secondaryBtnClass}
+        >
+          {saveStatus === 'loading' && !shareNotice ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+          Lưu cấu hình
+        </button>
+        <button
+          onClick={handleShare}
+          disabled={noItems || busySave}
+          className={secondaryBtnClass}
+        >
+          <Share2 size={13} />
+          Chia sẻ
+        </button>
+        <button
+          onClick={handleDownloadCsv}
+          disabled={noItems}
+          className={secondaryBtnClass}
+        >
+          <Download size={13} />
+          Tải Excel
+        </button>
+        <button
+          onClick={handlePrint}
+          disabled={noItems}
+          className={secondaryBtnClass}
+        >
+          <Printer size={13} />
+          Xem &amp; In
+        </button>
+      </div>
+
+      {/* Share notice (copy-to-clipboard feedback) */}
+      {shareNotice && (
+        <p className="text-xs text-green-700 flex items-center gap-1">
+          <CheckCircle2 size={12} className="shrink-0" />
+          {shareNotice}
+        </p>
+      )}
+
+      {/* Save panel */}
+      {saveStatus === 'done' && savedShareLink && (
+        <div className="relative rounded-lg border border-blue-200 bg-blue-50 p-3 space-y-2">
+          <button
+            onClick={() => setSaveStatus('idle')}
+            className="absolute right-2 top-2 text-slate-400 hover:text-slate-600"
+            aria-label="Đóng"
+          >
+            <X size={14} />
+          </button>
+          <p className="text-xs font-medium text-blue-800">Đã lưu cấu hình. Ai có link đều xem được.</p>
+          <div className="flex items-center gap-1.5">
+            <input
+              id="share-link-input"
+              readOnly
+              value={savedShareLink}
+              className="min-w-0 flex-1 rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 focus:outline-none"
+              onClick={e => (e.target as HTMLInputElement).select()}
+            />
+            <button
+              onClick={handleCopy}
+              className="ui-button ui-button--neutral flex h-8 shrink-0 items-center gap-1 rounded-lg border border-primary-200 bg-white px-2.5 text-xs font-medium text-primary-700 hover:border-primary-300 hover:bg-primary-50 active:bg-primary-100"
+            >
+              <Copy size={12} />
+              {copied ? 'Đã sao chép' : 'Sao chép link'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error panels */}
       {cartStatus === 'success' && (
         <div className="flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-xs text-green-700">
           <CheckCircle2 size={14} className="shrink-0" />
           <span>Đã thêm vào giỏ hàng!</span>
           <Link href="/customer/cart" className="ml-auto font-medium underline">Xem giỏ</Link>
+        </div>
+      )}
+      {cartWarning && (
+        <div className="flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">
+          <AlertCircle size={14} className="mt-0.5 shrink-0" />
+          <span>{cartWarning}</span>
         </div>
       )}
       {cartStatus === 'error' && (
@@ -243,21 +494,24 @@ export default function BuildSummary() {
           <span>{cartMsg}</span>
         </div>
       )}
-
-      {/* Add to cart button */}
-      <div className="flex flex-col gap-1">
-        <button
-          onClick={handleAddToCart}
-          disabled={selectedItems.length === 0 || !canAddToCart || cartStatus === 'loading'}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#C4480A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#c2410c] disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
-        >
-          {cartStatus === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
-          Thêm tất cả vào giỏ
-        </button>
-        {blockReason && (
-          <p className="text-center text-xs text-slate-400">{blockReason}</p>
-        )}
-      </div>
+      {orderStatus === 'error' && (
+        <div className="flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
+          <AlertCircle size={14} className="shrink-0" />
+          <span>{orderMsg}</span>
+        </div>
+      )}
+      {saveStatus === 'error' && saveMsg && (
+        <div className="flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
+          <AlertCircle size={14} className="shrink-0" />
+          <span>{saveMsg}</span>
+        </div>
+      )}
+      {printError && (
+        <div className="flex items-start gap-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
+          <AlertCircle size={14} className="mt-0.5 shrink-0" />
+          <span>{printError}</span>
+        </div>
+      )}
     </aside>
   );
 }

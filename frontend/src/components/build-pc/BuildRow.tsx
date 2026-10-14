@@ -89,7 +89,7 @@ export default function BuildRow({ slot }: Props) {
                   <button
                     onClick={() => setItemQuantity(slot.slug, item.quantity - 1)}
                     disabled={item.quantity <= 1}
-                    className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 text-slate-500 hover:bg-slate-100 disabled:opacity-40"
+                    className="ui-button ui-button--neutral flex h-7 w-7 items-center justify-center rounded-lg border border-primary-200 bg-white text-primary-700 hover:border-primary-300 hover:bg-primary-50 active:bg-primary-100 disabled:cursor-not-allowed disabled:border-primary-100 disabled:bg-primary-50 disabled:text-primary-300"
                     aria-label="Giảm"
                   >
                     <Minus size={11} />
@@ -98,7 +98,7 @@ export default function BuildRow({ slot }: Props) {
                   <button
                     onClick={() => setItemQuantity(slot.slug, item.quantity + 1)}
                     disabled={item.quantity >= slot.maxCount}
-                    className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 text-slate-500 hover:bg-slate-100 disabled:opacity-40"
+                    className="ui-button ui-button--neutral flex h-7 w-7 items-center justify-center rounded-lg border border-primary-200 bg-white text-primary-700 hover:border-primary-300 hover:bg-primary-50 active:bg-primary-100 disabled:cursor-not-allowed disabled:border-primary-100 disabled:bg-primary-50 disabled:text-primary-300"
                     aria-label="Tăng"
                   >
                     <Plus size={11} />
@@ -110,13 +110,13 @@ export default function BuildRow({ slot }: Props) {
               <div className="flex shrink-0 items-center gap-1">
                 <button
                   onClick={() => openPicker(slot.slug)}
-                  className="rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
+                  className="ui-button ui-button--neutral inline-flex h-8 items-center justify-center rounded-lg border border-primary-200 bg-white px-2.5 text-xs font-medium text-primary-700 hover:border-primary-300 hover:bg-primary-50 active:bg-primary-100"
                 >
                   Đổi
                 </button>
                 <button
                   onClick={() => removeProduct(slot.slug)}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-red-50 hover:text-red-500"
+                  className="ui-button flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 active:bg-red-100"
                   aria-label="Xóa"
                 >
                   <Trash2 size={13} />
@@ -138,7 +138,7 @@ export default function BuildRow({ slot }: Props) {
         ) : (
           <button
             onClick={() => openPicker(slot.slug)}
-            className="flex h-8 items-center gap-1.5 rounded-md bg-slate-900 px-3 text-xs font-medium text-white hover:bg-slate-700 active:bg-slate-900"
+            className="ui-button ui-button--primary inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 text-sm font-semibold text-white hover:bg-primary-700 active:bg-primary-800 disabled:cursor-not-allowed disabled:bg-primary-200"
           >
             <Plus size={13} />
             Chọn {slot.name}

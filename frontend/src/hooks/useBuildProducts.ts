@@ -15,7 +15,12 @@ type State = {
 const INITIAL: State = { products: [], facets: null, meta: null, loading: false, error: null };
 const LIMIT = 10;
 
-export function useBuildProducts(slotSlug: string, filters: BuildPcFilters) {
+export function useBuildProducts(
+  slotSlug: string,
+  filters: BuildPcFilters,
+  compatOnly: boolean,
+  selected: string,
+) {
   const [state, setState] = useState<State>(INITIAL);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevFiltersRef = useRef<BuildPcFilters | null>(null);
@@ -32,16 +37,20 @@ export function useBuildProducts(slotSlug: string, filters: BuildPcFilters) {
       prevFilters.maxPrice === filters.maxPrice &&
       prevFilters.sort === filters.sort &&
       JSON.stringify(prevFilters.attrFilters) === JSON.stringify(filters.attrFilters) &&
+      prevFilters.compatOnly === filters.compatOnly &&
+      prevFilters.selected === filters.selected &&
       prevFilters.page !== filters.page;
-    prevFiltersRef.current = filters;
+    prevFiltersRef.current = { ...filters, compatOnly, selected };
+
+    const enriched = { ...filters, limit: LIMIT, compatOnly, selected };
 
     const doFetch = (signal: AbortSignal) => {
       setState(s => ({ ...s, loading: true, error: null }));
 
-      const productPromise = getBuildPcProducts(slotSlug, { ...filters, limit: LIMIT }, signal);
+      const productPromise = getBuildPcProducts(slotSlug, enriched, signal);
       const facetsPromise = pageOnly
         ? Promise.resolve(null)
-        : getBuildPcFacets(slotSlug, { ...filters, page: undefined }, signal);
+        : getBuildPcFacets(slotSlug, { ...enriched, page: undefined }, signal);
 
       Promise.all([productPromise, facetsPromise])
         .then(([prodRes, facetRes]) => {
@@ -75,7 +84,7 @@ export function useBuildProducts(slotSlug: string, filters: BuildPcFilters) {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slotSlug, filters.q, filters.brandId, filters.minPrice, filters.maxPrice, filters.sort, filters.page, JSON.stringify(filters.attrFilters)]);
+  }, [slotSlug, filters.q, filters.brandId, filters.minPrice, filters.maxPrice, filters.sort, filters.page, JSON.stringify(filters.attrFilters), compatOnly, selected]);
 
   return state;
 }

@@ -62,6 +62,11 @@ export default function ProductItem({ product, isSelected, onSelect }: Props) {
           {product.warranty && (
             <span className="text-xs text-slate-400">· BH {product.warranty}</span>
           )}
+          {product.compat === 'unknown' && (
+            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-400">
+              Chưa đủ dữ liệu tương thích
+            </span>
+          )}
         </div>
         <div className="mt-1.5 flex items-center justify-between gap-2">
           <span className="text-sm font-semibold text-[#C4480A]">{formatProductPrice(product.price)}</span>

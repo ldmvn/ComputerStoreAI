@@ -180,6 +180,8 @@ export default function SlotPickerModal() {
               onOpenSidebar={() => setSidebarOpen(true)}
               onFacetsUpdate={setFacets}
               inStockOnly={meta?.inStockOnly ?? false}
+              allItems={items}
+              openSlotSlug={activeSlotSlug ?? slot.slug}
             />
           </div>
         </div>

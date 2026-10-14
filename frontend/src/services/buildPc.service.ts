@@ -6,6 +6,9 @@ import type {
   BuildPcFilters,
   ValidateRequest,
   ValidateResponse,
+  SaveBuildRequest,
+  SaveBuildResponse,
+  LoadBuildResponse,
 } from '@/types/buildPc.type';
 
 function buildQuery(slot: string, filters: Partial<BuildPcFilters> & { page?: number; limit?: number }): string {
@@ -23,6 +26,8 @@ function buildQuery(slot: string, filters: Partial<BuildPcFilters> & { page?: nu
       if (value) params.set(`attr[${slug}]`, value);
     }
   }
+  if (filters.compatOnly) params.set('compatOnly', 'true');
+  if (filters.selected) params.set('selected', filters.selected);
   return params.toString();
 }
 
@@ -52,4 +57,16 @@ export function validateBuildPc(body: ValidateRequest, signal?: AbortSignal) {
     body: JSON.stringify(body),
     signal,
   });
+}
+
+export function saveBuild(body: SaveBuildRequest, signal?: AbortSignal) {
+  return apiRequest<SaveBuildResponse>('/v1/build-pc/builds', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    signal,
+  });
+}
+
+export function loadBuild(shareCode: string, signal?: AbortSignal) {
+  return apiRequest<LoadBuildResponse>(`/v1/build-pc/builds/${encodeURIComponent(shareCode)}`, { signal });
 }

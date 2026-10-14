@@ -57,6 +57,23 @@ import { cleanupExpiredPasswordResets } from './src/services/passwordReset.servi
 const app = express();
 
 // ---------------------------------------------------------------------------
+// Trust proxy — MUST be set before any middleware that reads req.ip.
+// TRUST_PROXY=1        → behind 1 layer (nginx, Docker). Use a number.
+// TRUST_PROXY=loopback → trust only loopback. Use a named preset string.
+// Unset / empty / false / 0 → no trust proxy (default Express behaviour).
+// Never set to boolean true: trusts all X-Forwarded-For headers (IP spoofing risk).
+// ---------------------------------------------------------------------------
+{
+  const raw = (process.env.TRUST_PROXY || '').trim();
+  if (raw && raw !== 'false' && raw !== '0') {
+    const numeric = Number(raw);
+    const value = Number.isInteger(numeric) && numeric > 0 ? numeric : raw;
+    app.set('trust proxy', value);
+    console.log(`Express trust proxy = ${value}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Core middlewares
 // ---------------------------------------------------------------------------
 const configuredOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')

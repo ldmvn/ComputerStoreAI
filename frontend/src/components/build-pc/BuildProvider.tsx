@@ -12,6 +12,11 @@ type BuildState = {
   items: Record<string, PickedItem>;
 };
 
+export type SavedBuildReference = {
+  fingerprint: string;
+  shareCode: string;
+};
+
 type BuildAction =
   | { type: 'SELECT'; slotSlug: string; product: BuildPcProduct }
   | { type: 'REMOVE'; slotSlug: string }
@@ -56,6 +61,11 @@ type BuildContextValue = {
   validationStatus: ValidationStatus;
   validationResult: ValidateData | null;
   validationNetworkError: boolean;
+  savedBuild: SavedBuildReference | null;
+  setSavedBuild: (savedBuild: SavedBuildReference | null) => void;
+  // Compat toggle — shared across all slot pickers, session-only (resets on reload)
+  compatOn: boolean;
+  setCompatOn: (v: boolean) => void;
 };
 
 const BuildContext = createContext<BuildContextValue | null>(null);
@@ -74,6 +84,8 @@ export default function BuildProvider({ children }: { children: React.ReactNode 
   const [{ items }, dispatch] = useReducer(reducer, { items: {} });
   const [activeSlotSlug, setActiveSlotSlug] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [compatOn, setCompatOn] = useState(false);
+  const [savedBuild, setSavedBuild] = useState<SavedBuildReference | null>(null);
   const { status: validationStatus, result: validationResult, networkError: validationNetworkError } = useBuildValidation(items);
 
   // Load slots
@@ -131,7 +143,7 @@ export default function BuildProvider({ children }: { children: React.ReactNode 
   const clearAll = useCallback(() => dispatch({ type: 'CLEAR' }), []);
 
   return (
-    <BuildContext.Provider value={{ slots, meta, slotsLoading, slotsError, items, activeSlotSlug, openPicker, closePicker, selectProduct, removeProduct, setItemQuantity, clearAll, validationStatus, validationResult, validationNetworkError }}>
+    <BuildContext.Provider value={{ slots, meta, slotsLoading, slotsError, items, activeSlotSlug, openPicker, closePicker, selectProduct, removeProduct, setItemQuantity, clearAll, validationStatus, validationResult, validationNetworkError, savedBuild, setSavedBuild, compatOn, setCompatOn }}>
       {children}
     </BuildContext.Provider>
   );
