@@ -197,7 +197,7 @@ app.use((req, res) => {
 });
 
 app.use((error, _req, res, _next) => {
-  if (error?.code === 'P2025') return res.status(404).json({ success: false, message: 'Banner không tồn tại.' });
+  if (error?.code === 'P2025') return res.status(404).json({ success: false, message: 'Không tìm thấy dữ liệu yêu cầu.' });
   if (error?.code === 'P2034') return res.status(409).json({ success: false, message: 'Dữ liệu vừa thay đổi. Vui lòng tải lại và thử lại.' });
   if (error?.statusCode) {
     return res.status(error.statusCode).json({
