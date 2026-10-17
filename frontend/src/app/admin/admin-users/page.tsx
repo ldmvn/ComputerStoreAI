@@ -146,7 +146,9 @@ export default function AdminUsersPage() {
                           {u.adminRole.isSystem && <Shield className="h-3 w-3 text-primary-500" />}
                           {u.adminRole.name}
                         </span>
-                      : <span className="text-xs text-slate-400">—</span>}
+                      : <span className="inline-flex items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700">
+                          <Shield className="h-3 w-3" />Admin
+                        </span>}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${u.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
@@ -195,7 +197,7 @@ export default function AdminUsersPage() {
             {modal === null && <label className="block text-sm font-medium">Mật khẩu *<input required type="password" value={fpw} onChange={e => setFpw(e.target.value)} minLength={8} className={inputCls} /></label>}
             <label className="block text-sm font-medium">Vai trò
               <select value={frole} onChange={e => setFrole(e.target.value)} className={inputCls}>
-                <option value="">Chưa gán vai trò</option>
+                <option value="">Admin (Toàn quyền)</option>
                 {roles.filter(r => r.isActive).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
             </label>
