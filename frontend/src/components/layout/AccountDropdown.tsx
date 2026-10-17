@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
-import { ChevronDown, LogOut, ShoppingBag, User } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, LogOut, ShoppingBag, User } from 'lucide-react';
 import type { AuthUser } from '@/types/user.type';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -66,6 +66,11 @@ export default function AccountDropdown({ user }: { user: AuthUser }) {
             <p className="mt-1 break-all text-xs text-slate-500">{user.email}</p>
           </div>
           <nav aria-label="Menu tài khoản" className="divide-y divide-slate-100">
+            {user.role === 'ADMIN' && (
+              <Link href="/admin/dashboard" onClick={() => setOpen(false)} className={itemClass}>
+                <LayoutDashboard className="h-4 w-4 text-primary-600" aria-hidden="true" /> Quản trị Dashboard
+              </Link>
+            )}
             <Link href="/customer/profile" onClick={() => setOpen(false)} className={itemClass}>
               <User className="h-4 w-4" aria-hidden="true" /> Tài khoản của tôi
             </Link>
