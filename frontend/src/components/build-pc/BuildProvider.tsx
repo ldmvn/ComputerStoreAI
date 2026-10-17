@@ -1,12 +1,16 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, useCallback, useRef } from 'react';
 import { getBuildPcSlots } from '@/services/buildPc.service';
 import { useBuildValidation } from '@/hooks/useBuildValidation';
+import { useAuthStore } from '@/store/auth.store';
 import type { BuildSlot, BuildMeta, BuildPcProduct, PickedItem, ValidateData } from '@/types/buildPc.type';
 import type { ValidationStatus } from '@/hooks/useBuildValidation';
 
-const STORAGE_KEY = 'build-pc:v1';
+/** Trả về khóa localStorage phân tách theo userId hoặc 'guest' */
+function buildStorageKey(userId: number | null | undefined): string {
+  return userId ? `build-pc:user:${userId}` : 'build-pc:guest';
+}
 
 type BuildState = {
   items: Record<string, PickedItem>;
@@ -83,10 +87,26 @@ export default function BuildProvider({ children }: { children: React.ReactNode 
   const [slotsError, setSlotsError] = useState<string | null>(null);
   const [{ items }, dispatch] = useReducer(reducer, { items: {} });
   const [activeSlotSlug, setActiveSlotSlug] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
   const [compatOn, setCompatOn] = useState(false);
   const [savedBuild, setSavedBuild] = useState<SavedBuildReference | null>(null);
   const { status: validationStatus, result: validationResult, networkError: validationNetworkError } = useBuildValidation(items);
+
+  // Đọc userId từ auth store — isHydrated đảm bảo auth đã settle trước khi hydrate Build PC
+  const userId = useAuthStore(state => state.user?.id ?? null);
+  const authHydrated = useAuthStore(state => state.isHydrated);
+
+  /**
+   * storageKey phụ thuộc vào userId.
+   * Khi auth chưa hydrate, userId = null → dùng 'guest'. Sau khi auth settle,
+   * nếu user đã login thì key đổi sang user-specific và trigger re-hydrate.
+   */
+  const storageKey = buildStorageKey(userId);
+
+  /**
+   * hydrated: true sau khi đã load xong từ localStorage cho userId hiện tại.
+   * Dùng ref để tránh closure cũ ghi đè khi key chưa đổi kịp.
+   */
+  const hydratedKeyRef = useRef<string | null>(null);
 
   // Load slots
   useEffect(() => {
@@ -106,29 +126,76 @@ export default function BuildProvider({ children }: { children: React.ReactNode 
     return () => controller.abort();
   }, []);
 
-  // Hydrate from localStorage (after mount to avoid SSR mismatch)
+  /**
+   * Hydrate từ localStorage khi storageKey thay đổi (tức là khi auth settle
+   * hoặc khi user login/logout). Trước khi hydrate: CLEAR ngay để tránh flash
+   * dữ liệu của user cũ.
+   */
   useEffect(() => {
+    // Chờ auth settle để biết chắc userId
+    if (!authHydrated) return;
+
+    // Nếu key không đổi (đã hydrate cho key này rồi) thì bỏ qua
+    if (hydratedKeyRef.current === storageKey) return;
+
+    // Reset ngay lập tức trước khi đọc storage mới — ngăn flash dữ liệu cũ
+    dispatch({ type: 'CLEAR' });
+    setSavedBuild(null);
+
+    // Hydrate từ storage của user hiện tại
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(storageKey);
       if (raw) {
         const parsed = JSON.parse(raw) as Record<string, PickedItem>;
-        dispatch({ type: 'RESTORE', items: parsed });
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          dispatch({ type: 'RESTORE', items: parsed });
+        }
       }
     } catch {
-      // ignore parse errors
+      // ignore parse errors — storage bị lỗi, bắt đầu với state trống
     }
-    setHydrated(true);
-  }, []);
 
-  // Persist to localStorage
+    hydratedKeyRef.current = storageKey;
+  }, [authHydrated, storageKey]);
+
+  /** Persist to localStorage khi items thay đổi, sau khi đã hydrate */
   useEffect(() => {
-    if (!hydrated) return;
+    // Chỉ persist sau khi đã hydrate cho key hiện tại
+    if (hydratedKeyRef.current !== storageKey) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      localStorage.setItem(storageKey, JSON.stringify(items));
     } catch {
       // ignore storage errors
     }
-  }, [items, hydrated]);
+  }, [items, storageKey]);
+
+  /**
+   * Đồng bộ giữa các tab: lắng nghe storage event.
+   * Khi tab khác cập nhật cùng key, reload dữ liệu vào tab này.
+   */
+  useEffect(() => {
+    if (!authHydrated) return;
+
+    function onStorage(event: StorageEvent) {
+      if (event.key !== storageKey) return;
+      if (event.storageArea !== localStorage) return;
+      try {
+        if (!event.newValue) {
+          dispatch({ type: 'CLEAR' });
+          return;
+        }
+        const parsed = JSON.parse(event.newValue) as Record<string, PickedItem>;
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          dispatch({ type: 'RESTORE', items: parsed });
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [authHydrated, storageKey]);
 
   const openPicker = useCallback((slotSlug: string) => setActiveSlotSlug(slotSlug), []);
   const closePicker = useCallback(() => setActiveSlotSlug(null), []);

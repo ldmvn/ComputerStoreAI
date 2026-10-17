@@ -8,6 +8,7 @@ import { startGoogleLogin } from '@/services/google-auth.service';
 import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm';
 import type { RecoveryMode } from '@/components/auth/ForgotPasswordForm';
 import { useToast } from '@/components/ui/Toast';
+import { useAuthModal } from '@/store/authModal.store';
 
 type AuthMode = 'login' | 'register' | RecoveryMode;
 
@@ -39,6 +40,7 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
   const [message, setMessage] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const login = useAuthStore((state) => state.login);
+  const firePendingCallback = useAuthModal((state) => state.firePendingCallback);
 
   useEffect(() => {
     if (!isOpen) {
@@ -99,6 +101,9 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
       setPassword('');
       toast.success('Đăng nhập thành công', `Chào mừng ${response.user.fullName}`);
       onClose();
+      // Kích hoạt pending action (ví dụ: tiếp tục checkout) đã được đăng ký trước khi mở modal.
+      // firePendingCallback tự xóa callback sau khi gọi — không bao giờ gọi lại lần hai.
+      firePendingCallback();
     } catch (error: unknown) {
       const message = error instanceof AuthRequestError ? error.message : 'Không thể đăng nhập lúc này. Vui lòng thử lại.';
       setMessage(message);

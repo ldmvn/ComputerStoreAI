@@ -17,31 +17,34 @@ export default function ManualBuildPage({ searchParams }: Props) {
 
   return (
     <BuildProvider>
-      <div className="mx-auto max-w-7xl px-4 py-6">
+      <div className="w-full space-y-6">
         {/* Page header */}
-        <div className="mb-4">
+        <div>
           <h1 className="text-2xl font-bold text-slate-900">Tự chọn linh kiện</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Chọn từng linh kiện cho cấu hình PC của bạn. <span className="text-slate-400">* Cần có để lắp thành bộ máy hoàn chỉnh. Bạn vẫn có thể mua lẻ từng linh kiện.</span>
+            Chọn từng linh kiện cho cấu hình PC của bạn.{' '}
+            <span className="text-slate-400">
+              * Cần có để lắp thành bộ máy hoàn chỉnh. Bạn vẫn có thể mua lẻ từng linh kiện.
+            </span>
           </p>
         </div>
 
         {/* Shared build banner + loader (only when ?code= present) */}
         {code && (
-          <div className="mb-4">
+          <div>
             <SharedBuildLoader initialCode={code} />
           </div>
         )}
 
         {/* Main layout */}
-        <div className="flex flex-col-reverse gap-5 lg:flex-row lg:items-start">
+        <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(0,1fr)_280px] lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_340px]">
           {/* Table */}
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0">
             <BuildTable />
           </div>
 
-          {/* Summary — sticky on desktop, bottom on mobile */}
-          <div className="w-full lg:w-80 lg:shrink-0 lg:sticky lg:top-24">
+          {/* Summary — sticky on tablet/desktop, bottom on mobile */}
+          <div className="w-full md:sticky md:top-24">
             <BuildSummary />
           </div>
         </div>
