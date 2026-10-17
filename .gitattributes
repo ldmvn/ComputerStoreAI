@@ -1,1 +1,19 @@
-graphify-out/graph.json merge=graphify
+# Normalize all text files to LF in the repository.
+# Windows checkouts will still use CRLF via core.autocrlf, but the repo
+# stays consistent and diffs stay clean.
+
+* text=auto eol=lf
+
+# Explicitly binary — never diff/merge as text
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.eot  binary
+*.pdf  binary
+*.zip  binary
