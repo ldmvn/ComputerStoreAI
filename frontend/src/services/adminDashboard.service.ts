@@ -100,3 +100,29 @@ export async function getAdminDashboard(
   const qs = q.toString();
   return apiRequest<DashboardData>(`/admin/dashboard${qs ? `?${qs}` : ''}`, {}, token);
 }
+
+export async function getRevenueTimeline(
+  token: string | null,
+  params: { range?: DashboardRange; from?: string; to?: string } = {}
+): Promise<RevenuePoint[]> {
+  const q = new URLSearchParams();
+  if (params.range) q.set('range', params.range);
+  if (params.from) q.set('from', params.from);
+  if (params.to) q.set('to', params.to);
+  const qs = q.toString();
+  const { revenueTimeline } = await apiRequest<{ revenueTimeline: RevenuePoint[] }>(`/admin/dashboard/revenue-timeline${qs ? `?${qs}` : ''}`, {}, token);
+  return revenueTimeline;
+}
+
+export async function getCategoryRevenue(
+  token: string | null,
+  params: { range?: DashboardRange; from?: string; to?: string } = {}
+): Promise<CategoryRevenue[]> {
+  const q = new URLSearchParams();
+  if (params.range) q.set('range', params.range);
+  if (params.from) q.set('from', params.from);
+  if (params.to) q.set('to', params.to);
+  const qs = q.toString();
+  const { categoryRevenue } = await apiRequest<{ categoryRevenue: CategoryRevenue[] }>(`/admin/dashboard/category-revenue${qs ? `?${qs}` : ''}`, {}, token);
+  return categoryRevenue;
+}

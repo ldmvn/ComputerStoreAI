@@ -31,7 +31,7 @@ export default function RevenueChart({ data }: { data: RevenuePoint[] }) {
   const maxOrders = Math.max(1, ...data.map(d => d.orders));
   const n = data.length || 1;
   const bandW = innerW / n;
-  const barW = Math.min(36, bandW * 0.5);
+  const barW = Math.min(64, bandW * 0.72);
 
   const linePoints = useMemo(() => data.map((d, i) => {
     const x = padL + bandW * i + bandW / 2;
@@ -68,7 +68,7 @@ export default function RevenueChart({ data }: { data: RevenuePoint[] }) {
           const y = padT + innerH - h;
           return (
             <rect
-              key={i} x={x} y={y} width={barW} height={Math.max(h, 1)} rx={3}
+              key={i} x={x} y={y} width={barW} height={Math.max(h, 1)} rx={5}
               fill={hover === i ? '#ea580c' : '#fb923c'}
               onMouseEnter={() => setHover(i)}
               onMouseLeave={() => setHover(null)}

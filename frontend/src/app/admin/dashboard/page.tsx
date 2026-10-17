@@ -15,8 +15,8 @@ import { mediaUrl } from '@/services/http.client';
 import { formatProductPrice } from '@/lib/product';
 import { ORDER_STATUS_LABEL, type OrderStatus } from '@/types/order.type';
 import {
-  getAdminDashboard,
-  type DashboardData, type DashboardRange,
+  getAdminDashboard, getRevenueTimeline, getCategoryRevenue,
+  type DashboardData, type DashboardRange, type RevenuePoint, type CategoryRevenue,
 } from '@/services/adminDashboard.service';
 import RevenueChart from '@/components/admin/dashboard/RevenueChart';
 import DonutChart, { type DonutSlice } from '@/components/admin/dashboard/DonutChart';
@@ -83,6 +83,15 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Doanh thu theo thời gian / theo danh mục có bộ chọn thời gian riêng
+  const [revenueRange, setRevenueRange] = useState<DashboardRange>('7d');
+  const [revenueTimeline, setRevenueTimeline] = useState<RevenuePoint[]>([]);
+  const [revenueLoading, setRevenueLoading] = useState(true);
+
+  const [categoryRange, setCategoryRange] = useState<DashboardRange>('30d');
+  const [categoryRevenue, setCategoryRevenue] = useState<CategoryRevenue[]>([]);
+  const [categoryLoading, setCategoryLoading] = useState(true);
+
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try {
@@ -98,7 +107,23 @@ export default function DashboardPage() {
     }
   }, [token, range, customFrom, customTo]);
 
+  const loadRevenueTimeline = useCallback(async () => {
+    setRevenueLoading(true);
+    try { setRevenueTimeline(await getRevenueTimeline(token, { range: revenueRange })); }
+    catch { /* giữ dữ liệu cũ, không chặn phần còn lại của trang */ }
+    finally { setRevenueLoading(false); }
+  }, [token, revenueRange]);
+
+  const loadCategoryRevenue = useCallback(async () => {
+    setCategoryLoading(true);
+    try { setCategoryRevenue(await getCategoryRevenue(token, { range: categoryRange })); }
+    catch { /* giữ dữ liệu cũ, không chặn phần còn lại của trang */ }
+    finally { setCategoryLoading(false); }
+  }, [token, categoryRange]);
+
   useEffect(() => { if (isHydrated) void load(); }, [isHydrated, load]);
+  useEffect(() => { if (isHydrated) void loadRevenueTimeline(); }, [isHydrated, loadRevenueTimeline]);
+  useEffect(() => { if (isHydrated) void loadCategoryRevenue(); }, [isHydrated, loadCategoryRevenue]);
 
   const kpi = data?.kpi;
   const orderStatus = data?.orderStatus;
@@ -107,7 +132,7 @@ export default function DashboardPage() {
     ? orderStatus.items.map(i => ({ label: STATUS_CARD[i.status].label, value: i.count, color: STATUS_DONUT_COLOR[i.status] }))
     : [];
 
-  const categoryBars = data?.categoryRevenue.map(c => ({ label: c.name, value: c.revenue })) ?? [];
+  const categoryBars = categoryRevenue.map(c => ({ label: c.name, value: c.revenue }));
 
   return (
     <section className="space-y-6">
@@ -243,11 +268,23 @@ export default function DashboardPage() {
 
       {/* ── Charts row ──────────────────────────────────────────────────── */}
       <div className="grid gap-4 xl:grid-cols-4">
-        <SectionCard title="Doanh thu theo thời gian" className="xl:col-span-2">
-          {loading ? (
+        <SectionCard
+          title="Doanh thu theo thời gian"
+          className="xl:col-span-2"
+          action={
+            <select
+              value={revenueRange}
+              onChange={e => setRevenueRange(e.target.value as DashboardRange)}
+              className="h-8 rounded-lg border border-slate-200 px-2 text-xs focus:border-primary-400 focus:outline-none"
+            >
+              {RANGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          }
+        >
+          {revenueLoading ? (
             <div className="flex h-[260px] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
           ) : (
-            <RevenueChart data={data?.revenueTimeline ?? []} />
+            <RevenueChart data={revenueTimeline} />
           )}
         </SectionCard>
 
@@ -259,8 +296,19 @@ export default function DashboardPage() {
           )}
         </SectionCard>
 
-        <SectionCard title="Doanh thu theo danh mục">
-          {loading ? (
+        <SectionCard
+          title="Doanh thu theo danh mục"
+          action={
+            <select
+              value={categoryRange}
+              onChange={e => setCategoryRange(e.target.value as DashboardRange)}
+              className="h-8 rounded-lg border border-slate-200 px-2 text-xs focus:border-primary-400 focus:outline-none"
+            >
+              {RANGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          }
+        >
+          {categoryLoading ? (
             <div className="flex h-[200px] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
           ) : (
             <HorizontalBarChart items={categoryBars} />
