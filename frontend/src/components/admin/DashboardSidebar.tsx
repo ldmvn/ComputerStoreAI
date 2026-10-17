@@ -26,16 +26,13 @@ export default function DashboardSidebar({ collapsed, mobileOpen, onCloseMobile,
   const pathname = usePathname();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const canSee = usePermissionStore((s) => s.has);
-  // Super Admin has wildcard '*' — can see items without a mapped permission.
-  const isSuperAdmin = usePermissionStore((s) => s.permissions.has('*'));
 
   // Filter menu groups — hide items the user has no permission for, hide empty groups.
-  // Items without a permission field are visible only to Super Admin (wildcard).
   const visibleMenu = dashboardMenu
     .map(group => ({
       ...group,
       children: group.children.filter(item => {
-        if (!item.permission) return isSuperAdmin;
+        if (!item.permission) return true;
         const [mod, action] = item.permission.split(':') as [string, string];
         return canSee(mod, action);
       }),
@@ -96,7 +93,7 @@ export default function DashboardSidebar({ collapsed, mobileOpen, onCloseMobile,
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-5" aria-label="Điều hướng quản trị">
-          {(isSuperAdmin || canSee('dashboard', 'view')) && (
+          {canSee('dashboard', 'view') && (
             <Link
               href={dashboardOverview.path}
               onClick={handleNavigation}

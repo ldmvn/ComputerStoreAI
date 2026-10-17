@@ -7,7 +7,7 @@ import { usePermissionStore } from '@/store/permission.store';
 // Centralized route → permission map. Longest prefix wins.
 // 'ALL_ADMINS' = any authenticated admin (no specific permission needed).
 // 'module:action' = specific RBAC permission required.
-// Route not in map → SUPER_ADMIN_ONLY (default deny for restricted accounts).
+// Route not in map → ALL_ADMINS (unknown routes accessible to all admins).
 const ROUTE_PERMISSIONS: Array<{ prefix: string; permission: string | 'ALL_ADMINS' }> = [
   { prefix: '/admin/dashboard',        permission: 'dashboard:view' },
   { prefix: '/admin/products',         permission: 'products:view' },
@@ -34,7 +34,7 @@ const ROUTE_PERMISSIONS: Array<{ prefix: string; permission: string | 'ALL_ADMIN
   { prefix: '/admin/settings',           permission: 'settings:view' },
 ];
 
-function getRequiredPermission(pathname: string): string | 'ALL_ADMINS' | 'SUPER_ADMIN_ONLY' {
+function getRequiredPermission(pathname: string): string | 'ALL_ADMINS' {
   let best: (typeof ROUTE_PERMISSIONS[0]) | undefined;
   for (const entry of ROUTE_PERMISSIONS) {
     const exact = pathname === entry.prefix;
@@ -43,21 +43,18 @@ function getRequiredPermission(pathname: string): string | 'ALL_ADMINS' | 'SUPER
       best = entry;
     }
   }
-  return best?.permission ?? 'SUPER_ADMIN_ONLY';
+  return best?.permission ?? 'ALL_ADMINS';
 }
 
 export default function AdminRouteGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const has = usePermissionStore((s) => s.has);
-  const isSuperAdmin = usePermissionStore((s) => s.permissions.has('*'));
 
   const required = getRequiredPermission(pathname);
 
   let allowed: boolean;
   if (required === 'ALL_ADMINS') {
     allowed = true;
-  } else if (required === 'SUPER_ADMIN_ONLY') {
-    allowed = isSuperAdmin;
   } else {
     const [mod, action] = required.split(':') as [string, string];
     allowed = has(mod, action);

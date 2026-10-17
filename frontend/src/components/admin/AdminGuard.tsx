@@ -6,7 +6,7 @@ import { usePermissionStore } from '@/store/permission.store';
 type Props = {
   /**
    * Permission key required, e.g. 'products:view' or ['products:view', 'products:create'].
-   * Pass null to require Super Admin (wildcard '*') — for pages without a specific permission mapping.
+   * Pass null to allow any authenticated admin.
    */
   permission: string | string[] | null;
   children: React.ReactNode;
@@ -27,11 +27,10 @@ const Denied = () => (
 export default function AdminGuard({ permission, children }: Props) {
   const has = usePermissionStore((s) => s.has);
   const hasAny = usePermissionStore((s) => s.hasAny);
-  const isSuperAdmin = usePermissionStore((s) => s.permissions.has('*'));
 
   if (permission === null) {
-    // No permission mapping — only Super Admins may access.
-    return isSuperAdmin ? <>{children}</> : <Denied />;
+    // No permission mapping — any authenticated admin may access.
+    return <>{children}</>;
   }
 
   const keys = Array.isArray(permission) ? permission : [permission];
