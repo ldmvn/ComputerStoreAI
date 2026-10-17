@@ -1,8 +1,16 @@
 import { prisma } from '../config/prisma.js';
 
-// Per-request permission lookup (no cache — role changes take effect immediately).
-// Returns Set of "module:action" strings for the given user.
-export async function getUserPermissions(userId) {
+// In-memory TTL cache for admin permission sets.
+// TTL is short enough that role changes propagate within one window.
+const PERM_CACHE_TTL = (parseInt(process.env.RBAC_CACHE_TTL_MS) || 60) * 1000;
+const permCache = new Map(); // userId → { perms: Set, expiresAt: number }
+
+export function invalidatePermissionCache(userId) {
+  if (userId) permCache.delete(userId);
+  else permCache.clear();
+}
+
+async function fetchUserPermissions(userId) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -19,15 +27,18 @@ export async function getUserPermissions(userId) {
     },
   });
   if (!user || !user.isActive) return new Set();
-  // Legacy ADMIN without a role assigned gets all-access
   if (user.role === 'ADMIN' && !user.adminRoleId) return new Set(['*']);
   if (!user.adminRole?.isActive) return new Set();
-  // System roles (e.g. Super Admin) cannot have permissions modified via UI,
-  // so their RolePermission table is empty. Grant full access via wildcard.
   if (user.adminRole.isSystem) return new Set(['*']);
-  const perms = new Set(
-    user.adminRole.permissions.map(({ permission: p }) => `${p.module}:${p.action}`)
-  );
+  return new Set(user.adminRole.permissions.map(({ permission: p }) => `${p.module}:${p.action}`));
+}
+
+export async function getUserPermissions(userId) {
+  const now = Date.now();
+  const cached = permCache.get(userId);
+  if (cached && cached.expiresAt > now) return cached.perms;
+  const perms = await fetchUserPermissions(userId);
+  permCache.set(userId, { perms, expiresAt: now + PERM_CACHE_TTL });
   return perms;
 }
 
@@ -79,6 +90,8 @@ export async function setRolePermissions(roleId, permissionIds) {
     prisma.rolePermission.deleteMany({ where: { roleId } }),
     prisma.rolePermission.createMany({ data: permissionIds.map(permissionId => ({ roleId, permissionId })), skipDuplicates: true }),
   ]);
+  // Invalidate cache for all users with this role so new permissions take effect immediately.
+  invalidatePermissionCache();
   return prisma.role.findUnique({
     where: { id: roleId },
     include: { permissions: { include: { permission: true } }, _count: { select: { adminUsers: true } } },
