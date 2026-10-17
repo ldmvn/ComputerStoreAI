@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../config/prisma.js';
 
 // All non-admin accounts are customers: role = 'USER'
 const CUSTOMER_WHERE = { role: { not: 'ADMIN' } };

@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../config/prisma.js';
 
 const ALLOWED_SORTS = { name: 'p.name ASC', stock_asc: 'p.stockQuantity ASC', stock_desc: 'p.stockQuantity DESC', updated: 'p.updatedAt DESC' };
 const ALLOWED_STATUSES = new Set(['out', 'low', 'in']);

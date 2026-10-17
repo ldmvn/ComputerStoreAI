@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-import { validateVoucher, applyVoucherInTx, calcDiscount, refundVoucherUsage } from './voucher.service.js';
-const prisma = new PrismaClient();
+import { prisma } from '../config/prisma.js';
+import { validateVoucher, applyVoucherInTx, refundVoucherUsage } from './voucher.service.js';
 
 const ALLOWED_PAYMENT = ['COD', 'BANK_TRANSFER'];
 
@@ -130,13 +129,24 @@ export async function createOrder(userId, { items, addressId, paymentMethod, not
       await applyVoucherInTx(tx, voucherInfo.id, order.id, userId, discountAmount);
     }
 
-    // Deduct stock and log
+    // Deduct stock atomically — conditional update prevents race conditions
+    // between concurrent transactions that both passed the pre-check above.
     for (const item of orderItems) {
       const before = stockBefore.get(item.productId);
-      await tx.product.update({
-        where: { id: item.productId },
+      const result = await tx.product.updateMany({
+        where: {
+          id: item.productId,
+          isActive: true,
+          isDeleted: false,
+          stockQuantity: { gte: item.quantity },
+        },
         data: { stockQuantity: { decrement: item.quantity } },
       });
+      if (result.count === 0) {
+        const err = new Error(`Sản phẩm "${item.name}" vừa hết hàng, vui lòng thử lại.`);
+        err.statusCode = 422;
+        throw err;
+      }
       await tx.inventoryLog.create({
         data: {
           productId: item.productId,

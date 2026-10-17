@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../config/prisma.js';
 import { refundVoucherUsage } from './voucher.service.js';
-const prisma = new PrismaClient();
 
 const VALID_TRANSITIONS = {
   PENDING:   ['CONFIRMED', 'CANCELLED'],
