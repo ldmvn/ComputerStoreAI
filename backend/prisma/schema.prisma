@@ -40,6 +40,7 @@ model Product {
   orderItems        OrderItem[]
   inventoryLogs     InventoryLog[]
   pcBuildItems      PcBuildItem[]
+  buildPcPresetItems BuildPcPresetItem[]
   categoryRecord    Category?               @relation("ProductCategory", fields: [categoryId], references: [id], onDelete: Restrict)
   brandRecord       Brand?                  @relation("ProductBrand", fields: [brandId], references: [id], onDelete: Restrict)
 
@@ -800,6 +801,7 @@ model BuildPcGroup {
   updatedAt      DateTime               @updatedAt
   categories     BuildPcGroupCategory[]
   buildItems     PcBuildItem[]
+  presetItems    BuildPcPresetItem[]
 
   @@index([sortOrder, isActive])
 }
@@ -867,6 +869,39 @@ model BuildPcSettings {
   maxBudget          Int?
   allowSubstitution  Boolean  @default(true)
   updatedAt          DateTime @updatedAt
+}
+
+// ── Build PC Presets (admin-curated suggestions, not wired into customer flow) ─
+
+model BuildPcPreset {
+  id          Int                 @id @default(autoincrement())
+  name        String              @db.VarChar(150)
+  slug        String              @unique @db.VarChar(150)
+  description String?             @db.VarChar(500)
+  useCase     String?             @db.VarChar(100)
+  budgetMin   Int?
+  budgetMax   Int?
+  isActive    Boolean             @default(true)
+  sortOrder   Int                 @default(0)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  items       BuildPcPresetItem[]
+
+  @@index([isActive, sortOrder])
+}
+
+model BuildPcPresetItem {
+  id        Int           @id @default(autoincrement())
+  presetId  Int
+  groupId   Int
+  productId Int?
+  preset    BuildPcPreset @relation(fields: [presetId], references: [id], onDelete: Cascade)
+  group     BuildPcGroup  @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  product   Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@unique([presetId, groupId])
+  @@index([groupId])
+  @@index([productId])
 }
 
 // ── Support Tickets ───────────────────────────────────────────────────────────
