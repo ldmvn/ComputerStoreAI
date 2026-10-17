@@ -22,6 +22,7 @@ const ROUTE_PERMISSIONS: Array<{ prefix: string; permission: string | 'ALL_ADMIN
   { prefix: '/admin/reviews',          permission: 'reviews:view' },
   { prefix: '/admin/orders',           permission: 'orders:view' },
   { prefix: '/admin/customers',        permission: 'customers:view' },
+  { prefix: '/admin/accounts',         permission: 'customers:manage' },
   { prefix: '/admin/payments',         permission: 'orders:view' },
   { prefix: '/admin/shipping',         permission: 'orders:manage' },
   { prefix: '/admin/returns',          permission: 'returns:view' },
@@ -29,7 +30,6 @@ const ROUTE_PERMISSIONS: Array<{ prefix: string; permission: string | 'ALL_ADMIN
   { prefix: '/admin/support-tickets',  permission: 'support:view' },
   { prefix: '/admin/build-pc',         permission: 'build_pc:view' },
   { prefix: '/admin/roles',              permission: 'roles:view' },
-  { prefix: '/admin/admin-users',        permission: 'administrators:view' },
   { prefix: '/admin/activity-logs',      permission: 'activity_logs:view' },
   { prefix: '/admin/settings',           permission: 'settings:view' },
 ];

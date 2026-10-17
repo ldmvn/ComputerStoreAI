@@ -1,7 +1,17 @@
 import { prisma } from '../config/prisma.js';
 
-// All non-admin accounts are customers: role = 'USER'
-const CUSTOMER_WHERE = { role: { not: 'ADMIN' } };
+// Lists ALL accounts (customers + admins). Role is carried per-row:
+// role === 'ADMIN' → shown with adminRole (or "Admin (Toàn quyền)" if adminRoleId is null)
+// role === 'USER'  → shown as "Khách hàng"
+
+function accountSelect() {
+  return {
+    id: true, fullName: true, email: true, phone: true,
+    isActive: true, createdAt: true,
+    role: true, adminRoleId: true,
+    adminRole: { select: { id: true, name: true, slug: true, isSystem: true, isActive: true } },
+  };
+}
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
 
@@ -9,10 +19,11 @@ export async function getCustomerStats() {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+  const where = { role: { not: 'ADMIN' } };
   const [total, newCount, withOrders] = await Promise.all([
-    prisma.user.count({ where: CUSTOMER_WHERE }),
-    prisma.user.count({ where: { ...CUSTOMER_WHERE, createdAt: { gte: thirtyDaysAgo } } }),
-    prisma.user.count({ where: { ...CUSTOMER_WHERE, orders: { some: {} } } }),
+    prisma.user.count({ where }),
+    prisma.user.count({ where: { ...where, createdAt: { gte: thirtyDaysAgo } } }),
+    prisma.user.count({ where: { ...where, orders: { some: {} } } }),
   ]);
 
   return { total, newCount, withOrders, withoutOrders: total - withOrders };
@@ -21,7 +32,7 @@ export async function getCustomerStats() {
 // ── List ──────────────────────────────────────────────────────────────────────
 
 export async function listCustomers({ page = 1, limit = 20, search, filter = 'all', sortBy = 'newest' } = {}) {
-  let where = { ...CUSTOMER_WHERE };
+  let where = {};
 
   if (search?.trim()) {
     where = {
@@ -47,6 +58,10 @@ export async function listCustomers({ page = 1, limit = 20, search, filter = 'al
     const ids = rows.map(r => r.userId);
     if (ids.length === 0) return { customers: [], total: 0, page, limit };
     where = { ...where, id: { in: ids } };
+  } else if (filter === 'admins') {
+    where = { ...where, role: 'ADMIN' };
+  } else if (filter === 'customers') {
+    where = { ...where, role: { not: 'ADMIN' } };
   }
 
   // sortBy = 'spent' requires a post-sort pass
@@ -62,11 +77,7 @@ export async function listCustomers({ page = 1, limit = 20, search, filter = 'al
   const [users, total] = await Promise.all([
     prisma.user.findMany({
       where,
-      select: {
-        id: true, fullName: true, email: true, phone: true,
-        isActive: true, createdAt: true,
-        _count: { select: { orders: true } },
-      },
+      select: { ...accountSelect(), _count: { select: { orders: true } } },
       orderBy,
       skip: (page - 1) * limit, take: limit,
     }),
@@ -79,11 +90,7 @@ export async function listCustomers({ page = 1, limit = 20, search, filter = 'al
 async function listSortedBySpent(where, page, limit) {
   const allUsers = await prisma.user.findMany({
     where,
-    select: {
-      id: true, fullName: true, email: true, phone: true,
-      isActive: true, createdAt: true,
-      _count: { select: { orders: true } },
-    },
+    select: { ...accountSelect(), _count: { select: { orders: true } } },
   });
 
   const total = allUsers.length;
@@ -131,6 +138,7 @@ async function enrichWithSpent(users, total, page, limit) {
     customers: users.map(u => ({
       id: u.id, fullName: u.fullName, email: u.email, phone: u.phone,
       isActive: u.isActive, createdAt: u.createdAt,
+      role: u.role, adminRoleId: u.adminRoleId, adminRole: u.adminRole,
       orderCount: u._count.orders,
       totalSpent: spendMap[u.id] ?? 0,
       lastOrderAt: lastMap[u.id] ?? null,
@@ -149,14 +157,114 @@ async function getLastOrderRows(userIds) {
   });
 }
 
+// ── Create ────────────────────────────────────────────────────────────────────
+
+export async function createCustomer({ fullName, email, phone, password }) {
+  const bcrypt = (await import('bcryptjs')).default;
+  const existing = await prisma.user.findFirst({ where: { OR: [{ email }, ...(phone ? [{ phone }] : [])] } });
+  if (existing) {
+    const field = existing.email === email ? 'Email' : 'Số điện thoại';
+    const error = new Error(`${field} đã được sử dụng.`);
+    error.status = 409;
+    throw error;
+  }
+  const passwordHash = await bcrypt.hash(password, 10);
+  return prisma.user.create({
+    data: { fullName, email, phone: phone || null, passwordHash, role: 'USER', isActive: true },
+    select: accountSelect(),
+  });
+}
+
+// ── Update ────────────────────────────────────────────────────────────────────
+
+export async function updateCustomer(id, { fullName, email, phone, isActive, password }) {
+  const bcrypt = (await import('bcryptjs')).default;
+  const existing = await prisma.user.findUnique({ where: { id } });
+  if (!existing) { const e = new Error('Tài khoản không tồn tại.'); e.status = 404; throw e; }
+
+  if (email && email !== existing.email) {
+    const dup = await prisma.user.findUnique({ where: { email } });
+    if (dup) { const e = new Error('Email đã được sử dụng.'); e.status = 409; throw e; }
+  }
+  if (phone && phone !== existing.phone) {
+    const dup = await prisma.user.findUnique({ where: { phone } });
+    if (dup) { const e = new Error('Số điện thoại đã được sử dụng.'); e.status = 409; throw e; }
+  }
+
+  const data = {};
+  if (fullName !== undefined) data.fullName = fullName;
+  if (email !== undefined) data.email = email;
+  if (phone !== undefined) data.phone = phone || null;
+  if (isActive !== undefined) data.isActive = isActive;
+  if (password) data.passwordHash = await bcrypt.hash(password, 10);
+
+  const updated = await prisma.user.update({ where: { id }, data, select: accountSelect() });
+  const { invalidatePermissionCache } = await import('./rbac.service.js');
+  invalidatePermissionCache(id);
+  return updated;
+}
+
+// ── Role ──────────────────────────────────────────────────────────────────────
+
+export async function updateAccountRole(id, { role, adminRoleId }, requesterId) {
+  if (id === requesterId) {
+    const e = new Error('Không thể thay đổi vai trò của chính mình.'); e.status = 400; throw e;
+  }
+  const existing = await prisma.user.findUnique({ where: { id } });
+  if (!existing) { const e = new Error('Tài khoản không tồn tại.'); e.status = 404; throw e; }
+
+  if (role === 'ADMIN' && adminRoleId) {
+    const r = await prisma.role.findUnique({ where: { id: adminRoleId } });
+    if (!r || !r.isActive) { const e = new Error('Vai trò không hợp lệ hoặc đã bị vô hiệu hóa.'); e.status = 422; throw e; }
+  }
+
+  if (existing.role === 'ADMIN' && role !== 'ADMIN') {
+    const activeAdmins = await prisma.user.count({ where: { role: 'ADMIN', isActive: true } });
+    if (activeAdmins <= 1) { const e = new Error('Không thể hạ quyền quản trị viên cuối cùng đang hoạt động.'); e.status = 400; throw e; }
+  }
+
+  const updated = await prisma.user.update({
+    where: { id },
+    data: {
+      role: role === 'ADMIN' ? 'ADMIN' : 'USER',
+      adminRoleId: role === 'ADMIN' ? (adminRoleId || null) : null,
+    },
+    select: accountSelect(),
+  });
+  const { invalidatePermissionCache } = await import('./rbac.service.js');
+  invalidatePermissionCache(id);
+  return updated;
+}
+
+// ── Delete ────────────────────────────────────────────────────────────────────
+
+export async function deleteCustomer(id, requesterId) {
+  if (id === requesterId) {
+    const e = new Error('Không thể xóa tài khoản của chính mình.'); e.status = 400; throw e;
+  }
+  const existing = await prisma.user.findUnique({ where: { id } });
+  if (!existing) { const e = new Error('Tài khoản không tồn tại.'); e.status = 404; throw e; }
+  if (existing.role === 'ADMIN') {
+    const activeAdmins = await prisma.user.count({ where: { role: 'ADMIN', isActive: true } });
+    if (activeAdmins <= 1) { const e = new Error('Không thể xóa quản trị viên cuối cùng đang hoạt động.'); e.status = 400; throw e; }
+  }
+  await prisma.user.delete({ where: { id } });
+}
+
+// ── Activity logs ─────────────────────────────────────────────────────────────
+
+export async function getCustomerActivity(userId, { page = 1, limit = 30 } = {}) {
+  const { listLogs } = await import('./activityLog.service.js');
+  return listLogs({ userId, page, limit });
+}
+
 // ── Detail ────────────────────────────────────────────────────────────────────
 
 export async function getCustomer(id) {
-  const user = await prisma.user.findFirst({
-    where: { id, ...CUSTOMER_WHERE },
+  const user = await prisma.user.findUnique({
+    where: { id },
     select: {
-      id: true, fullName: true, email: true, phone: true,
-      isActive: true, createdAt: true,
+      ...accountSelect(),
       orders: {
         select: {
           id: true, status: true, paymentMethod: true, subtotal: true, createdAt: true,

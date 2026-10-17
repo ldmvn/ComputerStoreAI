@@ -14,13 +14,6 @@ export type Role = {
   _count?: { adminUsers: number };
 };
 
-export type AdminUser = {
-  id: number; fullName: string; email: string; phone?: string | null;
-  avatarUrl?: string | null; role: string; adminRoleId?: number | null;
-  isActive: boolean; lastLoginAt?: string | null; createdAt: string; updatedAt: string;
-  adminRole?: { id: number; name: string; slug: string; isSystem: boolean; isActive: boolean } | null;
-};
-
 export type ActivityLog = {
   id: number; userId?: number | null; userEmail?: string | null; userName?: string | null;
   action: string; module: string; targetId?: string | null; targetLabel?: string | null;
@@ -46,30 +39,6 @@ export const deleteRole = (token: string | null, id: number) =>
 
 export const setRolePermissions = (token: string | null, id: number, permissionIds: number[]) =>
   apiRequest<{ role: Role }>(`${root}/roles/${id}/permissions`, { method: 'PUT', body: JSON.stringify({ permissionIds }) }, token);
-
-// ── Admin Users ───────────────────────────────────────────────────────────────
-export const getAdminUsers = (token: string | null, params?: { page?: number; limit?: number; search?: string; roleId?: number; isActive?: boolean }, signal?: AbortSignal) => {
-  const q = new URLSearchParams();
-  if (params?.page) q.set('page', String(params.page));
-  if (params?.limit) q.set('limit', String(params.limit));
-  if (params?.search) q.set('search', params.search);
-  if (params?.roleId != null) q.set('roleId', String(params.roleId));
-  if (params?.isActive != null) q.set('isActive', String(params.isActive));
-  const qs = q.toString();
-  return apiRequest<{ users: AdminUser[]; total: number; page: number; totalPages: number }>(`${root}/admin-users${qs ? `?${qs}` : ''}`, { signal }, token);
-};
-
-export const getAdminUser = (token: string | null, id: number) =>
-  apiRequest<{ user: AdminUser }>(`${root}/admin-users/${id}`, {}, token);
-
-export const createAdminUser = (token: string | null, body: { fullName: string; email: string; phone?: string; password: string; adminRoleId?: number }) =>
-  apiRequest<{ user: AdminUser }>(`${root}/admin-users`, { method: 'POST', body: JSON.stringify(body) }, token);
-
-export const updateAdminUser = (token: string | null, id: number, body: { fullName?: string; phone?: string; adminRoleId?: number }) =>
-  apiRequest<{ user: AdminUser }>(`${root}/admin-users/${id}`, { method: 'PUT', body: JSON.stringify(body) }, token);
-
-export const setAdminUserStatus = (token: string | null, id: number, isActive: boolean) =>
-  apiRequest<{ user: AdminUser }>(`${root}/admin-users/${id}/status`, { method: 'PATCH', body: JSON.stringify({ isActive }) }, token);
 
 // ── Activity Logs ─────────────────────────────────────────────────────────────
 export const getActivityLogs = (token: string | null, params?: { page?: number; limit?: number; module?: string; action?: string; userId?: number; success?: boolean; from?: string; to?: string; search?: string }, signal?: AbortSignal) => {
