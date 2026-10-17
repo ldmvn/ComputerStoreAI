@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../config/prisma.js';
 
 const ALLOWED_RATINGS = new Set([1, 2, 3, 4, 5]);
 

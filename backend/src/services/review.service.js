@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../config/prisma.js';
 
 export async function listMyReviews(userId, { page = 1, limit = 10 } = {}) {
   const skip = (page - 1) * limit;
