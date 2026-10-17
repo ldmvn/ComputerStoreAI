@@ -16,8 +16,8 @@ export type Brand = {
 
 export type BrandInput = Pick<Brand, 'name' | 'slug' | 'websiteUrl' | 'description' | 'sortOrder' | 'isActive'>;
 
-export const getAdminBrands = (token: string, signal?: AbortSignal) => apiRequest<{ brands: Brand[] }>('/admin/brands', { signal }, token);
-export const createBrand = (token: string, body: FormData) => apiRequest<{ brand: Brand; message: string }>('/admin/brands', { method: 'POST', body }, token);
-export const updateBrand = (token: string, id: number, body: FormData) => apiRequest<{ brand: Brand; message: string }>(`/admin/brands/${id}`, { method: 'PUT', body }, token);
-export const deleteBrand = (token: string, id: number) => apiRequest<{ message: string }>(`/admin/brands/${id}`, { method: 'DELETE' }, token);
-export const setBrandStatus = (token: string, id: number, isActive: boolean) => apiRequest<{ brand: Brand; message: string }>(`/admin/brands/${id}/status`, { method: 'PATCH', body: JSON.stringify({ isActive }) }, token);
+export const getAdminBrands = (token: string | null, signal?: AbortSignal) => apiRequest<{ brands: Brand[] }>('/admin/brands', { signal }, token);
+export const createBrand = (token: string | null, body: FormData) => apiRequest<{ brand: Brand; message: string }>('/admin/brands', { method: 'POST', body }, token);
+export const updateBrand = (token: string | null, id: number, body: FormData) => apiRequest<{ brand: Brand; message: string }>(`/admin/brands/${id}`, { method: 'PUT', body }, token);
+export const deleteBrand = (token: string | null, id: number) => apiRequest<{ message: string }>(`/admin/brands/${id}`, { method: 'DELETE' }, token);
+export const setBrandStatus = (token: string | null, id: number, isActive: boolean) => apiRequest<{ brand: Brand; message: string }>(`/admin/brands/${id}/status`, { method: 'PATCH', body: JSON.stringify({ isActive }) }, token);

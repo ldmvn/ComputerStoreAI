@@ -74,7 +74,7 @@ function PasswordField({
 // ─── main page ────────────────────────────────────────────────────────────────
 
 export default function PasswordPage() {
-  const { user, token } = useAuthStore();
+  const { user } = useAuthStore();
   const toast = useToast();
 
   const [current,  setCurrent] = useState('');
@@ -102,12 +102,10 @@ export default function PasswordPage() {
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
-    if (!token) return;
-
     setLoading(true);
     setApiError(null);
     try {
-      await changePassword(token, current, next);
+      await changePassword(current, next);
       toast.success('Đổi mật khẩu thành công!', 'Vui lòng dùng mật khẩu mới cho lần đăng nhập tiếp theo.');
       setCurrent(''); setNext(''); setConfirm('');
       setErrors({}); setApiError(null);

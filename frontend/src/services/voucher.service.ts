@@ -12,7 +12,7 @@ export type VoucherValidation = {
   finalAmount: number;
 };
 
-export async function validateVoucher(token: string, code: string, subtotal: number): Promise<VoucherValidation> {
+export async function validateVoucher(token: string | null, code: string, subtotal: number): Promise<VoucherValidation> {
   return apiRequest('/vouchers/validate', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },

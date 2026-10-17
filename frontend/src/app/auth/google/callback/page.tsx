@@ -31,8 +31,8 @@ export default function GoogleCallbackPage() {
       router.replace('/login');
       return;
     }
-    void completeGoogleLogin(code, pending.verifier).then(result => {
-      login(result.user, result.token, pending.rememberMe);
+    void completeGoogleLogin(code, pending.verifier, pending.rememberMe).then(result => {
+      login(result.user, result.token);
       toast.success('Đăng nhập bằng Google thành công', `Chào mừng ${result.user.fullName}`);
       router.replace(pending.returnTo);
     }).catch((failure: unknown) => {

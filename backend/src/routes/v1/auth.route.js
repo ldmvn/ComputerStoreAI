@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { changePassword, login, me, register, updateMe } from '../../controllers/auth.controller.js';
+import { changePassword, login, logout, me, register, updateMe } from '../../controllers/auth.controller.js';
 import { authenticateToken } from '../../middlewares/auth.middleware.js';
 import { requestReset, verifyReset, completeReset } from '../../controllers/passwordReset.controller.js';
 import { passwordResetRateLimit } from '../../middlewares/passwordResetRateLimit.middleware.js';
@@ -14,6 +14,7 @@ router.post('/google/exchange', completeGoogleLogin);
 
 router.post('/register', registerRateLimit, register);
 router.post('/login', loginRateLimit, login);
+router.post('/logout', logout);
 router.get('/me', authenticateToken, me);
 router.patch('/me', authenticateToken, updateMe);
 router.patch('/password', authenticateToken, changePassword);

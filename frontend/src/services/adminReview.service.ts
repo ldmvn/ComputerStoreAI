@@ -39,11 +39,11 @@ export type AdminReviewsResult = {
   limit: number;
 };
 
-export async function adminGetReviewStats(token: string): Promise<AdminReviewStats> {
+export async function adminGetReviewStats(token: string | null): Promise<AdminReviewStats> {
   return apiRequest('/admin/reviews/stats', { headers: { Authorization: `Bearer ${token}` } });
 }
 
-export async function adminListReviews(token: string, filters: AdminReviewFilters = {}): Promise<AdminReviewsResult> {
+export async function adminListReviews(token: string | null, filters: AdminReviewFilters = {}): Promise<AdminReviewsResult> {
   const params = new URLSearchParams();
   if (filters.page) params.set('page', String(filters.page));
   if (filters.limit) params.set('limit', String(filters.limit));
@@ -56,14 +56,14 @@ export async function adminListReviews(token: string, filters: AdminReviewFilter
   return apiRequest(`/admin/reviews${qs ? `?${qs}` : ''}`, { headers: { Authorization: `Bearer ${token}` } });
 }
 
-export async function adminPublishReview(token: string, id: number): Promise<{ message: string }> {
+export async function adminPublishReview(token: string | null, id: number): Promise<{ message: string }> {
   return apiRequest(`/admin/reviews/${id}/publish`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } });
 }
 
-export async function adminHideReview(token: string, id: number): Promise<{ message: string }> {
+export async function adminHideReview(token: string | null, id: number): Promise<{ message: string }> {
   return apiRequest(`/admin/reviews/${id}/hide`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } });
 }
 
-export async function adminDeleteReview(token: string, id: number): Promise<{ message: string }> {
+export async function adminDeleteReview(token: string | null, id: number): Promise<{ message: string }> {
   return apiRequest(`/admin/reviews/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
 }

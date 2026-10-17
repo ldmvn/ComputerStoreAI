@@ -28,11 +28,13 @@ export function takeGoogleLoginPending(): PendingGoogleLogin | null {
   } catch { return null; }
 }
 
-export async function completeGoogleLogin(code: string, verifier: string): Promise<{ user: AuthUser; token: string }> {
+export async function completeGoogleLogin(code: string, verifier: string, rememberMe = false): Promise<{ user: AuthUser; token: string }> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}/auth/google/exchange`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, verifier }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ code, verifier, rememberMe }),
       cache: 'no-store', signal: AbortSignal.timeout(20000),
     });
   } catch { throw new AuthRequestError('Không thể kết nối máy chủ. Vui lòng thử đăng nhập lại.'); }

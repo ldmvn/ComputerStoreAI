@@ -15,7 +15,7 @@ export type OrderFilters = {
   limit?: number;
 };
 
-export async function createOrder(payload: CreateOrderPayload, token: string): Promise<Order> {
+export async function createOrder(payload: CreateOrderPayload, token: string | null): Promise<Order> {
   try {
     const { order } = await apiRequest<{ order: Order }>('/orders', {
       method: 'POST',
@@ -28,13 +28,13 @@ export async function createOrder(payload: CreateOrderPayload, token: string): P
   }
 }
 
-export async function listOrders(token: string): Promise<Order[]> {
+export async function listOrders(token: string | null): Promise<Order[]> {
   const { orders } = await apiRequest<{ orders: Order[] }>('/orders', {}, token);
   return orders;
 }
 
 // Profile orders page: client-side filtering + pagination
-export async function getMyOrders(token: string, filters: OrderFilters = {}): Promise<{ orders: Order[]; total: number }> {
+export async function getMyOrders(token: string | null, filters: OrderFilters = {}): Promise<{ orders: Order[]; total: number }> {
   let all: Order[];
   try {
     all = await listOrders(token);
@@ -64,7 +64,7 @@ export async function getMyOrders(token: string, filters: OrderFilters = {}): Pr
   return { orders, total };
 }
 
-export async function getOrderStats(token: string): Promise<OrderStats> {
+export async function getOrderStats(token: string | null): Promise<OrderStats> {
   const all = await listOrders(token);
   return {
     total: all.length,
@@ -77,12 +77,12 @@ export async function getOrderStats(token: string): Promise<OrderStats> {
   };
 }
 
-export async function getOrder(id: number, token: string): Promise<Order> {
+export async function getOrder(id: number, token: string | null): Promise<Order> {
   const { order } = await apiRequest<{ order: Order }>(`/orders/${id}`, {}, token);
   return order;
 }
 
-export async function cancelOrder(token: string, id: number): Promise<{ order: Order }> {
+export async function cancelOrder(token: string | null, id: number): Promise<{ order: Order }> {
   const { order } = await apiRequest<{ order: Order }>(`/orders/${id}/cancel`, { method: 'PATCH' }, token);
   return { order };
 }

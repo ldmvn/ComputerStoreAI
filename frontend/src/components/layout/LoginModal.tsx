@@ -95,8 +95,8 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
     }
     setIsLoggingIn(true);
     try {
-      const response = await loginAccount(email.trim(), password);
-      login(response.user, response.token, rememberMe);
+      const response = await loginAccount(email.trim(), password, rememberMe);
+      login(response.user, response.token);
       setEmail('');
       setPassword('');
       toast.success('Đăng nhập thành công', `Chào mừng ${response.user.fullName}`);

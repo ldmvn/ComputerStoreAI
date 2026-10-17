@@ -118,21 +118,21 @@ function buildQuery(params: Record<string, string | number | undefined>) {
   return q ? `?${q}` : '';
 }
 
-export async function adminListOrders(token: string, filters: AdminOrderFilters = {}): Promise<AdminOrdersResult> {
+export async function adminListOrders(token: string | null, filters: AdminOrderFilters = {}): Promise<AdminOrdersResult> {
   return apiRequest<AdminOrdersResult>(`/admin/orders${buildQuery(filters as Record<string, string | number>)}`, {}, token);
 }
 
-export async function adminGetOrder(token: string, id: number): Promise<AdminOrder> {
+export async function adminGetOrder(token: string | null, id: number): Promise<AdminOrder> {
   const { order } = await apiRequest<{ order: AdminOrder }>(`/admin/orders/${id}`, {}, token);
   return order;
 }
 
-export async function adminGetOrderStats(token: string, from?: string, to?: string): Promise<AdminOrderStats> {
+export async function adminGetOrderStats(token: string | null, from?: string, to?: string): Promise<AdminOrderStats> {
   return apiRequest<AdminOrderStats>(`/admin/orders/stats${buildQuery({ from, to })}`, {}, token);
 }
 
 export async function adminUpdateOrderStatus(
-  token: string, id: number,
+  token: string | null, id: number,
   payload: { status: string; note?: string; trackingNumber?: string; shippingProvider?: string }
 ): Promise<AdminOrder> {
   const { order } = await apiRequest<{ order: AdminOrder }>(`/admin/orders/${id}/status`, {
@@ -142,7 +142,7 @@ export async function adminUpdateOrderStatus(
 }
 
 export async function adminUpdateShipping(
-  token: string, id: number,
+  token: string | null, id: number,
   payload: { trackingNumber?: string; shippingProvider?: string; note?: string }
 ): Promise<AdminOrder> {
   const { order } = await apiRequest<{ order: AdminOrder }>(`/admin/orders/${id}/shipping`, {
@@ -153,18 +153,18 @@ export async function adminUpdateShipping(
 
 // ── Admin Customers ───────────────────────────────────────────────────────────
 
-export async function adminGetCustomerStats(token: string): Promise<AdminCustomerStats> {
+export async function adminGetCustomerStats(token: string | null): Promise<AdminCustomerStats> {
   return apiRequest<AdminCustomerStats>('/admin/customers/stats', {}, token);
 }
 
 export async function adminListCustomers(
-  token: string,
+  token: string | null,
   params: { page?: number; limit?: number; search?: string; filter?: CustomerFilter; sortBy?: CustomerSortBy } = {}
 ): Promise<{ customers: AdminCustomer[]; total: number; page: number; limit: number }> {
   return apiRequest(`/admin/customers${buildQuery(params as Record<string, string | number>)}`, {}, token);
 }
 
-export async function adminGetCustomer(token: string, id: number): Promise<AdminCustomerDetail> {
+export async function adminGetCustomer(token: string | null, id: number): Promise<AdminCustomerDetail> {
   const { customer } = await apiRequest<{ customer: AdminCustomerDetail }>(`/admin/customers/${id}`, {}, token);
   return customer;
 }
@@ -172,18 +172,18 @@ export async function adminGetCustomer(token: string, id: number): Promise<Admin
 // ── Admin Returns ─────────────────────────────────────────────────────────────
 
 export async function adminListReturns(
-  token: string, params: { page?: number; limit?: number; status?: string; search?: string } = {}
+  token: string | null, params: { page?: number; limit?: number; status?: string; search?: string } = {}
 ): Promise<{ returns: AdminReturn[]; total: number; page: number; limit: number }> {
   return apiRequest(`/admin/returns${buildQuery(params as Record<string, string | number>)}`, {}, token);
 }
 
-export async function adminGetReturn(token: string, id: number): Promise<AdminReturn> {
+export async function adminGetReturn(token: string | null, id: number): Promise<AdminReturn> {
   const { return: ret } = await apiRequest<{ return: AdminReturn }>(`/admin/returns/${id}`, {}, token);
   return ret;
 }
 
 export async function adminUpdateReturnStatus(
-  token: string, id: number,
+  token: string | null, id: number,
   payload: { status: string; adminNote?: string }
 ): Promise<AdminReturn> {
   const { return: ret } = await apiRequest<{ return: AdminReturn }>(`/admin/returns/${id}/status`, {
@@ -194,6 +194,6 @@ export async function adminUpdateReturnStatus(
 
 // ── Admin Reports ─────────────────────────────────────────────────────────────
 
-export async function adminGetReport(token: string, from?: string, to?: string): Promise<ReportSummary> {
+export async function adminGetReport(token: string | null, from?: string, to?: string): Promise<ReportSummary> {
   return apiRequest<ReportSummary>(`/admin/reports${buildQuery({ from, to })}`, {}, token);
 }

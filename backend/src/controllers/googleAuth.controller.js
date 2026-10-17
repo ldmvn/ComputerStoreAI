@@ -71,7 +71,13 @@ export function createGoogleAuthHandlers({ makeClient = clientFor } = {}) {
       try {
         const config = getGoogleOAuthConfig();
         if (req.headers.origin !== config.frontendOrigin) throw new GoogleAuthError('invalid_origin', 403);
+        const rememberMe = req.body?.rememberMe === true;
+        const isProduction = process.env.NODE_ENV === 'production';
         const result = await exchangeGoogleLogin(req.body?.code, req.body?.verifier);
+        res.cookie('accessToken', result.token, {
+          httpOnly: true, secure: isProduction, sameSite: 'strict', path: '/',
+          ...(rememberMe ? { maxAge: 30 * 24 * 60 * 60 * 1000 } : {}),
+        });
         return res.json({ success: true, ...result });
       } catch (error) { return next(error); }
     },

@@ -25,7 +25,7 @@ function isUnauthorized(error: unknown): error is WishlistAuthError {
   return error instanceof ApiRequestError && error.status === 401;
 }
 
-export async function getWishlist(token: string, signal?: AbortSignal): Promise<WishlistItem[]> {
+export async function getWishlist(token: string | null, signal?: AbortSignal): Promise<WishlistItem[]> {
   try {
     const result = await apiRequest<{ items: WishlistItem[] }>('/wishlist', { signal }, token);
     return result.items;
@@ -35,7 +35,7 @@ export async function getWishlist(token: string, signal?: AbortSignal): Promise<
   }
 }
 
-export async function addWishlist(token: string, productId: number, signal?: AbortSignal): Promise<WishlistItem> {
+export async function addWishlist(token: string | null, productId: number, signal?: AbortSignal): Promise<WishlistItem> {
   try {
     const result = await apiRequest<{ item: WishlistItem }>(`/wishlist/${productId}`, { method: 'POST', signal }, token);
     return result.item;
@@ -45,7 +45,7 @@ export async function addWishlist(token: string, productId: number, signal?: Abo
   }
 }
 
-export async function removeWishlist(token: string, productId: number, signal?: AbortSignal): Promise<{ removed: boolean; message: string }> {
+export async function removeWishlist(token: string | null, productId: number, signal?: AbortSignal): Promise<{ removed: boolean; message: string }> {
   try {
     return await apiRequest<{ removed: boolean; message: string }>(`/wishlist/${productId}`, { method: 'DELETE', signal }, token);
   } catch (error) {
@@ -54,7 +54,7 @@ export async function removeWishlist(token: string, productId: number, signal?: 
   }
 }
 
-export async function checkWishlist(token: string, productId: number, signal?: AbortSignal): Promise<boolean> {
+export async function checkWishlist(token: string | null, productId: number, signal?: AbortSignal): Promise<boolean> {
   try {
     const result = await apiRequest<{ productId: number; favorited: boolean }>(`/wishlist/check/${productId}`, { signal }, token);
     return result.favorited;

@@ -13,4 +13,4 @@ function queryString(query: ReviewListQuery) {
 
 export const getProductReviews = (slug: string, query: ReviewListQuery = {}, signal?: AbortSignal) => apiRequest<ProductReviewListResponse>(`/products/${encodeURIComponent(slug)}/reviews?${queryString(query)}`, { signal });
 
-export const submitProductReview = (token: string, slug: string, body: FormData) => apiRequest<{ review: ProductReview; message: string }>(`/products/${encodeURIComponent(slug)}/reviews`, { method: 'POST', body }, token);
+export const submitProductReview = (token: string | null, slug: string, body: FormData) => apiRequest<{ review: ProductReview; message: string }>(`/products/${encodeURIComponent(slug)}/reviews`, { method: 'POST', body }, token);

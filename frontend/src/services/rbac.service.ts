@@ -29,26 +29,26 @@ export type ActivityLog = {
 };
 
 // ── Roles ─────────────────────────────────────────────────────────────────────
-export const getRoles = (token: string, signal?: AbortSignal) =>
+export const getRoles = (token: string | null, signal?: AbortSignal) =>
   apiRequest<{ roles: Role[] }>(`${root}/roles`, { signal }, token);
 
-export const getPermissions = (token: string, signal?: AbortSignal) =>
+export const getPermissions = (token: string | null, signal?: AbortSignal) =>
   apiRequest<{ permissions: Permission[] }>(`${root}/roles/permissions`, { signal }, token);
 
-export const createRole = (token: string, body: { name: string; slug: string; description?: string; sortOrder?: number }) =>
+export const createRole = (token: string | null, body: { name: string; slug: string; description?: string; sortOrder?: number }) =>
   apiRequest<{ role: Role }>(`${root}/roles`, { method: 'POST', body: JSON.stringify(body) }, token);
 
-export const updateRole = (token: string, id: number, body: { name?: string; slug?: string; description?: string; sortOrder?: number; isActive?: boolean }) =>
+export const updateRole = (token: string | null, id: number, body: { name?: string; slug?: string; description?: string; sortOrder?: number; isActive?: boolean }) =>
   apiRequest<{ role: Role }>(`${root}/roles/${id}`, { method: 'PUT', body: JSON.stringify(body) }, token);
 
-export const deleteRole = (token: string, id: number) =>
+export const deleteRole = (token: string | null, id: number) =>
   apiRequest(`${root}/roles/${id}`, { method: 'DELETE' }, token);
 
-export const setRolePermissions = (token: string, id: number, permissionIds: number[]) =>
+export const setRolePermissions = (token: string | null, id: number, permissionIds: number[]) =>
   apiRequest<{ role: Role }>(`${root}/roles/${id}/permissions`, { method: 'PUT', body: JSON.stringify({ permissionIds }) }, token);
 
 // ── Admin Users ───────────────────────────────────────────────────────────────
-export const getAdminUsers = (token: string, params?: { page?: number; limit?: number; search?: string; roleId?: number; isActive?: boolean }, signal?: AbortSignal) => {
+export const getAdminUsers = (token: string | null, params?: { page?: number; limit?: number; search?: string; roleId?: number; isActive?: boolean }, signal?: AbortSignal) => {
   const q = new URLSearchParams();
   if (params?.page) q.set('page', String(params.page));
   if (params?.limit) q.set('limit', String(params.limit));
@@ -59,25 +59,25 @@ export const getAdminUsers = (token: string, params?: { page?: number; limit?: n
   return apiRequest<{ users: AdminUser[]; total: number; page: number; totalPages: number }>(`${root}/admin-users${qs ? `?${qs}` : ''}`, { signal }, token);
 };
 
-export const getAdminUser = (token: string, id: number) =>
+export const getAdminUser = (token: string | null, id: number) =>
   apiRequest<{ user: AdminUser }>(`${root}/admin-users/${id}`, {}, token);
 
-export const createAdminUser = (token: string, body: { fullName: string; email: string; phone?: string; password: string; adminRoleId?: number }) =>
+export const createAdminUser = (token: string | null, body: { fullName: string; email: string; phone?: string; password: string; adminRoleId?: number }) =>
   apiRequest<{ user: AdminUser }>(`${root}/admin-users`, { method: 'POST', body: JSON.stringify(body) }, token);
 
-export const updateAdminUser = (token: string, id: number, body: { fullName?: string; phone?: string; adminRoleId?: number }) =>
+export const updateAdminUser = (token: string | null, id: number, body: { fullName?: string; phone?: string; adminRoleId?: number }) =>
   apiRequest<{ user: AdminUser }>(`${root}/admin-users/${id}`, { method: 'PUT', body: JSON.stringify(body) }, token);
 
-export const setAdminUserStatus = (token: string, id: number, isActive: boolean) =>
+export const setAdminUserStatus = (token: string | null, id: number, isActive: boolean) =>
   apiRequest<{ user: AdminUser }>(`${root}/admin-users/${id}/status`, { method: 'PATCH', body: JSON.stringify({ isActive }) }, token);
 
 // ── Activity Logs ─────────────────────────────────────────────────────────────
-export const getActivityLogs = (token: string, params?: { page?: number; limit?: number; module?: string; action?: string; userId?: number; success?: boolean; from?: string; to?: string; search?: string }, signal?: AbortSignal) => {
+export const getActivityLogs = (token: string | null, params?: { page?: number; limit?: number; module?: string; action?: string; userId?: number; success?: boolean; from?: string; to?: string; search?: string }, signal?: AbortSignal) => {
   const q = new URLSearchParams();
   if (params) Object.entries(params).forEach(([k, v]) => { if (v != null && v !== '') q.set(k, String(v)); });
   const qs = q.toString();
   return apiRequest<{ logs: ActivityLog[]; total: number; page: number; totalPages: number }>(`${root}/activity-logs${qs ? `?${qs}` : ''}`, { signal }, token);
 };
 
-export const getActivityLog = (token: string, id: number) =>
+export const getActivityLog = (token: string | null, id: number) =>
   apiRequest<{ log: ActivityLog }>(`${root}/activity-logs/${id}`, {}, token);
