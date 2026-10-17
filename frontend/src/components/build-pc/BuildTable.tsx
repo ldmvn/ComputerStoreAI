@@ -32,7 +32,7 @@ export default function BuildTable() {
       <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3 px-4 py-3">
-            <div className="h-4 w-28 animate-pulse rounded bg-slate-100" />
+            <div className="h-4 w-28 sm:w-36 animate-pulse rounded bg-slate-100 shrink-0" />
             <div className="h-8 w-32 animate-pulse rounded-md bg-slate-100" />
           </div>
         ))}
@@ -54,7 +54,7 @@ export default function BuildTable() {
   return (
     <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
       <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 rounded-t-xl">
-        <span className="w-36 shrink-0 text-xs font-semibold uppercase tracking-wide text-slate-500">Linh kiện</span>
+        <span className="w-28 sm:w-36 shrink-0 text-xs font-semibold uppercase tracking-wide text-slate-500">Linh kiện</span>
         <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Sản phẩm đã chọn</span>
       </div>
       {slots.map(slot => (

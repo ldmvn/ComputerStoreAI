@@ -19,9 +19,11 @@ import {
   type BuildExportItem,
 } from '@/lib/buildPcExport';
 import { validateBuildPc, saveBuild } from '@/services/buildPc.service';
+import { useAuthStore } from '@/store/auth.store';
+import { useAuthModal } from '@/store/authModal.store';
 import { useBuild } from './BuildProvider';
 import type { Product } from '@/types/product.type';
-import type { ValidateItem } from '@/types/buildPc.type';
+import type { ValidateItem, PickedItem } from '@/types/buildPc.type';
 
 function toCartProduct(item: ValidateItem): Product {
   return {
@@ -63,6 +65,16 @@ export default function BuildSummary() {
   const [orderStatus, setOrderStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [orderMsg, setOrderMsg] = useState('');
   const orderLockRef = useRef(false);
+  /**
+   * Snapshot của items Guest ngay lúc bấm "ĐH ngay" trước khi mở Login Modal.
+   * Sau khi login thành công, BuildProvider reset items về state của user mới
+   * (hoặc trống nếu user mới chưa có bản nháp). Checkout cần dùng đúng snapshot này.
+   */
+  const guestItemsSnapshotRef = useRef<Record<string, PickedItem> | null>(null);
+
+  const authUser = useAuthStore(state => state.user);
+  const authHydrated = useAuthStore(state => state.isHydrated);
+  const openAuthModalWithCallback = useAuthModal(state => state.openWithCallback);
 
   // Save state
   const [saveStatus, setSaveStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
@@ -166,13 +178,29 @@ export default function BuildSummary() {
 
   // ── Order now ────────────────────────────────────────────────────────────────
 
-  async function handleOrderNow() {
-    if (selectedItems.length === 0 || !canAddToCart || orderLockRef.current) return;
+  /**
+   * Logic checkout thực tế — nhận `sourceItems` là snapshot hoặc items trực tiếp.
+   * Tách ra để callback sau Login có thể gọi lại với snapshot Guest đã lưu.
+   */
+  async function executeOrderNow(sourceItems: [string, PickedItem][]) {
+    if (sourceItems.length === 0 || orderLockRef.current) return;
     orderLockRef.current = true;
     setOrderStatus('loading');
     setOrderMsg('');
 
-    const result = await revalidateBuild(false);
+    const body = {
+      items: sourceItems.map(([slot, item]) => ({ slot, productId: item.product.id, quantity: item.quantity })),
+    };
+    const fallbackItems: ValidateItem[] = sourceItems.map(([slot, item]) => ({
+      slot, productId: item.product.id,
+      slug: item.product.slug ?? '', sku: item.product.sku ?? '',
+      name: item.product.name, price: item.product.price,
+      quantity: item.quantity, lineTotal: item.product.price * item.quantity,
+      stockQuantity: item.product.stockQuantity ?? item.quantity,
+      primaryImage: item.product.primaryImage ?? null,
+    }));
+
+    const result = await revalidateBuildAction({ validate: validateBuildPc, body, fallbackItems, allowFailOpen: false });
     if (!result.ok) {
       orderLockRef.current = false;
       setOrderMsg(result.message);
@@ -192,6 +220,28 @@ export default function BuildSummary() {
       quantity: item.quantity,
     })));
     router.push('/customer/checkout');
+  }
+
+  async function handleOrderNow() {
+    if (selectedItems.length === 0 || !canAddToCart) return;
+    if (!authHydrated) return; // chờ auth settle
+
+    // Guest: snapshot items rồi mở Login Modal với callback one-shot
+    if (!authUser) {
+      guestItemsSnapshotRef.current = { ...items };
+      openAuthModalWithCallback(() => {
+        // Sau khi login, BuildProvider đã reset sang state của user mới.
+        // Phải dùng snapshot Guest đã lưu trước — không dùng `selectedItems` lúc này.
+        const snapshot = guestItemsSnapshotRef.current;
+        guestItemsSnapshotRef.current = null;
+        if (!snapshot) return;
+        void executeOrderNow(Object.entries(snapshot));
+      });
+      return;
+    }
+
+    // Đã đăng nhập: tiếp tục checkout trực tiếp
+    void executeOrderNow(selectedItems);
   }
 
   // ── Save ─────────────────────────────────────────────────────────────────────
@@ -377,7 +427,7 @@ export default function BuildSummary() {
       </div>
 
       {/* Primary buttons: Add to cart + Order now */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-1">
         <button
           onClick={handleAddToCart}
           disabled={noItems || !canAddToCart || cartStatus === 'loading'}

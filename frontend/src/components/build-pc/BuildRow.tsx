@@ -49,7 +49,7 @@ export default function BuildRow({ slot }: Props) {
   return (
     <div className="flex items-start gap-3 border-b border-slate-100 py-3 last:border-0">
       {/* Slot name */}
-      <div className="w-36 shrink-0 pt-0.5">
+      <div className="w-28 sm:w-36 shrink-0 pt-0.5">
         <span className="text-sm font-medium text-slate-700">{slot.name}</span>
         {slot.isRequired && (
           <span className="ml-1 text-xs text-red-500">*</span>
@@ -64,7 +64,7 @@ export default function BuildRow({ slot }: Props) {
         {item ? (
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             {/* Product row — highlighted when issues exist */}
-            <div className={`flex items-center gap-2 rounded ${hasError ? 'ring-1 ring-red-300 bg-red-50/40 px-1 -mx-1 py-0.5' : hasWarning ? 'ring-1 ring-amber-300 bg-amber-50/40 px-1 -mx-1 py-0.5' : ''}`}>
+            <div className={`flex flex-wrap sm:flex-nowrap items-center gap-2 rounded ${hasError ? 'ring-1 ring-red-300 bg-red-50/40 px-1 -mx-1 py-0.5' : hasWarning ? 'ring-1 ring-amber-300 bg-amber-50/40 px-1 -mx-1 py-0.5' : ''}`}>
               <div className="h-10 w-10 shrink-0 overflow-hidden rounded border border-slate-200 bg-slate-50">
                 {item.product.primaryImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -79,7 +79,7 @@ export default function BuildRow({ slot }: Props) {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-slate-800">{item.product.name}</p>
+                <p className="line-clamp-2 text-sm text-slate-800 leading-snug" title={item.product.name}>{item.product.name}</p>
                 <p className="text-xs font-semibold text-[#C4480A]">{formatProductPrice(item.product.price)}</p>
               </div>
 
