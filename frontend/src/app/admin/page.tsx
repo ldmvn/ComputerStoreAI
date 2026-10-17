@@ -8,20 +8,19 @@ import { dashboardMenu } from '@/components/admin/menu.config';
 
 /**
  * Admin root page — smart redirect.
- * - Super Admin or dashboard:view  → /admin/dashboard
- * - No dashboard:view              → first page the user has a permission for
- * - No permissions at all          → /admin/dashboard (route guard shows 403)
+ * - dashboard:view → /admin/dashboard
+ * - No dashboard:view → first page the user has a permission for
+ * - No permissions at all → /admin/dashboard (route guard shows 403)
  */
 export default function AdminRootPage() {
   const router = useRouter();
   const has = usePermissionStore((s) => s.has);
-  const isSuperAdmin = usePermissionStore((s) => s.permissions.has('*'));
   const loaded = usePermissionStore((s) => s.loaded);
 
   useEffect(() => {
     if (!loaded) return;
 
-    if (isSuperAdmin || has('dashboard', 'view')) {
+    if (has('dashboard', 'view')) {
       router.replace('/admin/dashboard');
       return;
     }
@@ -40,7 +39,7 @@ export default function AdminRootPage() {
 
     // Nothing matched — fall through to dashboard; route guard will show 403.
     router.replace('/admin/dashboard');
-  }, [loaded, isSuperAdmin, has, router]);
+  }, [loaded, has, router]);
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
