@@ -48,7 +48,7 @@ export default function Header() {
   const buildPcRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
   const user = useAuthStore((state) => state.user);
-  const isAdmin = useAuthStore((state) => state.isHydrated && Boolean(state.token) && state.user?.role === 'ADMIN');
+  const isAdmin = useAuthStore((state) => state.isHydrated && state.user?.role === 'ADMIN');
   const hydrateAuth = useAuthStore((state) => state.hydrate);
   const cartCount = useCartStore(state => state.items.reduce((count, item) => count + item.quantity, 0));
   const hydrateCart = useCartStore(state => state.hydrate);
