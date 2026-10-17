@@ -8,5 +8,7 @@ const router = Router();
 router.use(authenticateToken, requireAdmin);
 
 router.get('/', requirePermission('dashboard', 'view'), controller.getDashboard);
+router.get('/revenue-timeline', requirePermission('dashboard', 'view'), controller.getRevenueTimeline);
+router.get('/category-revenue', requirePermission('dashboard', 'view'), controller.getCategoryRevenue);
 
 export default router;
