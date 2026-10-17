@@ -2,20 +2,20 @@ import type { Address, AddressInput, Province, Commune } from '@/types/address.t
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-function authHeaders(token: string) {
+function authHeaders(token: string | null) {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 }
 
 // ─── Address CRUD ─────────────────────────────────────────────────────────────
 
-export async function getAddresses(token: string): Promise<Address[]> {
+export async function getAddresses(token: string | null): Promise<Address[]> {
   const res = await fetch(`${API}/addresses`, { headers: authHeaders(token) });
   if (!res.ok) throw new Error('Không thể tải danh sách địa chỉ.');
   const data = await res.json();
   return data.addresses;
 }
 
-export async function createAddress(token: string, input: AddressInput): Promise<Address> {
+export async function createAddress(token: string | null, input: AddressInput): Promise<Address> {
   const res = await fetch(`${API}/addresses`, {
     method: 'POST',
     headers: authHeaders(token),
@@ -26,7 +26,7 @@ export async function createAddress(token: string, input: AddressInput): Promise
   return data.address;
 }
 
-export async function updateAddress(token: string, id: number, input: AddressInput): Promise<Address> {
+export async function updateAddress(token: string | null, id: number, input: AddressInput): Promise<Address> {
   const res = await fetch(`${API}/addresses/${id}`, {
     method: 'PUT',
     headers: authHeaders(token),
@@ -37,7 +37,7 @@ export async function updateAddress(token: string, id: number, input: AddressInp
   return data.address;
 }
 
-export async function deleteAddress(token: string, id: number): Promise<void> {
+export async function deleteAddress(token: string | null, id: number): Promise<void> {
   const res = await fetch(`${API}/addresses/${id}`, {
     method: 'DELETE',
     headers: authHeaders(token),
@@ -48,7 +48,7 @@ export async function deleteAddress(token: string, id: number): Promise<void> {
   }
 }
 
-export async function setDefaultAddress(token: string, id: number): Promise<Address> {
+export async function setDefaultAddress(token: string | null, id: number): Promise<Address> {
   const res = await fetch(`${API}/addresses/${id}/default`, {
     method: 'PATCH',
     headers: authHeaders(token),

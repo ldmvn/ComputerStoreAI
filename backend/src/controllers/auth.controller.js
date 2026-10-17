@@ -1,6 +1,15 @@
 import { validateLoginInput, validateRegisterInput } from '../validators/auth.validator.js';
 import { changePassword as changePasswordService, getCurrentUser, loginUser, registerUser, updateUserProfile } from '../services/auth.service.js';
 
+const ACCESS_COOKIE = 'accessToken';
+const cookieOpts = (rememberMe) => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  path: '/',
+  ...(rememberMe ? { maxAge: 30 * 24 * 60 * 60 * 1000 } : {}),
+});
+
 export async function register(req, res, next) {
   const { errors, values } = validateRegisterInput(req.body);
   if (Object.keys(errors).length > 0) {
@@ -22,11 +31,18 @@ export async function login(req, res, next) {
   }
 
   try {
+    const rememberMe = req.body.rememberMe === true;
     const { token, user } = await loginUser(values);
+    res.cookie(ACCESS_COOKIE, token, cookieOpts(rememberMe));
     return res.status(200).json({ success: true, message: 'Đăng nhập thành công.', token, user });
   } catch (error) {
     return next(error);
   }
+}
+
+export function logout(_req, res) {
+  res.clearCookie(ACCESS_COOKIE, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/' });
+  return res.status(200).json({ success: true, message: 'Đăng xuất thành công.' });
 }
 
 export async function updateMe(req, res, next) {

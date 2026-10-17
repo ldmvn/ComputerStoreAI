@@ -14,13 +14,13 @@ export interface PolicyPageData {
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 
-export const adminGetPolicyPage = (token: string, key: string) =>
+export const adminGetPolicyPage = (token: string | null, key: string) =>
   apiRequest<{ success: boolean; data: PolicyPageData }>(
     `/admin/content-pages/${key}`, {}, token,
   );
 
 export const adminUpdatePolicyPage = (
-  token: string,
+  token: string | null,
   key: string,
   payload: { title: string; description?: string; contentHtml: string },
 ) =>

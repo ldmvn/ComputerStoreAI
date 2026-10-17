@@ -62,35 +62,35 @@ function qs(obj: Record<string, string | number | undefined>) {
   return s ? `?${s}` : '';
 }
 
-export const getAdminTicketStats = (token: string) =>
+export const getAdminTicketStats = (token: string | null) =>
   apiRequest<{ success: boolean; data: AdminTicketStats }>(
     '/admin/support-tickets/stats',
     {},
     token,
   );
 
-export const listAdminTickets = (token: string, filters: ListTicketsFilters = {}) =>
+export const listAdminTickets = (token: string | null, filters: ListTicketsFilters = {}) =>
   apiRequest<{ success: boolean; data: ListTicketsResult }>(
     `/admin/support-tickets${qs(filters as Record<string, string | number | undefined>)}`,
     {},
     token,
   );
 
-export const getAdminTicket = (token: string, id: number) =>
+export const getAdminTicket = (token: string | null, id: number) =>
   apiRequest<{ success: boolean; data: AdminTicketDetail }>(
     `/admin/support-tickets/${id}`,
     {},
     token,
   );
 
-export const addAdminReply = (token: string, id: number, body: string) =>
+export const addAdminReply = (token: string | null, id: number, body: string) =>
   apiRequest<{ success: boolean; data: AdminSupportMessage; newStatus: TicketStatus }>(
     `/admin/support-tickets/${id}/messages`,
     { method: 'POST', body: JSON.stringify({ body }) },
     token,
   );
 
-export const updateTicketStatus = (token: string, id: number, status: TicketStatus) =>
+export const updateTicketStatus = (token: string | null, id: number, status: TicketStatus) =>
   apiRequest<{ success: boolean; data: AdminTicketSummary }>(
     `/admin/support-tickets/${id}/status`,
     { method: 'PATCH', body: JSON.stringify({ status }) },

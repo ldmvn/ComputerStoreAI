@@ -2,10 +2,10 @@ import { apiRequest, API_BASE_URL, mediaUrl } from './http.client';
 
 export type StoreSettings = Record<string, string>;
 
-export const getAdminSettings = (token: string, signal?: AbortSignal) =>
+export const getAdminSettings = (token: string | null, signal?: AbortSignal) =>
   apiRequest<{ data: StoreSettings }>('/admin/settings', { signal }, token);
 
-export const updateAdminSettings = (token: string, settings: StoreSettings, signal?: AbortSignal) =>
+export const updateAdminSettings = (token: string | null, settings: StoreSettings, signal?: AbortSignal) =>
   apiRequest<{ success: boolean; message: string }>('/admin/settings', { method: 'PUT', body: JSON.stringify(settings), signal }, token);
 
 export const getPublicStoreInfo = (signal?: AbortSignal) =>
@@ -20,10 +20,10 @@ export type SmtpStatus = {
   lastError: string | null;
 };
 
-export const getSmtpStatus = (token: string, signal?: AbortSignal) =>
+export const getSmtpStatus = (token: string | null, signal?: AbortSignal) =>
   apiRequest<{ data: SmtpStatus }>('/admin/settings/smtp-status', { signal }, token);
 
-export const sendTestEmail = (token: string, to: string, signal?: AbortSignal) =>
+export const sendTestEmail = (token: string | null, to: string, signal?: AbortSignal) =>
   apiRequest<{ success: boolean; message: string }>(
     '/admin/settings/test-email',
     { method: 'POST', body: JSON.stringify({ to }), signal },
@@ -34,10 +34,10 @@ export const sendTestEmail = (token: string, to: string, signal?: AbortSignal) =
 
 export type BrandingData = { logoUrl: string; faviconUrl: string; version: string };
 
-export const getAdminBranding = (token: string, signal?: AbortSignal) =>
+export const getAdminBranding = (token: string | null, signal?: AbortSignal) =>
   apiRequest<{ success: boolean; data: BrandingData }>('/admin/branding', { signal }, token);
 
-export async function uploadBrandingLogo(token: string, file: File): Promise<{ logoUrl: string }> {
+export async function uploadBrandingLogo(token: string | null, file: File): Promise<{ logoUrl: string }> {
   const form = new FormData();
   form.append('logo', file);
   const res = await apiRequest<{ success: boolean; data: { logoUrl: string } }>(
@@ -48,7 +48,7 @@ export async function uploadBrandingLogo(token: string, file: File): Promise<{ l
   return { logoUrl: mediaUrl(res.data.logoUrl) };
 }
 
-export async function uploadBrandingFavicon(token: string, file: File): Promise<{ faviconUrl: string }> {
+export async function uploadBrandingFavicon(token: string | null, file: File): Promise<{ faviconUrl: string }> {
   const form = new FormData();
   form.append('favicon', file);
   const res = await apiRequest<{ success: boolean; data: { faviconUrl: string } }>(
@@ -59,10 +59,10 @@ export async function uploadBrandingFavicon(token: string, file: File): Promise<
   return { faviconUrl: mediaUrl(res.data.faviconUrl) };
 }
 
-export const deleteBrandingLogo = (token: string) =>
+export const deleteBrandingLogo = (token: string | null) =>
   apiRequest<{ success: boolean; message: string }>('/admin/branding/logo', { method: 'DELETE' }, token);
 
-export const deleteBrandingFavicon = (token: string) =>
+export const deleteBrandingFavicon = (token: string | null) =>
   apiRequest<{ success: boolean; message: string }>('/admin/branding/favicon', { method: 'DELETE' }, token);
 
 export async function getPublicBrandingInfo(): Promise<BrandingData> {

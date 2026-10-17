@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getCurrentUser } from '@/services/auth.service';
+import { getCurrentUser, logoutAccount } from '@/services/auth.service';
 import type { AuthUser } from '@/types/user.type';
 import { useCartStore } from './cart.store';
 import { useWishlistStore } from './wishlist.store';
@@ -9,56 +9,39 @@ type AuthState = {
   user: AuthUser | null;
   token: string | null;
   isHydrated: boolean;
-  login: (user: AuthUser, token: string, rememberMe: boolean) => void;
-  logout: () => void;
+  login: (user: AuthUser, token: string) => void;
+  logout: () => Promise<void>;
   hydrate: () => Promise<void>;
   setUser: (user: AuthUser) => void;
 };
 
-const TOKEN_KEY = 'accessToken';
-const USER_KEY = 'authUser';
-
-function clearStoredAuth() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-  sessionStorage.removeItem(TOKEN_KEY);
-  sessionStorage.removeItem(USER_KEY);
+function clearStores() {
+  useCartStore.getState().reset();
+  useWishlistStore.getState().clear();
+  usePermissionStore.getState().clear();
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
   isHydrated: false,
-  login: (user, token, rememberMe) => {
-    useCartStore.getState().reset();
-    useWishlistStore.getState().clear();
-    usePermissionStore.getState().clear();
-    clearStoredAuth();
-    const storage = rememberMe ? localStorage : sessionStorage;
-    storage.setItem(TOKEN_KEY, token);
-    storage.setItem(USER_KEY, JSON.stringify(user));
+  login: (user, token) => {
+    clearStores();
+    // Token stored in memory only — httpOnly cookie handles persistence.
     set({ user, token, isHydrated: true });
   },
   setUser: (user) => set({ user }),
-  logout: () => {
-    useCartStore.getState().reset();
-    useWishlistStore.getState().clear();
-    usePermissionStore.getState().clear();
-    clearStoredAuth();
+  logout: async () => {
+    clearStores();
     set({ user: null, token: null, isHydrated: true });
+    try { await logoutAccount(); } catch { /* cookie cleared server-side best-effort */ }
   },
   hydrate: async () => {
-    const token = localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
-    if (!token) {
-      set({ isHydrated: true });
-      return;
-    }
-
     try {
-      const user = await getCurrentUser(token);
-      set({ user, token, isHydrated: true });
+      // Cookie is sent automatically via credentials: 'include' — no token needed.
+      const user = await getCurrentUser();
+      set({ user, token: null, isHydrated: true });
     } catch {
-      clearStoredAuth();
       set({ user: null, token: null, isHydrated: true });
     }
   },

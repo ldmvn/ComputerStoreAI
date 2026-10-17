@@ -51,12 +51,12 @@ export type VoucherInput = {
   isActive?: boolean;
 };
 
-export async function adminGetVoucherStats(token: string): Promise<VoucherStats> {
+export async function adminGetVoucherStats(token: string | null): Promise<VoucherStats> {
   return apiRequest('/admin/vouchers/stats', { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function adminListVouchers(
-  token: string,
+  token: string | null,
   filters: { page?: number; limit?: number; search?: string; status?: VoucherStatus | '' } = {}
 ): Promise<VoucherListResult> {
   const params = new URLSearchParams();
@@ -68,7 +68,7 @@ export async function adminListVouchers(
   return apiRequest(`/admin/vouchers${qs ? `?${qs}` : ''}`, { headers: { Authorization: `Bearer ${token}` } });
 }
 
-export async function adminCreateVoucher(token: string, data: VoucherInput): Promise<{ voucher: Voucher; message: string }> {
+export async function adminCreateVoucher(token: string | null, data: VoucherInput): Promise<{ voucher: Voucher; message: string }> {
   return apiRequest('/admin/vouchers', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
@@ -76,7 +76,7 @@ export async function adminCreateVoucher(token: string, data: VoucherInput): Pro
   });
 }
 
-export async function adminUpdateVoucher(token: string, id: number, data: VoucherInput): Promise<{ voucher: Voucher; message: string }> {
+export async function adminUpdateVoucher(token: string | null, id: number, data: VoucherInput): Promise<{ voucher: Voucher; message: string }> {
   return apiRequest(`/admin/vouchers/${id}`, {
     method: 'PUT',
     headers: { Authorization: `Bearer ${token}` },
@@ -84,7 +84,7 @@ export async function adminUpdateVoucher(token: string, id: number, data: Vouche
   });
 }
 
-export async function adminToggleVoucher(token: string, id: number, isActive: boolean): Promise<{ voucher: Voucher; message: string }> {
+export async function adminToggleVoucher(token: string | null, id: number, isActive: boolean): Promise<{ voucher: Voucher; message: string }> {
   return apiRequest(`/admin/vouchers/${id}/toggle`, {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${token}` },
@@ -92,6 +92,6 @@ export async function adminToggleVoucher(token: string, id: number, isActive: bo
   });
 }
 
-export async function adminDeleteVoucher(token: string, id: number): Promise<{ message: string }> {
+export async function adminDeleteVoucher(token: string | null, id: number): Promise<{ message: string }> {
   return apiRequest(`/admin/vouchers/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
 }

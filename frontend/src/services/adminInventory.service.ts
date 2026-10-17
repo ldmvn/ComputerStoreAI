@@ -59,11 +59,11 @@ export type InventoryFilters = {
   sort?: string;
 };
 
-export async function adminGetInventoryStats(token: string): Promise<InventoryStats> {
+export async function adminGetInventoryStats(token: string | null): Promise<InventoryStats> {
   return apiRequest('/admin/inventory/stats', { headers: { Authorization: `Bearer ${token}` } });
 }
 
-export async function adminListInventory(token: string, filters: InventoryFilters = {}): Promise<InventoryListResult> {
+export async function adminListInventory(token: string | null, filters: InventoryFilters = {}): Promise<InventoryListResult> {
   const params = new URLSearchParams();
   if (filters.page) params.set('page', String(filters.page));
   if (filters.limit) params.set('limit', String(filters.limit));
@@ -75,7 +75,7 @@ export async function adminListInventory(token: string, filters: InventoryFilter
 }
 
 export async function adminImportStock(
-  token: string,
+  token: string | null,
   productId: number,
   data: { quantity: number; reference?: string; note?: string }
 ): Promise<{ product: InventoryProduct; message: string }> {
@@ -87,7 +87,7 @@ export async function adminImportStock(
 }
 
 export async function adminAdjustStock(
-  token: string,
+  token: string | null,
   productId: number,
   data: { mode: 'set' | 'delta'; value: number; reason: string }
 ): Promise<{ product: InventoryProduct; before: number; after: number; message: string }> {
@@ -99,7 +99,7 @@ export async function adminAdjustStock(
 }
 
 export async function adminGetInventoryLogs(
-  token: string,
+  token: string | null,
   filters: { page?: number; limit?: number; productId?: number; type?: InventoryLogType | ''; from?: string; to?: string } = {}
 ): Promise<InventoryLogsResult> {
   const params = new URLSearchParams();

@@ -14,7 +14,7 @@ const genderOptions = [
 ];
 
 export default function AccountPage() {
-  const { user, token, setUser } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const toast = useToast();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -32,16 +32,15 @@ export default function AccountPage() {
   const cancelEdit = () => { setEditing(false); setError(''); };
 
   const handleSave = async () => {
-    if (!token) return;
     if (!form.fullName.trim()) { setError('Họ và tên không được để trống.'); return; }
     setSaving(true);
     setError('');
     try {
-      const updated = await updateProfile(token, {
+      const updated = await updateProfile({
         fullName: form.fullName.trim(),
         phone: form.phone.trim() || undefined,
         gender: form.gender || undefined,
-      } as Parameters<typeof updateProfile>[1]);
+      } as Parameters<typeof updateProfile>[0]);
       setUser(updated);
       setEditing(false);
       toast.success('Đã lưu thông tin tài khoản.');

@@ -74,13 +74,14 @@ export async function registerAccount(payload: RegisterPayload): Promise<Registe
   return data as RegisterResponse;
 }
 
-export async function loginAccount(identifier: string, password: string): Promise<LoginResponse> {
+export async function loginAccount(identifier: string, password: string, rememberMe = false): Promise<LoginResponse> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password }),
+      credentials: 'include',
+      body: JSON.stringify({ identifier, password, rememberMe }),
     });
   } catch {
     throw new AuthRequestError('Không thể kết nối máy chủ. Vui lòng thử lại sau.');
@@ -91,12 +92,17 @@ export async function loginAccount(identifier: string, password: string): Promis
   return data as LoginResponse;
 }
 
-export async function updateProfile(token: string, data: { fullName?: string; phone?: string }): Promise<AuthUser> {
+export async function logoutAccount(): Promise<void> {
+  await fetch(`${API_BASE_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
+}
+
+export async function updateProfile(data: { fullName?: string; phone?: string }): Promise<AuthUser> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}/auth/me`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(data),
     });
   } catch {
@@ -107,21 +113,20 @@ export async function updateProfile(token: string, data: { fullName?: string; ph
   return json.user as AuthUser;
 }
 
-export async function getCurrentUser(token: string): Promise<AuthUser> {
-  const response = await fetch(`${API_BASE_URL}/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export async function getCurrentUser(): Promise<AuthUser> {
+  const response = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new AuthRequestError(data.message || 'Phiên đăng nhập không hợp lệ.');
   return data.user as AuthUser;
 }
 
-export async function changePassword(token: string, currentPassword: string, newPassword: string): Promise<void> {
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}/auth/password`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ currentPassword, newPassword }),
     });
   } catch {

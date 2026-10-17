@@ -32,21 +32,21 @@ export interface ListMyTicketsResult {
   limit: number;
 }
 
-export const listMyTickets = (token: string, page = 1, limit = 20) =>
+export const listMyTickets = (token: string | null, page = 1, limit = 20) =>
   apiRequest<{ success: boolean; data: ListMyTicketsResult }>(
     `/customer/support?page=${page}&limit=${limit}`,
     {},
     token,
   );
 
-export const getMyTicket = (token: string, id: number) =>
+export const getMyTicket = (token: string | null, id: number) =>
   apiRequest<{ success: boolean; data: CustomerTicketDetail }>(
     `/customer/support/${id}`,
     {},
     token,
   );
 
-export const addMyMessage = (token: string, id: number, body: string) =>
+export const addMyMessage = (token: string | null, id: number, body: string) =>
   apiRequest<{ success: boolean; data: CustomerSupportMessage; newStatus: string }>(
     `/customer/support/${id}/messages`,
     { method: 'POST', body: JSON.stringify({ body }) },
