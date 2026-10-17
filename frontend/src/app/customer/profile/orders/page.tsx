@@ -192,7 +192,6 @@ function OrdersPageContent() {
   const totalPages = Math.ceil(total / LIMIT);
 
   const loadOrders = useCallback(async (filters: OrderFilters) => {
-    if (!token) return;
     setLoading(true); setError(null);
     try {
       const res = await getMyOrders(token, filters);
@@ -207,7 +206,6 @@ function OrdersPageContent() {
   }, [token]);
 
   const loadStats = useCallback(async () => {
-    if (!token) return;
     setStatsLoading(true);
     try { const s = await getOrderStats(token); setStats(s); } catch { /* non-critical */ }
     finally { setStatsLoading(false); }
@@ -237,7 +235,6 @@ function OrdersPageContent() {
   const clearFilters = () => { setActiveTab(''); setSearch(''); setSearchInput(''); setPage(1); };
 
   const handleCancel = async (orderId: number) => {
-    if (!token) return;
     const ok = await confirm({
       title: 'Hủy đơn hàng',
       description: `Bạn có chắc muốn hủy đơn hàng #${orderId}? Hành động này không thể hoàn tác.`,

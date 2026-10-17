@@ -28,7 +28,6 @@ export default function ProductForm({ product, categories, brands, busy, error, 
 }) {
   const token = useAuthStore(state => state.token);
   const uploadDescImage = useCallback(async (file: File) => {
-    if (!token) throw new Error('Chưa đăng nhập');
     return uploadProductDescriptionImage(token, file);
   }, [token]);
   const formId = useId();
@@ -90,7 +89,7 @@ export default function ProductForm({ product, categories, brands, busy, error, 
   }, [categories, product?.category, product?.categoryId]);
   useEffect(() => {
     const categoryId = Number(category);
-    if (!token || !Number.isSafeInteger(categoryId) || categoryId <= 0) { setAttributes([]); setAttributeInputs({}); setAttributeError(''); return; }
+    if (!Number.isSafeInteger(categoryId) || categoryId <= 0) { setAttributes([]); setAttributeInputs({}); setAttributeError(''); return; }
     const controller = new AbortController();
     setAttributeLoading(true); setAttributeError('');
     getCategoryAttributes(token, categoryId, controller.signal).then(result => {
@@ -104,7 +103,6 @@ export default function ProductForm({ product, categories, brands, busy, error, 
     return () => controller.abort();
   }, [category, product?.productAttributes, token]);
   useEffect(() => {
-    if (!token) return;
     const controller = new AbortController();
     setSectionsLoading(true);
     getProductSections(token, controller.signal)

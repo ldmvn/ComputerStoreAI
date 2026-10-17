@@ -55,7 +55,6 @@ export default function CategoryManager() {
   const confirm = useConfirm();
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     try { setCategories((await getAdminCategories(token)).categories); setError(''); }
     catch (reason) { setError(reason instanceof Error ? reason.message : 'Không tải được danh mục.'); }
@@ -65,7 +64,7 @@ export default function CategoryManager() {
   useEffect(() => { void load(); }, [load]);
 
   const perform = async (work: () => Promise<unknown>, success: string) => {
-    if (!token || busy) return;
+    if (busy) return;
     setBusy(true); setError(''); setMessage('');
     try { await work(); setMessage(success); await load(); }
     catch (reason) { setError(reason instanceof Error ? reason.message : 'Thao tác không thành công.'); }
@@ -110,7 +109,6 @@ export default function CategoryManager() {
   const rows = flattenTree(filtered, filters.sort);
   const actionClass = adminActionButtonClass;
 
-  if (!token) return null;
   return (
     <section>
       <AdminPageHeader title="Danh mục" />

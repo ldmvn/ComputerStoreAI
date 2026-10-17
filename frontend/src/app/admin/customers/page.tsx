@@ -59,7 +59,6 @@ function CustomerModal({ customerId, onClose }: { customerId: number; onClose: (
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!token) return;
     setLoading(true); setError('');
     adminGetCustomer(token, customerId)
       .then(setDetail)
@@ -184,7 +183,6 @@ export default function AdminCustomersPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true); setError('');
     try {
       const [result, statsData] = await Promise.all([

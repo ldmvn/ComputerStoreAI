@@ -17,6 +17,7 @@ type WishlistButtonProps = {
 
 export default function WishlistButton({ productId, productName, variant = 'full', className, onRequireLogin }: WishlistButtonProps) {
   const token = useAuthStore(state => state.token);
+  const user = useAuthStore(state => state.user);
   const toggle = useWishlistStore(state => state.toggle);
   const ids = useWishlistStore(state => state.ids);
   const pending = useWishlistStore(state => state.pending);
@@ -24,7 +25,7 @@ export default function WishlistButton({ productId, productName, variant = 'full
   const toast = useToast();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-  useEffect(() => { if (token && !useWishlistStore.getState().hydrated) void hydrate(token); }, [token, hydrate]);
+  useEffect(() => { if (user && !useWishlistStore.getState().hydrated) void hydrate(token); }, [user, token, hydrate]);
   const favorited = ids.has(productId);
   const busy = pending.has(productId);
   const isCompact = variant === 'compact';
@@ -32,7 +33,7 @@ export default function WishlistButton({ productId, productName, variant = 'full
   const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    if (!token) {
+    if (!user) {
       toast.info('Vui lòng đăng nhập', 'Bạn cần đăng nhập để sử dụng danh sách yêu thích.');
       onRequireLogin?.();
       return;

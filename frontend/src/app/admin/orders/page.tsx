@@ -61,7 +61,6 @@ export default function AdminOrdersPage() {
   const [expanded, setExpanded] = useState<number | null>(null);
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     setError('');
     try {
@@ -86,7 +85,7 @@ export default function AdminOrdersPage() {
 
   const handleAdvance = async (order: AdminOrder) => {
     const next = STATUS_NEXT[order.status as OrderStatus];
-    if (!next || !token) return;
+    if (!next) return;
     setActionLoading(order.id);
     setMessage('');
     try {
@@ -101,7 +100,6 @@ export default function AdminOrdersPage() {
   };
 
   const handleCancel = async (order: AdminOrder) => {
-    if (!token) return;
     const ok = await confirmAction({ title: 'Hủy đơn hàng', description: `Hủy đơn hàng #${order.id}? Hành động này không thể hoàn tác.`, destructive: true });
     if (!ok) return;
     setActionLoading(order.id);

@@ -54,7 +54,6 @@ export default function AdminReportsPage() {
   const to = useCustom ? customTo : new Date().toISOString().slice(0, 10);
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true); setError('');
     try {
       const data = await adminGetReport(token, from || undefined, to || undefined);

@@ -13,7 +13,7 @@ const inputClass = 'mt-1 w-full rounded-lg border border-slate-300 bg-white px-3
 const labelClass = 'block text-sm font-medium text-slate-700';
 
 export default function BannerForm({ banner, initialPosition, banners, token, onClose, onSaved }: {
-  banner?: Banner; initialPosition: BannerPositionSelection; banners: Banner[]; token: string; onClose: () => void; onSaved: (banner: Banner) => void;
+  banner?: Banner; initialPosition: BannerPositionSelection; banners: Banner[]; token: string | null; onClose: () => void; onSaved: (banner: Banner) => void;
 }) {
   const [name, setName] = useState(banner?.name || '');
   const [group, setGroup] = useState<BannerGroup>(banner?.group || (initialPosition.startsWith('MAIN') ? 'MAIN' : 'SIDE'));

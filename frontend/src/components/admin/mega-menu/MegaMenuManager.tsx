@@ -326,7 +326,6 @@ export default function MegaMenuManager() {
 
   // ── Load categories/brands/options once ──────────────────────────────────
   useEffect(() => {
-    if (!token) return;
     const controller = new AbortController();
     Promise.all([
       getAdminCategories(token, controller.signal),
@@ -346,7 +345,7 @@ export default function MegaMenuManager() {
 
   // ── Load menu for selected category ─────────────────────────────────────
   const load = useCallback(async (signal?: AbortSignal) => {
-    if (!token || !categoryId) return;
+    if (!categoryId) return;
     setLoading(true);
     try {
       const result = await getAdminMenu(token, categoryId, signal);
@@ -373,7 +372,7 @@ export default function MegaMenuManager() {
 
   // ── Generic perform helper ───────────────────────────────────────────────
   const perform = async (work: () => Promise<unknown>) => {
-    if (busy || !token) return;
+    if (busy) return;
     setBusy(true);
     try {
       await work();
@@ -400,7 +399,7 @@ export default function MegaMenuManager() {
     const sorted = [...(menu?.groups || [])].sort((a, b) => a.sortOrder - b.sortOrder);
     const idx = sorted.findIndex(g => g.id === group.id);
     const target = sorted[idx + dir];
-    if (!target || !token) return;
+    if (!target) return;
     void perform(async () => {
       await saveGroup(token, categoryId, group.id, { ...group, sortOrder: target.sortOrder });
       await saveGroup(token, categoryId, target.id, { ...target, sortOrder: group.sortOrder });
@@ -419,7 +418,7 @@ export default function MegaMenuManager() {
     const sorted = [...group.items].sort((a, b) => a.sortOrder - b.sortOrder);
     const idx = sorted.findIndex(i => i.id === item.id);
     const target = sorted[idx + dir];
-    if (!target || !token) return;
+    if (!target) return;
     void perform(async () => {
       await saveItem(token, group.id, item.id, { ...item, sortOrder: target.sortOrder });
       await saveItem(token, group.id, target.id, { ...target, sortOrder: item.sortOrder });
@@ -433,7 +432,6 @@ export default function MegaMenuManager() {
 
   const sortedGroups = [...(menu?.groups || [])].sort((a, b) => a.sortOrder - b.sortOrder);
 
-  if (!token) return null;
 
   return (
     <section>

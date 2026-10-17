@@ -58,7 +58,7 @@ const EMPTY_FORM: VoucherInput = {
 
 function VoucherFormModal({ voucher, token, onClose, onSaved }: {
   voucher: Voucher | null;
-  token: string;
+  token: string | null;
   onClose: () => void;
   onSaved: (v: Voucher) => void;
 }) {
@@ -230,7 +230,6 @@ export default function AdminPromotionsPage() {
   const [formTarget, setFormTarget] = useState<Voucher | 'new' | null>(null);
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     try {
       const [result, statsData] = await Promise.all([
@@ -256,7 +255,6 @@ export default function AdminPromotionsPage() {
   }
 
   async function handleToggle(v: Voucher) {
-    if (!token) return;
     setActionLoading(v.id);
     try {
       const res = await adminToggleVoucher(token, v.id, !v.isActive);
@@ -270,7 +268,6 @@ export default function AdminPromotionsPage() {
   }
 
   async function handleDelete(v: Voucher) {
-    if (!token) return;
     if (!confirm(`Xóa voucher "${v.code}"? Hành động này không thể hoàn tác.`)) return;
     setActionLoading(v.id);
     try {
@@ -460,7 +457,7 @@ export default function AdminPromotionsPage() {
       )}
 
       {/* Form modal */}
-      {formTarget && token && (
+      {formTarget && (
         <VoucherFormModal
           voucher={formTarget === 'new' ? null : formTarget}
           token={token}

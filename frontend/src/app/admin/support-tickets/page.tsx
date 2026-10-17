@@ -48,7 +48,6 @@ export default function AdminSupportTicketsPage() {
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     setError('');
     try {

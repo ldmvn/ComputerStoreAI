@@ -40,7 +40,7 @@ export default function CustomerTicketDetailPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isHydrated || !token) return;
+    if (!isHydrated) return;
     getMyTicket(token, Number(id))
       .then(r => setTicket(r.data))
       .catch(e => setLoadError(e.message ?? 'Không tìm thấy phiếu.'))
@@ -53,7 +53,7 @@ export default function CustomerTicketDetailPage() {
 
   // Poll every 5 s for new admin replies
   useEffect(() => {
-    if (!ticket || !token || ticket.status === 'CLOSED' || ticket.status === 'RESOLVED') return;
+    if (!ticket || ticket.status === 'CLOSED' || ticket.status === 'RESOLVED') return;
     const ticketId = ticket.id;
     const interval = setInterval(async () => {
       try {
@@ -74,7 +74,7 @@ export default function CustomerTicketDetailPage() {
 
   async function handleReply(e: React.FormEvent) {
     e.preventDefault();
-    if (!token || !ticket || !reply.trim()) return;
+    if (!ticket || !reply.trim()) return;
     setSending(true);
     setSendError('');
     try {

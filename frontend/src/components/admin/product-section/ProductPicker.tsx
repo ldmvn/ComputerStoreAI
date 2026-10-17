@@ -7,7 +7,7 @@ import type { SectionProduct } from '@/types/productSection.type';
 import { searchSectionProducts } from '@/services/productSection.service';
 
 export default function ProductPicker({ token, existingIds, busy, onClose, onAdd }: {
-  token: string;
+  token: string | null;
   existingIds: number[];
   busy: boolean;
   onClose: () => void;

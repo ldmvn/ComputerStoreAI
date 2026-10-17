@@ -209,7 +209,6 @@ export default function ReviewsPage() {
   const totalPages = Math.ceil(total / LIMIT);
 
   const load = useCallback(async (p = 1) => {
-    if (!token) return;
     setLoading(true); setError(null);
     try {
       const res = await getMyReviews(token, p, LIMIT);
@@ -223,7 +222,6 @@ export default function ReviewsPage() {
   useEffect(() => { load(1); }, [load]);
 
   const handleSave = useCallback(async (id: number, data: { rating: number; content: string }) => {
-    if (!token) return;
     const updated = await updateMyReview(token, id, data);
     setReviews(prev => prev.map(r => r.id === id ? updated : r));
     toast.success('Đã cập nhật đánh giá. Vui lòng chờ kiểm duyệt lại.');
@@ -235,7 +233,7 @@ export default function ReviewsPage() {
       description: 'Bạn có chắc muốn xóa đánh giá này không?',
       destructive: true,
     });
-    if (!ok || !token) return;
+    if (!ok) return;
     try {
       await deleteMyReview(token, id);
       setReviews(prev => prev.filter(r => r.id !== id));

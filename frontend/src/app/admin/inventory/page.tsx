@@ -60,7 +60,7 @@ function StockBadge({ status }: { status: StockStatus }) {
 
 function ImportModal({ product, token, onClose, onDone }: {
   product: InventoryProduct;
-  token: string;
+  token: string | null;
   onClose: () => void;
   onDone: (updated: InventoryProduct) => void;
 }) {
@@ -148,7 +148,7 @@ function ImportModal({ product, token, onClose, onDone }: {
 
 function AdjustModal({ product, token, onClose, onDone }: {
   product: InventoryProduct;
-  token: string;
+  token: string | null;
   onClose: () => void;
   onDone: (updated: InventoryProduct) => void;
 }) {
@@ -257,7 +257,7 @@ function AdjustModal({ product, token, onClose, onDone }: {
 
 // ── History Modal ──────────────────────────────────────────────────────────────
 
-function HistoryModal({ product, token, onClose }: { product: InventoryProduct; token: string; onClose: () => void }) {
+function HistoryModal({ product, token, onClose }: { product: InventoryProduct; token: string | null; onClose: () => void }) {
   const [logs, setLogs] = useState<InventoryLog[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -382,7 +382,6 @@ export default function AdminInventoryPage() {
   const [historyTarget, setHistoryTarget] = useState<InventoryProduct | null>(null);
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true); setError('');
     try {
       const [result, statsData] = await Promise.all([
@@ -587,21 +586,21 @@ export default function AdminInventoryPage() {
       )}
 
       {/* Modals */}
-      {importTarget && token && (
+      {importTarget && (
         <ImportModal
           product={importTarget} token={token}
           onClose={() => setImportTarget(null)}
           onDone={updated => { setImportTarget(null); updateProductInList(updated); load(); }}
         />
       )}
-      {adjustTarget && token && (
+      {adjustTarget && (
         <AdjustModal
           product={adjustTarget} token={token}
           onClose={() => setAdjustTarget(null)}
           onDone={updated => { setAdjustTarget(null); updateProductInList(updated); load(); }}
         />
       )}
-      {historyTarget && token && (
+      {historyTarget && (
         <HistoryModal product={historyTarget} token={token} onClose={() => setHistoryTarget(null)} />
       )}
     </div>

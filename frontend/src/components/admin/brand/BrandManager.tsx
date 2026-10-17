@@ -29,7 +29,6 @@ export default function BrandManager() {
   const confirm = useConfirm();
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     try { setBrands((await getAdminBrands(token)).brands); setError(''); }
     catch (reason) { setError(reason instanceof Error ? reason.message : 'Không tải được thương hiệu.'); }
@@ -38,7 +37,7 @@ export default function BrandManager() {
   useEffect(() => { void load(); }, [load]);
 
   const perform = async (work: () => Promise<unknown>, success: string) => {
-    if (!token || busy) return;
+    if (busy) return;
     setBusy(true); setError(''); setMessage('');
     try { await work(); setMessage(success); await load(); }
     catch (reason) { setError(reason instanceof Error ? reason.message : 'Thao tác không thành công.'); }
@@ -69,7 +68,6 @@ export default function BrandManager() {
     return true;
   });
 
-  if (!token) return null;
   return (
     <section>
       <AdminPageHeader title="Thương hiệu" />

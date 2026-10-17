@@ -109,6 +109,7 @@ function OrderDetailContent({ order }: { order: Order }) {
 export default function OrderDetailPage() {
   const params = useParams<{ id: string }>();
   const token = useAuthStore(state => state.token);
+  const user = useAuthStore(state => state.user);
   const isAuthHydrated = useAuthStore(state => state.isHydrated);
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,14 +117,14 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     if (!isAuthHydrated) return;
-    if (!token) { setError('Vui lòng đăng nhập để xem đơn hàng.'); setLoading(false); return; }
+    if (!user) { setError('Vui lòng đăng nhập để xem đơn hàng.'); setLoading(false); return; }
     const id = parseInt(params.id);
     if (!id) { setError('ID đơn hàng không hợp lệ.'); setLoading(false); return; }
     getOrder(id, token)
       .then(setOrder)
       .catch(() => setError('Không tìm thấy đơn hàng hoặc bạn không có quyền xem.'))
       .finally(() => setLoading(false));
-  }, [isAuthHydrated, token, params.id]);
+  }, [isAuthHydrated, user, token, params.id]);
 
   return (
     <div className="py-8">

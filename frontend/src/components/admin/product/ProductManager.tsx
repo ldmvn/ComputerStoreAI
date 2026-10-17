@@ -41,7 +41,6 @@ export default function ProductManager() {
   const confirm = useConfirm();
 
   const load = useCallback(async (nextQuery: ProductListQuery) => {
-    if (!token) return;
     setLoading(true); setError('');
     try { const result = await getAdminProducts(token, nextQuery); setProducts(result.products); setMeta(result.meta); setStats(result.stats); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Không tải được sản phẩm.'); }
     finally { setLoading(false); }
@@ -49,12 +48,11 @@ export default function ProductManager() {
   useEffect(() => { const timer = window.setTimeout(() => setQuery(current => ({ ...current, search, page: 1 })), 350); return () => window.clearTimeout(timer); }, [search]);
   useEffect(() => { void load(query); }, [load, query]);
   useEffect(() => {
-    if (!token) return;
     getAdminCategories(token).then(result => setCategories(result.categories)).catch(() => {});
     getAdminBrands(token).then(result => setBrands(result.brands)).catch(() => {});
   }, [token]);
 
-  const action = async (work: () => Promise<unknown>, success: string) => { if (!token || busy) return; setBusy(true); setError(''); try { await work(); setMessage(success); await load(query); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Thao tác không thành công.'); } finally { setBusy(false); } };
+  const action = async (work: () => Promise<unknown>, success: string) => { if (busy) return; setBusy(true); setError(''); try { await work(); setMessage(success); await load(query); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Thao tác không thành công.'); } finally { setBusy(false); } };
   const save = (body: FormData, sections: { add: number[]; remove: number[] }) => void action(async () => {
     let productId: number;
     if (editor) { await updateProduct(token!, editor.id, body); productId = editor.id; }
@@ -76,7 +74,6 @@ export default function ProductManager() {
     if (!accepted) return;
     void action(() => deleteProduct(token!, product.id), 'Đã ẩn sản phẩm.');
   };
-  if (!token) return null;
   return <section>
     <AdminPageHeader title="Quản lý sản phẩm" />
     <AdminFeedback message={message} error={error} />
