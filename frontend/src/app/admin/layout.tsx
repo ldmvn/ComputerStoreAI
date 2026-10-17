@@ -14,15 +14,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const hydrate = useAuthStore((state) => state.hydrate);
   const loadPermissions = usePermissionStore((state) => state.load);
   const permissionsLoaded = usePermissionStore((state) => state.loaded);
-  const isAdmin = Boolean(token) && user?.role === 'ADMIN';
+  const isAdmin = user?.role === 'ADMIN';
 
   useEffect(() => {
     if (!isHydrated) void hydrate();
   }, [hydrate, isHydrated]);
 
   // Load RBAC permissions once after auth is ready.
+  // token may be null (httpOnly cookie auth) — apiRequest sends cookie automatically.
   useEffect(() => {
-    if (isHydrated && isAdmin && token && !permissionsLoaded) {
+    if (isHydrated && isAdmin && !permissionsLoaded) {
       void loadPermissions(token);
     }
   }, [isHydrated, isAdmin, token, permissionsLoaded, loadPermissions]);

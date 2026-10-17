@@ -4,7 +4,7 @@ import { apiRequest } from '@/services/http.client';
 type PermissionState = {
   permissions: Set<string>;
   loaded: boolean;
-  load: (token: string) => Promise<void>;
+  load: (token: string | null) => Promise<void>;
   clear: () => void;
   has: (module: string, action: string) => boolean;
   hasAny: (keys: string[]) => boolean;
