@@ -3,6 +3,7 @@ import { changePassword, login, me, register, updateMe } from '../../controllers
 import { authenticateToken } from '../../middlewares/auth.middleware.js';
 import { requestReset, verifyReset, completeReset } from '../../controllers/passwordReset.controller.js';
 import { passwordResetRateLimit } from '../../middlewares/passwordResetRateLimit.middleware.js';
+import { loginRateLimit, registerRateLimit } from '../../middlewares/rateLimit.middleware.js';
 import { startGoogleLogin, googleCallback, completeGoogleLogin } from '../../controllers/googleAuth.controller.js';
 
 const router = Router();
@@ -11,8 +12,8 @@ router.get('/google', startGoogleLogin);
 router.get('/google/callback', googleCallback);
 router.post('/google/exchange', completeGoogleLogin);
 
-router.post('/register', register);
-router.post('/login', login);
+router.post('/register', registerRateLimit, register);
+router.post('/login', loginRateLimit, login);
 router.get('/me', authenticateToken, me);
 router.patch('/me', authenticateToken, updateMe);
 router.patch('/password', authenticateToken, changePassword);
