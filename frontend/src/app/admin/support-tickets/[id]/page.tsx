@@ -51,7 +51,7 @@ export default function AdminTicketDetailPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isHydrated || !token) return;
+    if (!isHydrated) return;
     setLoading(true);
     getAdminTicket(token, Number(id))
       .then(r => setTicket(r.data))
@@ -65,7 +65,7 @@ export default function AdminTicketDetailPage() {
 
   // Poll every 5 s for new customer messages
   useEffect(() => {
-    if (!ticket || !token || ticket.status === 'CLOSED') return;
+    if (!ticket || ticket.status === 'CLOSED') return;
     const ticketId = ticket.id;
     const interval = setInterval(async () => {
       try {
@@ -86,7 +86,7 @@ export default function AdminTicketDetailPage() {
 
   async function handleReply(e: React.FormEvent) {
     e.preventDefault();
-    if (!token || !ticket || !reply.trim()) return;
+    if (!ticket || !reply.trim()) return;
     setSending(true);
     setSendError('');
     setSendOk('');
@@ -104,7 +104,7 @@ export default function AdminTicketDetailPage() {
   }
 
   async function handleStatusChange(status: TicketStatus) {
-    if (!token || !ticket) return;
+    if (!ticket) return;
     setStatusLoading(true);
     setStatusError('');
     try {

@@ -100,7 +100,6 @@ export default function AddressesPage() {
   const [settingId, setSettingId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true); setError(null);
     try { setAddresses(await getAddresses(token)); }
     catch { setError('Không thể tải danh sách địa chỉ.'); }
@@ -110,7 +109,6 @@ export default function AddressesPage() {
   useEffect(() => { load(); }, [load]);
 
   const handleSave = async (input: AddressInput) => {
-    if (!token) return;
     try {
       let updated: Address;
       if (editing) {
@@ -148,7 +146,7 @@ export default function AddressesPage() {
         : 'Bạn có chắc muốn xóa địa chỉ này không?',
       destructive: true,
     });
-    if (!ok || !token) return;
+    if (!ok) return;
     try {
       await deleteAddress(token, id);
       setAddresses(prev => prev.filter(a => a.id !== id));
@@ -159,7 +157,6 @@ export default function AddressesPage() {
   };
 
   const handleSetDefault = async (id: number) => {
-    if (!token) return;
     setSettingId(id);
     try {
       const updated = await setDefaultAddress(token, id);

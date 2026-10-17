@@ -35,7 +35,6 @@ export default function ActivityLogsPage() {
   const [detailLoading, setDetailLoading] = useState(false);
 
   const load = useCallback(async (p = 1) => {
-    if (!token) return;
     setLoading(true);
     try {
       const res = await getActivityLogs(token, {
@@ -54,7 +53,6 @@ export default function ActivityLogsPage() {
   useEffect(() => { void load(1); }, [token, filterModule, filterSuccess, filterFrom, filterTo, search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openDetail = async (log: ActivityLog) => {
-    if (!token) return;
     setDetailLoading(true); setDetailLog(log);
     try { const r = await getActivityLog(token, log.id); setDetailLog(r.log); }
     catch { toast.error('Không tải được chi tiết.'); }

@@ -63,7 +63,7 @@ export default function ContentPageEditorPage() {
   }, [dirty]);
 
   useEffect(() => {
-    if (!isHydrated || !token || !key) return;
+    if (!isHydrated || !key) return;
     setLoading(true);
     adminGetPolicyPage(token, key)
       .then(res => {
@@ -94,7 +94,7 @@ export default function ContentPageEditorPage() {
   }, []);
 
   const handleSave = async () => {
-    if (!token || !canManage) return;
+    if (!canManage) return;
     if (!title.trim()) { setFeedbackErr('Tiêu đề không được để trống.'); return; }
     setSaving(true);
     setFeedbackMsg('');

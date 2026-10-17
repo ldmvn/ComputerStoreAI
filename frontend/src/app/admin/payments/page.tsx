@@ -38,7 +38,6 @@ export default function AdminPaymentsPage() {
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true); setError('');
     try {
       const result = await adminListOrders(token, {

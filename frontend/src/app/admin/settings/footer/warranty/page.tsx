@@ -51,7 +51,7 @@ export default function WarrantyEditorPage() {
 
   // Load content
   useEffect(() => {
-    if (!isHydrated || !token) return;
+    if (!isHydrated) return;
     const ctrl = new AbortController();
     setLoading(true);
     adminGetPolicyPage(token, 'warranty')
@@ -74,7 +74,7 @@ export default function WarrantyEditorPage() {
   }, []);
 
   const handleSave = async () => {
-    if (!token || !canManage) return;
+    if (!canManage) return;
     if (!title.trim()) { setFeedbackErr('Tiêu đề không được để trống.'); return; }
     setSaving(true);
     setFeedbackMsg('');

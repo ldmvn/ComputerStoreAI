@@ -26,7 +26,6 @@ export default function BannerManager() {
   const [deleting, setDeleting] = useState<Banner | null>(null);
 
   const load = useCallback(async (signal?: AbortSignal) => {
-    if (!token) return;
     setLoading(true); setLoadError('');
     try { setBanners((await getAdminBanners(token, signal)).banners); }
     catch (error) { if (!signal?.aborted) setLoadError(error instanceof Error ? error.message : 'Không tải được banner.'); }
@@ -45,11 +44,10 @@ export default function BannerManager() {
     const items = banners.filter(item => item.position === banner.position).sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
     const index = items.findIndex(item => item.id === banner.id);
     const next = index + direction;
-    if (next < 0 || next >= items.length || !token) return;
+    if (next < 0 || next >= items.length) return;
     [items[index], items[next]] = [items[next], items[index]];
     void action(() => reorderBanners(token, banner.position, items.map(item => item.id)), 'Đã lưu thứ tự banner.');
   };
-  if (!token) return null;
   return <section>
     <AdminPageHeader title="Quản lý Banner" action={<button type="button" onClick={() => setEditor({ position: group === 'MAIN' ? 'MAIN_HERO' : 'AUTO' })} disabled={busy || loading} className="ui-button ui-button--primary inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:opacity-50"><Plus className="h-4 w-4" />Thêm banner</button>} />
     <div className="mb-6 flex gap-2" role="group" aria-label="Nhóm banner">{(['MAIN', 'SIDE'] as const).map(item => <button key={item} type="button" aria-pressed={group === item} onClick={() => setGroup(item)} className={`ui-button rounded-lg px-4 py-2.5 text-sm font-semibold ${group === item ? 'bg-primary-600 text-white' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>{item === 'MAIN' ? 'Banner chính' : 'Banner phụ'}</button>)}</div>

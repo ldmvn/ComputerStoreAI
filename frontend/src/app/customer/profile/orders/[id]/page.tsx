@@ -68,7 +68,7 @@ export default function OrderDetailPage() {
   const id = Number(params.id);
 
   useEffect(() => {
-    if (!token || !id) return;
+    if (!id) return;
     setLoading(true); setError(null);
     getOrder(id, token)
       .then(setOrder)
@@ -83,7 +83,7 @@ export default function OrderDetailPage() {
   }, [token, id]);
 
   const handleCancel = async () => {
-    if (!token || !order) return;
+    if (!order) return;
     const ok = await confirm({
       title: 'Hủy đơn hàng',
       description: `Bạn có chắc muốn hủy đơn hàng #${order.id}? Hành động này không thể hoàn tác.`,

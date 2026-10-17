@@ -83,7 +83,6 @@ export default function AccountsPage() {
   }, [token, canManageRoles]);
 
   async function handleRoleChange(a: Account, value: string) {
-    if (!token) return;
     const newRole: 'USER' | 'ADMIN' = value === 'customer' ? 'USER' : 'ADMIN';
     const adminRoleId = value === 'customer' || value === 'admin_full' ? null : Number(value);
     setRoleBusyId(a.id);
@@ -356,7 +355,6 @@ export default function AccountsPage() {
       {/* Create / Edit modal */}
       {modal && modal.mode !== 'delete' && (
         <Modal
-          isOpen
           onClose={() => setModal(null)}
           title={modal.mode === 'create' ? 'Thêm tài khoản' : 'Sửa tài khoản'}
         >
@@ -394,7 +392,7 @@ export default function AccountsPage() {
 
       {/* Delete confirm modal */}
       {modal?.mode === 'delete' && (
-        <Modal isOpen onClose={() => setModal(null)} title="Xóa tài khoản">
+        <Modal onClose={() => setModal(null)} title="Xóa tài khoản">
           <div className="space-y-4 p-1">
             <p className="text-sm text-slate-600">
               Bạn có chắc muốn xóa tài khoản <strong>{modal.account?.fullName}</strong> ({modal.account?.email})?

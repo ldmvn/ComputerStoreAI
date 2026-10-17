@@ -146,7 +146,6 @@ export default function ProductSectionManager() {
   const [message, setMessage] = useState('');
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true); setError('');
     try {
       const result = await getProductSections(token);
@@ -166,7 +165,7 @@ export default function ProductSectionManager() {
   }, [message]);
 
   const action = async (work: () => Promise<unknown>, success: string) => {
-    if (!token || busy) return;
+    if (busy) return;
     setBusy(true); setError('');
     try { await work(); setMessage(success); await load(); }
     catch (reason) { setError(reason instanceof Error ? reason.message : 'Thao tác không thành công.'); }
@@ -201,8 +200,6 @@ export default function ProductSectionManager() {
   };
 
   const pickerSection = pickerSectionId != null ? sections.find(s => s.id === pickerSectionId) ?? null : null;
-
-  if (!token) return null;
 
   return (
     <section>

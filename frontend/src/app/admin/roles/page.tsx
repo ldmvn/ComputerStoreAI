@@ -48,7 +48,6 @@ export default function RolesPage() {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     try {
       const [r, p] = await Promise.all([getRoles(token), getPermissions(token)]);
@@ -64,7 +63,7 @@ export default function RolesPage() {
   const openEdit = (r: Role) => { setFname(r.name); setFslug(r.slug); setFdesc(r.description || ''); setFsort(String(r.sortOrder)); setFslugTouched(true); setFerror(''); setRoleModal(r.id); };
 
   const saveRole = async () => {
-    if (!token || !fname.trim()) { setFerror('Tên vai trò là bắt buộc.'); return; }
+    if (!fname.trim()) { setFerror('Tên vai trò là bắt buộc.'); return; }
     setBusy(true); setFerror('');
     try {
       if (roleModal === null) {
@@ -80,7 +79,7 @@ export default function RolesPage() {
   };
 
   const removeRole = async (r: Role) => {
-    if (!token || !confirm(`Xóa vai trò "${r.name}"?`)) return;
+    if (!confirm(`Xóa vai trò "${r.name}"?`)) return;
     setBusy(true);
     try { await deleteRole(token, r.id); toast.success('Đã xóa vai trò.'); await load(); }
     catch (e) { toast.error(e instanceof Error ? e.message : 'Lỗi.'); }
@@ -94,7 +93,7 @@ export default function RolesPage() {
   };
 
   const savePermissions = async () => {
-    if (!token || permModal == null) return;
+    if (permModal == null) return;
     setPermBusy(true);
     try {
       await setRolePermissions(token, permModal, [...selectedPerms]);

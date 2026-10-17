@@ -52,12 +52,11 @@ export default function WishlistPage() {
   const [busyId, setBusyId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (token && !hydrated) void hydrate(token);
-    if (!token && isHydrated) useWishlistStore.getState().clear();
-  }, [token, hydrated, isHydrated, hydrate]);
+    if (user && !hydrated) void hydrate(token);
+    if (!user && isHydrated) useWishlistStore.getState().clear();
+  }, [user, token, hydrated, isHydrated, hydrate]);
 
   const handleRemove = useCallback(async (productId: number, productName: string) => {
-    if (!token) return;
     setBusyId(productId);
     try {
       const result = await remove(token, productId);
@@ -168,7 +167,7 @@ export default function WishlistPage() {
           icon={PackageOpen}
           title="Không tải được danh sách yêu thích."
           description="Vui lòng tải lại trang hoặc thử lại sau."
-          action={<button type="button" onClick={() => token && void hydrate(token)} className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700">Thử lại</button>}
+          action={<button type="button" onClick={() => void hydrate(token)} className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700">Thử lại</button>}
         />
       ) : (
         <EmptyState

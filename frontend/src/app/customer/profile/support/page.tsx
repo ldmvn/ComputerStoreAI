@@ -34,7 +34,6 @@ export default function CustomerSupportPage() {
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     setError('');
     try {

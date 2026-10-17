@@ -558,7 +558,6 @@ export default function AttributeManager() {
 
   // Load
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     try {
       const [ga, gb, gc] = await Promise.all([getGroups(token), getAttributes(token), getAdminCategories(token)]);
@@ -576,7 +575,7 @@ export default function AttributeManager() {
 
   // Perform: wraps async work with busy/error/load cycle
   const perform = useCallback(async (work: () => Promise<unknown>, success: string, close?: () => void) => {
-    if (!token || busy) return;
+    if (busy) return;
     setBusy(true); setError(''); setMessage('');
     try { await work(); close?.(); setMessage(success); await load(); }
     catch (err) { setError(err instanceof Error ? err.message : 'Thao tác không thành công.'); }
@@ -607,8 +606,6 @@ export default function AttributeManager() {
   };
 
   const selectedGroupName = selectedGroupId !== null ? groups.find(g => g.id === selectedGroupId)?.name : null;
-
-  if (!token) return null;
 
   return (
     <section>

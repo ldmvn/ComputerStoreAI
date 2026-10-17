@@ -103,6 +103,7 @@ function ReviewItem({ review }: { review: ProductReview }) {
 
 export default function ProductReviews({ slug, productId, initialSummary }: Props) {
   const token = useAuthStore(state => state.token);
+  const user = useAuthStore(state => state.user);
   const [filter, setFilter] = useState<'all' | 1 | 2 | 3 | 4 | 5>('all');
   const [data, setData] = useState<ProductReviewListResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -168,7 +169,7 @@ export default function ProductReviews({ slug, productId, initialSummary }: Prop
     event.preventDefault();
     setSubmitError(null);
     setSubmitSuccess(null);
-    if (!token) {
+    if (!user) {
       setSubmitError('Vui lòng đăng nhập để gửi đánh giá.');
       return;
     }
@@ -263,7 +264,7 @@ export default function ProductReviews({ slug, productId, initialSummary }: Prop
 
       <form onSubmit={handleSubmit} className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4" aria-labelledby="write-review-heading">
         <h3 id="write-review-heading" className="mb-3 text-sm font-semibold text-slate-900">Gửi đánh giá của bạn</h3>
-        {!token && (
+        {!user && (
           <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">Vui lòng đăng nhập để gửi đánh giá.</p>
         )}
         <div className="flex flex-col gap-1">

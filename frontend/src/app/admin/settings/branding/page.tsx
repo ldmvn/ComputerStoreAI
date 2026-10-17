@@ -116,7 +116,7 @@ export default function BrandingPage() {
   const [faviconPreview, setFaviconPreview] = useState('');
 
   useEffect(() => {
-    if (!isHydrated || !token) return;
+    if (!isHydrated) return;
     getAdminBranding(token)
       .then(res => setBranding(res.data))
       .catch(e => toast.error(e instanceof Error ? e.message : 'Tải cài đặt thất bại.'))

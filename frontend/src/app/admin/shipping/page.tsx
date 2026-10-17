@@ -29,7 +29,6 @@ export default function AdminShippingPage() {
   const [savingId, setSavingId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true); setError('');
     try {
       const result = await adminListOrders(token, {
@@ -56,7 +55,6 @@ export default function AdminShippingPage() {
   };
 
   const saveShipping = async (orderId: number) => {
-    if (!token) return;
     setSavingId(orderId);
     try {
       await adminUpdateShipping(token, orderId, { trackingNumber, shippingProvider });

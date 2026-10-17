@@ -52,7 +52,6 @@ export default function AdminReturnsPage() {
   const [noteMap, setNoteMap] = useState<Record<number, string>>({});
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true); setError('');
     try {
       const result = await adminListReturns(token, {
@@ -73,7 +72,6 @@ export default function AdminReturnsPage() {
   const clearSearch = () => { setSearchInput(''); setPage(1); setSearch(''); };
 
   const handleAction = async (ret: AdminReturn, status: ReturnStatus) => {
-    if (!token) return;
     setActionLoading(ret.id);
     try {
       await adminUpdateReturnStatus(token, ret.id, { status, adminNote: noteMap[ret.id] });

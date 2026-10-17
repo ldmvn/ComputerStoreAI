@@ -122,7 +122,6 @@ export default function AdminReviewsPage() {
   const [detail, setDetail] = useState<AdminReview | null>(null);
 
   const load = useCallback(async () => {
-    if (!token) return;
     setLoading(true); setError('');
     try {
       const [result, statsData] = await Promise.all([
@@ -150,7 +149,6 @@ export default function AdminReviewsPage() {
   function clearSearch() { setSearchInput(''); setSearch(''); setPage(1); }
 
   async function handlePublish(r: AdminReview) {
-    if (!token) return;
     setActionLoading(r.id); setError(''); setMessage('');
     try {
       if (r.isPublished) {
@@ -169,7 +167,6 @@ export default function AdminReviewsPage() {
   }
 
   async function handleDelete(r: AdminReview) {
-    if (!token) return;
     const ok = await confirmAction({ title: 'Xóa đánh giá', description: `Xóa đánh giá của "${r.author?.fullName ?? 'Ẩn danh'}"? Hành động này không thể hoàn tác.`, destructive: true });
     if (!ok) return;
     setActionLoading(r.id); setError(''); setMessage('');

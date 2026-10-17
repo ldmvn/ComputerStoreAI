@@ -230,7 +230,7 @@ export default function GeneralSettingsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('order');
 
   useEffect(() => {
-    if (!isHydrated || !token) return;
+    if (!isHydrated) return;
     setLoading(true);
     getAdminSettings(token)
       .then(r => { setValues(r.data ?? {}); setSaved(r.data ?? {}); })
@@ -248,7 +248,7 @@ export default function GeneralSettingsPage() {
   const currentTabDirty = tabDirty(activeTab);
 
   const handleSave = async () => {
-    if (!token || !canManage) return;
+    if (!canManage) return;
     setSaving(true); setError(''); setSuccess('');
     const patch: StoreSettings = {};
     TAB_KEYS[activeTab].forEach(k => { patch[k] = values[k] ?? ''; });

@@ -82,7 +82,6 @@ export default function CheckoutView() {
   const [voucherError, setVoucherError] = useState('');
 
   const loadAddresses = useCallback(async () => {
-    if (!token) return;
     setAddressLoading(true);
     try {
       const list = await getAddresses(token);
@@ -97,7 +96,6 @@ export default function CheckoutView() {
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAddAddress = async (input: AddressInput) => {
-    if (!token) return;
     const created = await createAddress(token, input);
     setAddresses(prev => {
       const base = input.isDefault ? prev.map(a => ({ ...a, isDefault: false })) : [...prev];
@@ -146,7 +144,7 @@ export default function CheckoutView() {
   const total = subtotal - discountAmount;
 
   async function handleApplyVoucher() {
-    if (!token || !voucherInput.trim()) return;
+    if (!voucherInput.trim()) return;
     setVoucherLoading(true); setVoucherError('');
     try {
       const result = await validateVoucher(token, voucherInput.trim(), subtotal);
@@ -167,7 +165,7 @@ export default function CheckoutView() {
   }
 
   const handleSubmit = async () => {
-    if (!token || !user) { openAuthModal(); return; }
+    if (!user) { openAuthModal(); return; }
     if (!selectedAddressId) {
       toast.error('Chưa chọn địa chỉ', 'Vui lòng chọn địa chỉ giao hàng.');
       return;

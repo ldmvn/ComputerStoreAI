@@ -191,7 +191,7 @@ export default function ContactSettingsPage() {
   const testResultTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!isHydrated || !token) return;
+    if (!isHydrated) return;
     const ctrl = new AbortController();
     setLoading(true);
     Promise.all([
@@ -226,7 +226,7 @@ export default function ContactSettingsPage() {
   }
 
   const handleSave = async () => {
-    if (!token || !validate()) return;
+    if (!validate()) return;
     setSaving(true); setFeedbackMsg(''); setFeedbackErr('');
     const payload: StoreSettings = {};
     for (const key of ALL_CONTACT_KEYS) payload[key] = values[key] ?? '';
@@ -239,7 +239,6 @@ export default function ContactSettingsPage() {
   };
 
   const handleTestEmail = async () => {
-    if (!token) return;
     if (!EMAIL_RE.test(testTo.trim())) { setTestToErr('Nhập email hợp lệ.'); return; }
     setTestToErr('');
     setTestSending(true);

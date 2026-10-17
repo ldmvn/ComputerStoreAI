@@ -32,7 +32,7 @@ export default function StoreSettingsPage() {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    if (!isHydrated || !token) return;
+    if (!isHydrated) return;
     setLoading(true);
     getAdminSettings(token)
       .then(r => setValues(r.data ?? {}))
@@ -41,7 +41,6 @@ export default function StoreSettingsPage() {
   }, [isHydrated, token]);
 
   const handleSave = async () => {
-    if (!token) return;
     setSaving(true); setError(''); setSuccess('');
     try {
       await updateAdminSettings(token, values);

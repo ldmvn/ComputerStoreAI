@@ -12,8 +12,8 @@ type WishlistState = {
   hydrated: boolean;
   pending: Set<number>;
   hydrate: (token: string | null) => Promise<void>;
-  toggle: (token: string, productId: number) => Promise<{ favorited: boolean; reason?: 'auth' | 'unknown' }>;
-  remove: (token: string, productId: number) => Promise<{ reason?: 'auth' | 'unknown' }>;
+  toggle: (token: string | null, productId: number) => Promise<{ favorited: boolean; reason?: 'auth' | 'unknown' }>;
+  remove: (token: string | null, productId: number) => Promise<{ reason?: 'auth' | 'unknown' }>;
   setFavorited: (productId: number, favorited: boolean) => void;
   clear: () => void;
 };
@@ -50,7 +50,6 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
   }),
   clear: () => set({ ids: new Set(), items: [], loading: false, error: '', hydrated: true }),
   hydrate: async (token) => {
-    if (!token) { set({ ids: new Set(), items: [], loading: false, error: '', hydrated: true }); return; }
     // Header and the wishlist page both hydrate on mount; `hydrated` only flips once the request
     // resolves, so without this guard the same fetch is issued twice.
     if (get().loading) return;
@@ -64,7 +63,6 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
     }
   },
   toggle: async (token, productId) => {
-    if (!token) return { favorited: false, reason: 'auth' };
     const favorited = get().ids.has(productId);
     set(state => ({ ...withPending(state, productId, true), ids: favorited ? new Set([...state.ids].filter(id => id !== productId)) : new Set([...state.ids, productId]) }));
     try {
@@ -84,7 +82,6 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
     }
   },
   remove: async (token, productId) => {
-    if (!token) return { reason: 'auth' };
     set(state => withPending(state, productId, true));
     try {
       await apiRemove(token, productId);
