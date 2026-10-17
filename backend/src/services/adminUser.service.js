@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../config/prisma.js';
+import { invalidatePermissionCache } from './rbac.service.js';
 
 const ADMIN_ROLES = ['ADMIN'];
 
@@ -56,11 +57,13 @@ export async function updateAdminUser(id, { fullName, phone, adminRoleId }) {
     const role = await prisma.role.findUnique({ where: { id: adminRoleId } });
     if (!role || !role.isActive) throw Object.assign(new Error('Vai trò không hợp lệ hoặc đã bị vô hiệu hóa.'), { status: 422 });
   }
-  return prisma.user.update({
+  const updated = await prisma.user.update({
     where: { id },
     data: { fullName, phone: phone || null, adminRoleId: adminRoleId ?? undefined },
     select: adminUserSelect(),
   });
+  invalidatePermissionCache(id);
+  return updated;
 }
 
 export async function setAdminUserStatus(id, isActive, requesterId) {
@@ -71,5 +74,7 @@ export async function setAdminUserStatus(id, isActive, requesterId) {
     const activeCount = await prisma.user.count({ where: { role: 'ADMIN', isActive: true } });
     if (activeCount <= 1) throw Object.assign(new Error('Không thể vô hiệu hóa quản trị viên cuối cùng đang hoạt động.'), { status: 400 });
   }
-  return prisma.user.update({ where: { id }, data: { isActive }, select: adminUserSelect() });
+  const result = await prisma.user.update({ where: { id }, data: { isActive }, select: adminUserSelect() });
+  invalidatePermissionCache(id);
+  return result;
 }
