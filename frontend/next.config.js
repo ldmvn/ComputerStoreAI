@@ -1,4 +1,20 @@
 /** @type {import('next').NextConfig} */
+
+// Derive the backend hostname from NEXT_PUBLIC_API_URL so the Next.js image
+// optimizer only proxies images from our own backend, not arbitrary hosts.
+// Falls back to localhost for local development.
+function backendHostname() {
+  const raw = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  try {
+    return new URL(raw).hostname;
+  } catch {
+    return 'localhost';
+  }
+}
+
+const backendHost = backendHostname();
+const isLocalhost  = backendHost === 'localhost' || backendHost === '127.0.0.1';
+
 const nextConfig = {
   reactStrictMode: true,
   async redirects() {
@@ -17,8 +33,11 @@ const nextConfig = {
   },
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: '**' },
-      { protocol: 'http', hostname: 'localhost' },
+      // Backend media server (products, banners, brands, branding, reviews)
+      {
+        protocol: isLocalhost ? 'http' : 'https',
+        hostname: backendHost,
+      },
     ],
   },
 };
