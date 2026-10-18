@@ -13,7 +13,7 @@ export default function AdminPageHeader({ title, description, action }: AdminPag
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[26px]">{title}</h1>
         {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && <div className="min-w-0 max-w-full">{action}</div>}
     </div>
   );
 }

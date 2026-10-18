@@ -1,5 +1,6 @@
 import Header from './Header';
 import Footer from './Footer';
+import FloatingSupportWidget from './support-widget/FloatingSupportWidget';
 
 export default function CustomerShell({ children, contentClassName = 'flex-1', fillViewport = true, compactFooter = false }: {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ export default function CustomerShell({ children, contentClassName = 'flex-1', f
       <Header />
       <main className={contentClassName}>{children}</main>
       <Footer compact={compactFooter} />
+      <FloatingSupportWidget />
     </div>
   );
 }

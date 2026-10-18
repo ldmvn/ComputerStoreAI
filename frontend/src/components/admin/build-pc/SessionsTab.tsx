@@ -101,7 +101,7 @@ export default function SessionsTab() {
         <p className="rounded-xl border border-slate-200 bg-white py-16 text-center text-sm text-slate-400">Không có cấu hình nào khớp bộ lọc.</p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[560px] text-sm">
             <thead className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
               <tr>
                 <th className="px-4 py-3 text-left">Mã cấu hình</th>
@@ -158,8 +158,8 @@ export default function SessionsTab() {
                 <div><p className="text-xs text-slate-400">Tổng tiền</p><p className="font-semibold text-primary-700">{formatProductPrice(detail.total)}</p></div>
               </div>
 
-              <div className="rounded-xl border border-slate-200">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                <table className="w-full min-w-[420px] text-sm">
                   <thead className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
                     <tr><th className="px-3 py-2 text-left">Nhóm</th><th className="px-3 py-2 text-left">Sản phẩm</th><th className="px-3 py-2 text-right">SL</th><th className="px-3 py-2 text-right">Giá</th></tr>
                   </thead>

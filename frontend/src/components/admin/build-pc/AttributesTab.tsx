@@ -47,7 +47,7 @@ export default function AttributesTab() {
       <p className="text-sm text-slate-500">Các thuộc tính then chốt phục vụ kiểm tra tương thích Build PC. Bấm vào số &quot;Thiếu&quot; để xem danh sách sản phẩm cần bổ sung.</p>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[520px] text-sm">
           <thead className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
             <tr>
               <th className="px-4 py-3 text-left">Thuộc tính</th>

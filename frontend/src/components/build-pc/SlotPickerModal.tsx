@@ -123,18 +123,18 @@ export default function SlotPickerModal() {
         className="relative z-10 flex h-[95dvh] w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[88vh] sm:max-h-[700px] sm:max-w-4xl sm:rounded-xl"
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between gap-3 bg-slate-900 px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between gap-3 bg-primary-600 px-4 py-3">
           <div>
             <h2 id="picker-title" className="text-base font-semibold text-white">
               Chọn: {slot.name}
             </h2>
             {slot.badgeText && (
-              <p className="text-xs font-bold italic text-blue-300">{slot.badgeText}</p>
+              <p className="text-xs font-bold italic text-white/90">{slot.badgeText}</p>
             )}
           </div>
           <button
             onClick={closePicker}
-            className="rounded-md p-1.5 text-slate-300 hover:bg-white/10 hover:text-white"
+            className="rounded-md p-1.5 text-white/90 hover:bg-white/15 hover:text-white"
             aria-label="Đóng"
           >
             <X size={20} />

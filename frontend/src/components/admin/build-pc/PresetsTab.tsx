@@ -86,8 +86,8 @@ export default function PresetsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">Preset chỉ là gợi ý tham khảo, không ảnh hưởng tới việc khách hàng tự chọn linh kiện.</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="min-w-0 text-sm text-slate-500">Preset chỉ là gợi ý tham khảo, không ảnh hưởng tới việc khách hàng tự chọn linh kiện.</p>
         <button onClick={openCreate} className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-700">
           <Plus className="h-4 w-4" /> Thêm preset
         </button>
@@ -96,7 +96,7 @@ export default function PresetsTab() {
       {presets.length === 0 ? (
         <p className="rounded-xl border border-slate-200 bg-white py-16 text-center text-sm text-slate-400">Chưa có cấu hình mẫu nào.</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {presets.map(p => {
             const hiddenCount = p.items.filter(i => i.product && (!i.product.isActive || i.product.isDeleted)).length;
             const total = p.items.reduce((s, i) => s + (i.product?.price ?? 0), 0);

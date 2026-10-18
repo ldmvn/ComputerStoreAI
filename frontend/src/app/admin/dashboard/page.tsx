@@ -62,7 +62,7 @@ function KpiCardSkeleton() {
 
 function SectionCard({ title, action, children, className = '' }: { title: string; action?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/[0.03] ${className}`}>
+    <div className={`min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/[0.03] ${className}`}>
       <div className="mb-4 flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
         {action}
@@ -174,9 +174,9 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/[0.03]">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50"><ShoppingCart className="h-4.5 w-4.5 text-primary-600" /></div>
-                <p className="text-xs font-medium text-slate-500">Doanh thu hôm nay</p>
+                <p className="min-w-0 text-xs font-medium text-slate-500">Doanh thu hôm nay</p>
               </div>
-              <p className="mt-2.5 text-xl font-bold tabular-nums text-slate-900">{formatProductPrice(kpi.todayRevenue.value)}</p>
+              <p className="mt-2.5 break-words text-lg font-bold tabular-nums text-slate-900 sm:text-xl">{formatProductPrice(kpi.todayRevenue.value)}</p>
               <div className="mt-1 flex items-center gap-1.5">
                 <ChangeBadge pct={kpi.todayRevenue.changePct} />
                 <span className="text-xs text-slate-400">so với hôm qua</span>
@@ -186,9 +186,9 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/[0.03]">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50"><Wallet className="h-4.5 w-4.5 text-blue-600" /></div>
-                <p className="text-xs font-medium text-slate-500">Doanh thu tháng này</p>
+                <p className="min-w-0 text-xs font-medium text-slate-500">Doanh thu tháng này</p>
               </div>
-              <p className="mt-2.5 text-xl font-bold tabular-nums text-slate-900">{formatProductPrice(kpi.monthRevenue.value)}</p>
+              <p className="mt-2.5 break-words text-lg font-bold tabular-nums text-slate-900 sm:text-xl">{formatProductPrice(kpi.monthRevenue.value)}</p>
               <div className="mt-1 flex items-center gap-1.5">
                 <ChangeBadge pct={kpi.monthRevenue.changePct} />
                 <span className="text-xs text-slate-400">so với tháng trước</span>
@@ -198,18 +198,18 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/[0.03]">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50"><Receipt className="h-4.5 w-4.5 text-violet-600" /></div>
-                <p className="text-xs font-medium text-slate-500">Tổng doanh thu</p>
+                <p className="min-w-0 text-xs font-medium text-slate-500">Tổng doanh thu</p>
               </div>
-              <p className="mt-2.5 text-xl font-bold tabular-nums text-slate-900">{formatProductPrice(kpi.totalRevenue.value)}</p>
+              <p className="mt-2.5 break-words text-lg font-bold tabular-nums text-slate-900 sm:text-xl">{formatProductPrice(kpi.totalRevenue.value)}</p>
               <p className="mt-1 text-xs text-slate-400">toàn thời gian (đơn đã giao)</p>
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/[0.03]">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100"><FileText className="h-4.5 w-4.5 text-slate-600" /></div>
-                <p className="text-xs font-medium text-slate-500">Đơn hàng hôm nay</p>
+                <p className="min-w-0 text-xs font-medium text-slate-500">Đơn hàng hôm nay</p>
               </div>
-              <p className="mt-2.5 text-xl font-bold tabular-nums text-slate-900">{kpi.todayOrders.value}</p>
+              <p className="mt-2.5 break-words text-lg font-bold tabular-nums text-slate-900 sm:text-xl">{kpi.todayOrders.value}</p>
               <div className="mt-1 flex items-center gap-1.5">
                 <ChangeBadge pct={kpi.todayOrders.changePct} />
                 <span className="text-xs text-slate-400">so với hôm qua</span>
@@ -219,9 +219,9 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/[0.03]">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50"><Users className="h-4.5 w-4.5 text-indigo-600" /></div>
-                <p className="text-xs font-medium text-slate-500">Khách hàng mới</p>
+                <p className="min-w-0 text-xs font-medium text-slate-500">Khách hàng mới</p>
               </div>
-              <p className="mt-2.5 text-xl font-bold tabular-nums text-slate-900">{kpi.newCustomersToday.value}</p>
+              <p className="mt-2.5 break-words text-lg font-bold tabular-nums text-slate-900 sm:text-xl">{kpi.newCustomersToday.value}</p>
               <div className="mt-1 flex items-center gap-1.5">
                 <ChangeBadge pct={kpi.newCustomersToday.changePct} />
                 <span className="text-xs text-slate-400">so với hôm qua</span>
@@ -231,9 +231,9 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/[0.03]">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50"><PackageX className="h-4.5 w-4.5 text-rose-600" /></div>
-                <p className="text-xs font-medium text-slate-500">Sản phẩm sắp hết hàng</p>
+                <p className="min-w-0 text-xs font-medium text-slate-500">Sản phẩm sắp hết hàng</p>
               </div>
-              <p className="mt-2.5 text-xl font-bold tabular-nums text-slate-900">{kpi.lowStockProducts.value}</p>
+              <p className="mt-2.5 break-words text-lg font-bold tabular-nums text-slate-900 sm:text-xl">{kpi.lowStockProducts.value}</p>
               <p className="mt-1 text-xs text-slate-400">cần nhập thêm hàng</p>
             </div>
           </>
@@ -267,10 +267,10 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Charts row ──────────────────────────────────────────────────── */}
-      <div className="grid gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SectionCard
           title="Doanh thu theo thời gian"
-          className="xl:col-span-2"
+          className="md:col-span-2 xl:col-span-2"
           action={
             <select
               value={revenueRange}
@@ -317,10 +317,10 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Tables row ──────────────────────────────────────────────────── */}
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <SectionCard
           title="Đơn hàng mới nhất"
-          className="xl:col-span-2"
+          className="lg:col-span-2"
           action={<Link href="/admin/orders" className="text-xs font-medium text-primary-600 hover:underline">Xem tất cả →</Link>}
         >
           {loading ? (
@@ -329,14 +329,14 @@ export default function DashboardPage() {
             <p className="py-10 text-center text-sm text-slate-400">Chưa có đơn hàng nào.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[460px] text-sm">
                 <thead>
                   <tr className="border-b border-slate-100 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                     <th className="py-2 pr-3">Mã đơn</th>
                     <th className="py-2 pr-3">Khách hàng</th>
                     <th className="py-2 pr-3 text-right">Tổng tiền</th>
                     <th className="py-2 pr-3">Trạng thái</th>
-                    <th className="py-2 pr-3">Thời gian</th>
+                    <th className="hidden py-2 pr-3 sm:table-cell">Thời gian</th>
                     <th className="py-2 text-right">Thao tác</th>
                   </tr>
                 </thead>
@@ -344,14 +344,14 @@ export default function DashboardPage() {
                   {data.recentOrders.map(o => (
                     <tr key={o.id} className="hover:bg-slate-50/50">
                       <td className="py-2.5 pr-3 font-medium text-slate-800">#DH{String(o.id).padStart(6, '0')}</td>
-                      <td className="py-2.5 pr-3 text-slate-600">{o.customerName}</td>
+                      <td className="max-w-[140px] truncate py-2.5 pr-3 text-slate-600">{o.customerName}</td>
                       <td className="py-2.5 pr-3 text-right tabular-nums text-slate-700">{formatProductPrice(o.total)}</td>
                       <td className="py-2.5 pr-3">
                         <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CARD[o.status].bg} ${STATUS_CARD[o.status].fg}`}>
                           {ORDER_STATUS_LABEL[o.status]}
                         </span>
                       </td>
-                      <td className="py-2.5 pr-3 text-xs text-slate-400">{dateFmt(o.createdAt)}</td>
+                      <td className="hidden py-2.5 pr-3 text-xs text-slate-400 sm:table-cell">{dateFmt(o.createdAt)}</td>
                       <td className="py-2.5 text-right">
                         <Link href="/admin/orders" className="text-xs font-medium text-primary-600 hover:underline">Xem</Link>
                       </td>
@@ -363,7 +363,7 @@ export default function DashboardPage() {
           )}
         </SectionCard>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <SectionCard title="Top sản phẩm bán chạy" action={<Link href="/admin/products" className="text-xs font-medium text-primary-600 hover:underline">Xem tất cả →</Link>}>
             {loading ? (
               <div className="flex h-[140px] items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-slate-400" /></div>
@@ -411,7 +411,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Customer & operations row ───────────────────────────────────── */}
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4">
         <SectionCard title="Khách hàng">
           {loading || !data ? (
             <div className="flex h-[120px] items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-slate-400" /></div>

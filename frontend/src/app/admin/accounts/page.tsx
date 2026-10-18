@@ -183,7 +183,7 @@ export default function AccountsPage() {
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3">
-          <div className="relative flex-1 min-w-48">
+          <div className="relative min-w-48 flex-1 basis-full sm:basis-0">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm focus:border-primary-400 focus:outline-none"
@@ -194,7 +194,7 @@ export default function AccountsPage() {
             />
           </div>
           <select
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary-400 focus:outline-none"
+            className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary-400 focus:outline-none sm:flex-none"
             value={filterStatus}
             onChange={e => setFilterStatus(e.target.value)}
           >
@@ -203,7 +203,7 @@ export default function AccountsPage() {
             <option value="inactive">Đã khóa</option>
           </select>
           <select
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary-400 focus:outline-none"
+            className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary-400 focus:outline-none sm:flex-none"
             value={filterRole}
             onChange={e => setFilterRole(e.target.value)}
           >
@@ -223,15 +223,15 @@ export default function AccountsPage() {
             <p className="py-20 text-center text-sm text-slate-400">Không có tài khoản nào.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[560px] text-sm">
                 <thead>
                   <tr className="border-b border-slate-100 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                     <th className="px-4 py-3">Tài khoản</th>
-                    <th className="px-4 py-3">Liên hệ</th>
+                    <th className="hidden px-4 py-3 md:table-cell">Liên hệ</th>
                     <th className="px-4 py-3">Vai trò</th>
-                    <th className="px-4 py-3 text-right">Đơn hàng</th>
-                    <th className="px-4 py-3 text-right">Tổng chi</th>
-                    <th className="px-4 py-3">Tham gia</th>
+                    <th className="hidden px-4 py-3 text-right lg:table-cell">Đơn hàng</th>
+                    <th className="hidden px-4 py-3 text-right lg:table-cell">Tổng chi</th>
+                    <th className="hidden px-4 py-3 xl:table-cell">Tham gia</th>
                     <th className="px-4 py-3">Trạng thái</th>
                     <th className="px-4 py-3 text-right">Thao tác</th>
                   </tr>
@@ -244,13 +244,14 @@ export default function AccountsPage() {
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-primary-700">
                             {a.fullName.charAt(0).toUpperCase()}
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <p className="font-medium text-slate-900">{a.fullName}</p>
                             <p className="text-xs text-slate-400">#{a.id}</p>
+                            <p className="truncate text-xs text-slate-500 md:hidden">{a.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="hidden px-4 py-3 md:table-cell">
                         <p className="text-slate-700">{a.email}</p>
                         {a.phone && <p className="text-xs text-slate-400">{a.phone}</p>}
                       </td>
@@ -273,9 +274,9 @@ export default function AccountsPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right text-slate-700">{a.orderCount ?? 0}</td>
-                      <td className="px-4 py-3 text-right text-slate-700">{fmt(a.totalSpent ?? 0)}</td>
-                      <td className="px-4 py-3 text-slate-500">{dateFmt(a.createdAt)}</td>
+                      <td className="hidden px-4 py-3 text-right text-slate-700 lg:table-cell">{a.orderCount ?? 0}</td>
+                      <td className="hidden px-4 py-3 text-right text-slate-700 lg:table-cell">{fmt(a.totalSpent ?? 0)}</td>
+                      <td className="hidden px-4 py-3 text-slate-500 xl:table-cell">{dateFmt(a.createdAt)}</td>
                       <td className="px-4 py-3">
                         {a.isActive ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">

@@ -88,15 +88,15 @@ export default function RulesTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">{data.rules.length} quy tắc dựa trên thuộc tính sản phẩm (socket, chipset, chiều dài, kích thước...).</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="min-w-0 text-sm text-slate-500">{data.rules.length} quy tắc dựa trên thuộc tính sản phẩm (socket, chipset, chiều dài, kích thước...).</p>
         <button onClick={openCreate} className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-700">
           <Plus className="h-4 w-4" /> Thêm quy tắc
         </button>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[640px] text-sm">
           <thead className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
             <tr>
               <th className="px-4 py-3 text-left">Tên quy tắc</th>
@@ -171,7 +171,7 @@ export default function RulesTab() {
                 <option value="ATTR_LTE">Nhỏ hơn hoặc bằng (ATTR_LTE)</option>
               </select>
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block text-sm font-medium">Nhóm A *
                 <select value={form.groupAId} onChange={e => setForm(f => ({ ...f, groupAId: Number(e.target.value) }))} className={inputCls}>
                   {data.groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
@@ -181,7 +181,7 @@ export default function RulesTab() {
                 <input required list={`${formId}-attrs`} value={form.attributeASlug} onChange={e => setForm(f => ({ ...f, attributeASlug: e.target.value }))} className={inputCls} placeholder="vd: socket-cpu" />
               </label>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block text-sm font-medium">Nhóm B *
                 <select value={form.groupBId} onChange={e => setForm(f => ({ ...f, groupBId: Number(e.target.value) }))} className={inputCls}>
                   {data.groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
@@ -197,7 +197,7 @@ export default function RulesTab() {
             <label className="block text-sm font-medium">Thông báo lỗi
               <input value={form.errorMessage} onChange={e => setForm(f => ({ ...f, errorMessage: e.target.value }))} className={inputCls} placeholder="Hiển thị cho khách khi vi phạm" />
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <label className="block text-sm font-medium">Mức độ
                 <select value={form.severity} onChange={e => setForm(f => ({ ...f, severity: e.target.value as 'error' | 'warning' }))} className={inputCls}>
                   <option value="error">Lỗi (chặn)</option>
@@ -207,7 +207,7 @@ export default function RulesTab() {
               <label className="block text-sm font-medium">Thứ tự
                 <input type="number" value={form.sortOrder} onChange={e => setForm(f => ({ ...f, sortOrder: Number(e.target.value) }))} className={inputCls} />
               </label>
-              <label className="mt-7 flex items-center gap-2 text-sm font-medium">
+              <label className="flex items-center gap-2 sm:mt-7 text-sm font-medium">
                 <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))} className="h-4 w-4 rounded border-slate-300" />
                 Kích hoạt
               </label>

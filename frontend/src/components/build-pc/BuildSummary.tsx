@@ -427,7 +427,7 @@ export default function BuildSummary() {
       </div>
 
       {/* Primary buttons: Add to cart + Order now */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-1">
+      {!noItems && <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-1">
         <button
           onClick={handleAddToCart}
           disabled={noItems || !canAddToCart || cartStatus === 'loading'}
@@ -444,14 +444,14 @@ export default function BuildSummary() {
           {orderStatus === 'loading' ? <Loader2 size={15} className="animate-spin" /> : <Zap size={15} />}
           Đặt hàng ngay
         </button>
-      </div>
+      </div>}
 
       {blockReason && (
         <p className="text-center text-xs text-slate-400 -mt-2">{blockReason}</p>
       )}
 
       {/* Secondary buttons */}
-      <div className="grid grid-cols-2 gap-2">
+      {!noItems && <div className="grid grid-cols-2 gap-2">
         <button
           onClick={handleSave}
           disabled={noItems || busySave}
@@ -484,7 +484,7 @@ export default function BuildSummary() {
           <Printer size={13} />
           Xem &amp; In
         </button>
-      </div>
+      </div>}
 
       {/* Share notice (copy-to-clipboard feedback) */}
       {shareNotice && (

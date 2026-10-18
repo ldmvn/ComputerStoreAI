@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { RevenuePoint } from '@/services/adminDashboard.service';
 
 function shortLabel(label: string) {
@@ -20,7 +20,19 @@ function formatCompact(n: number) {
 
 export default function RevenueChart({ data }: { data: RevenuePoint[] }) {
   const [hover, setHover] = useState<number | null>(null);
-  const width = 700;
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(700);
+  const hasData = data.length > 0;
+  // Vẽ theo bề rộng thật của khung chứa để chữ/điểm không bị méo trên màn hình nhỏ.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const update = () => setWidth(Math.max(240, Math.round(el.clientWidth)));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [hasData]);
   const height = 260;
   const padL = 44, padR = 12, padT = 16, padB = 28;
   const innerW = width - padL - padR;
@@ -32,6 +44,7 @@ export default function RevenueChart({ data }: { data: RevenuePoint[] }) {
   const n = data.length || 1;
   const bandW = innerW / n;
   const barW = Math.min(64, bandW * 0.72);
+  const maxLabels = width < 480 ? 5 : 8;
 
   const linePoints = useMemo(() => data.map((d, i) => {
     const x = padL + bandW * i + bandW / 2;
@@ -41,16 +54,16 @@ export default function RevenueChart({ data }: { data: RevenuePoint[] }) {
 
   const linePath = linePoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
 
-  // show at most ~8 x-axis labels to avoid crowding on 12-month / 30-day views
-  const labelStep = Math.max(1, Math.ceil(n / 8));
+  // show at most ~8 (5 on narrow screens) x-axis labels to avoid crowding on 12-month / 30-day views
+  const labelStep = Math.max(1, Math.ceil(n / maxLabels));
 
   if (data.length === 0) {
     return <div className="flex h-[260px] items-center justify-center text-sm text-slate-400">Chưa có dữ liệu.</div>;
   }
 
   return (
-    <div className="w-full">
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-[260px] w-full" preserveAspectRatio="none">
+    <div ref={wrapRef} className="w-full">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} className="block max-w-full">
         {/* gridlines */}
         {[0, 0.25, 0.5, 0.75, 1].map(f => (
           <line key={f} x1={padL} x2={width - padR} y1={padT + innerH * f} y2={padT + innerH * f} stroke="#f1f5f9" strokeWidth={1} />
@@ -72,6 +85,7 @@ export default function RevenueChart({ data }: { data: RevenuePoint[] }) {
               fill={hover === i ? '#ea580c' : '#fb923c'}
               onMouseEnter={() => setHover(i)}
               onMouseLeave={() => setHover(null)}
+              onClick={() => setHover(i)}
             />
           );
         })}
@@ -90,7 +104,7 @@ export default function RevenueChart({ data }: { data: RevenuePoint[] }) {
           )
         ))}
       </svg>
-      <div className="mt-2 flex items-center justify-between gap-2">
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <div className="flex items-center gap-4 text-xs text-slate-500">
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-orange-400" /> Doanh thu</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-orange-500" /> Số đơn</span>
