@@ -30,6 +30,7 @@ import { getPublicMenus, type PublicMenu } from '@/services/megaMenu.service';
 import { MegaMenuPanel, MobileMenuGroups } from '@/components/category/MegaMenuPanel';
 import SmartSearchBar from '@/components/layout/SmartSearchBar';
 import { useBrandingStore } from '@/store/branding.store';
+import { useCategoryHeroStore } from '@/store/categoryHero.store';
 
 export default function Header() {
   const [categories, setCategories] = useState<PublicCategory[]>([]);
@@ -73,6 +74,12 @@ export default function Header() {
   const authHydrated = useAuthStore(state => state.isHydrated);
   const hydrateBranding = useBrandingStore(s => s.hydrate);
   const logoUrl = useBrandingStore(s => s.logoUrl);
+  // Khi danh sách danh mục Hero (trang chủ) còn trong viewport, nút Danh mục
+  // chỉ làm nổi bật danh sách đó (qua backdrop dùng chung) thay vì mở dropdown
+  // riêng của Header — tránh render hai danh sách cùng lúc.
+  const heroVisible = useCategoryHeroStore(s => s.heroVisible);
+  const heroHighlightOpen = useCategoryHeroStore(s => s.highlightOpen);
+  const toggleHeroHighlight = useCategoryHeroStore(s => s.toggleHighlight);
   useEffect(() => {
     if (!authHydrated) return;
     if (wishlistToken) { if (!wishlistHydrated) void hydrateWishlist(wishlistToken); }
@@ -111,6 +118,9 @@ export default function Header() {
     return () => { cancelled = true; };
   }, [categoriesOpen, mobileMenuOpen]);
   useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
+  // Hero đã lọt vào viewport trở lại (cuộn lên) → đảm bảo dropdown cũ của
+  // Header (nếu đang mở dở từ trước) bị đóng, không hiển thị đồng thời.
+  useEffect(() => { if (heroVisible) { setCategoriesOpen(false); setActiveCategory(null); } }, [heroVisible]);
   useEffect(() => { drawerRef.current?.toggleAttribute('inert', !mobileMenuOpen); }, [mobileMenuOpen]);
   useEffect(() => { if (!mobileMenuOpen) { setMobileCatId(null); setMobileGroupIdx(null); } }, [mobileMenuOpen]);
   const cancelClose = () => { if (closeTimer.current) clearTimeout(closeTimer.current); };
@@ -170,12 +180,21 @@ export default function Header() {
           {/* Stretches to the full header-row height so the dropdown's `top-full` anchors to the
               header's bottom edge instead of the vertically-centred trigger, and so the gap
               between button and header edge stays inside the hover area. */}
-          <div ref={categoriesRef} className="relative hidden self-stretch lg:flex lg:items-center" onMouseEnter={() => { cancelClose(); setCategoriesOpen(true); }} onMouseLeave={scheduleClose} onKeyDown={event => { if (event.key === 'Escape') { closeCategories(); categoriesRef.current?.querySelector('button')?.focus(); } }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) closeCategories(); }}>
+          <div
+            ref={categoriesRef}
+            className="relative hidden self-stretch lg:flex lg:items-center"
+            onMouseEnter={heroVisible ? undefined : () => { cancelClose(); setCategoriesOpen(true); }}
+            onMouseLeave={heroVisible ? undefined : scheduleClose}
+            onKeyDown={event => { if (event.key === 'Escape' && !heroVisible) { closeCategories(); categoriesRef.current?.querySelector('button')?.focus(); } }}
+            onBlur={event => { if (!heroVisible && !event.currentTarget.contains(event.relatedTarget as Node)) closeCategories(); }}
+          >
             <button
               type="button"
-              onClick={toggleCategories}
-              className="ui-header-action inline-flex items-center gap-1.5 rounded-md px-2 py-2 text-sm font-medium text-slate-700 transition hover:bg-primary-50 hover:text-primary-600"
-              aria-expanded={categoriesOpen}
+              onClick={heroVisible ? toggleHeroHighlight : toggleCategories}
+              className={`ui-header-action inline-flex items-center gap-1.5 rounded-md px-2 py-2 text-sm font-medium transition hover:bg-primary-50 hover:text-primary-600 ${
+                (heroVisible ? heroHighlightOpen : categoriesOpen) ? 'bg-primary-50 text-primary-600' : 'text-slate-700'
+              }`}
+              aria-expanded={heroVisible ? heroHighlightOpen : categoriesOpen}
               aria-controls="desktop-category-menu"
               aria-label="Danh mục"
             >
@@ -200,11 +219,15 @@ export default function Header() {
               <span className="hidden lg:inline">Danh mục</span>
               <ChevronDown
                 className={`h-4 w-4 transition-transform ${
-                  categoriesOpen ? 'rotate-180' : ''
+                  (heroVisible ? heroHighlightOpen : categoriesOpen) ? 'rotate-180' : ''
                 }`}
               />
             </button>
 
+            {/* Khi danh mục Hero (trang chủ) còn trong viewport, nút này chỉ làm nổi
+                bật danh sách đó qua CategoryHeroBackdrop — không render dropdown này
+                để tránh có hai danh sách cùng lúc. */}
+            {!heroVisible && (
             <div
               id="desktop-category-menu"
               className={`absolute left-0 top-full z-50 flex max-h-[calc(100dvh-100px)] items-stretch overflow-y-auto pt-3 origin-top-left transition-all duration-200 ${activeCategory !== null ? 'w-[min(992px,calc(100vw-2rem))] xl:w-[min(1200px,calc(100vw-2rem))]' : ''} ${
@@ -257,6 +280,7 @@ export default function Header() {
                 return selected ? <MegaMenuPanel menu={selected} onNavigate={closeCategories} /> : null;
               })()}
             </div>
+            )}
           </div>
 
           {/* Logo */}

@@ -6,6 +6,7 @@ import { getHomeBanners } from '@/services/banner.service';
 import MainBannerSlider from './MainBannerSlider';
 import SideBanner from './SideBanner';
 import BannerSkeleton from './BannerSkeleton';
+import HomeCategorySidebar from './HomeCategorySidebar';
 import styles from './HomeBannerSection.module.css';
 
 export default function HomeBannerSection() {
@@ -40,7 +41,7 @@ export default function HomeBannerSection() {
   ];
   const visibleRight = rightSlots.filter(item => loading || item.banners.length);
   const visibleBottom = bottomSlots.filter(item => loading || item.banners.length);
-  const hasLeft = loading || slides('SIDE_LEFT', data?.sideLeft).length > 0;
+  const hasLeft = true;
   const slot = `relative min-w-0 overflow-hidden rounded-xl ${loading ? '' : 'ui-banner'}`;
   const side = (item: typeof rightSlots[number], className: string) => (
     <div key={item.position} className={`${slot} ${className}`} data-banner-position={item.position}>
@@ -50,7 +51,7 @@ export default function HomeBannerSection() {
   return (
     <section className="container mx-auto px-3 py-5 lg:px-4 sm:py-6" aria-label="Banner khuyến mãi" aria-busy={loading}>
       <div className={`${styles.layout} ${hasLeft ? styles.hasLeft : ''} ${visibleRight.length ? styles.hasRight : ''}`}>
-        {hasLeft && side({ position: 'SIDE_LEFT', banners: slides('SIDE_LEFT', data?.sideLeft), label: 'Banner dọc bên trái' }, styles.left)}
+        {hasLeft && <HomeCategorySidebar className={styles.left} />}
         <div className={styles.mainColumn}>
           <div className={`${slot} ${styles.hero}`} data-banner-position="MAIN_HERO">
             {loading ? <BannerSkeleton label="Banner chính giữa" /> : data && <MainBannerSlider key={data.mainHero.map(banner => `${banner.id}-${banner.updatedAt}`).join(',')} banners={data.mainHero} label="Banner chính" />}
