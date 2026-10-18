@@ -109,7 +109,7 @@
   height: calc(100% - 16px);
   object-fit: contain;
   object-position: center;
-  transition: transform var(--ui-image-duration) var(--ui-ease);
+  transition: transform 280ms ease-out;
 }
 .discountBadge {
   position: absolute;
@@ -262,8 +262,8 @@
   .track { --visible-cards: 6; }
 }
 @media (hover: hover) and (pointer: fine) {
-  .productCard:hover { transform: translateY(-4px); box-shadow: var(--ui-card-shadow); border-color: #fed7aa; }
-  .productCard:hover .productImage img { transform: scale(1.03); }
+  .productCard:hover { box-shadow: var(--ui-card-shadow); border-color: #fed7aa; }
+  .productCard:hover .productImage img { transform: translateY(-5px) scale(1.05); }
   .productCard:hover .specifications { box-shadow: 0 0 0 1px #fed7aa66, 0 2px 6px #0f172a08; }
   .viewAll:hover { color: #9a3412; text-decoration: underline; text-underline-offset: 4px; }
   .viewAll:hover > svg { translate: 3px 0; }

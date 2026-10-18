@@ -45,7 +45,7 @@ export default function CatalogProductCard({ product }: { product: Product }) {
             <img
               src={mediaUrl(product.primaryImage)}
               alt={product.name}
-              className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+              className="h-full w-full object-contain transition-transform duration-300 ease-out motion-reduce:transition-none group-hover:-translate-y-[5px] group-hover:scale-[1.05] motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100"
               loading="lazy"
               decoding="async"
             />
