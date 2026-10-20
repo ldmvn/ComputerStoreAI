@@ -1,4 +1,4 @@
-import type { ProductSection, ProductSectionInput, QuickFilterConfig, SectionProduct } from '@/types/productSection.type';
+import type { ProductSection, ProductSectionInput, PromotionalSectionInput, QuickFilterConfig, SectionProduct } from '@/types/productSection.type';
 import { apiRequest } from './http.client';
 
 export const getHomeProductSections = (signal?: AbortSignal) => apiRequest<{ sections: ProductSection[] }>('/product-sections/home', { signal });
@@ -15,3 +15,19 @@ export const removeProductFromSection = (token: string | null, id: number, produ
 export const reorderSectionProducts = (token: string | null, id: number, productIds: number[]) => apiRequest<{ section: ProductSection; message: string }>(`/admin/product-sections/${id}/products/reorder`, { method: 'PATCH', body: JSON.stringify({ ids: productIds }) }, token);
 export const reorderProductSections = (token: string | null, ids: number[]) => apiRequest<{ sections: ProductSection[]; message: string }>('/admin/product-sections/reorder', { method: 'PATCH', body: JSON.stringify({ ids }) }, token);
 export const saveQuickFilterConfig = (token: string | null, id: number, config: QuickFilterConfig | null) => apiRequest<{ section: ProductSection; message: string }>(`/admin/product-sections/${id}/quick-filter`, { method: 'PUT', body: JSON.stringify(config) }, token);
+
+export const createPromotionalSection = (token: string | null, body: PromotionalSectionInput) =>
+  apiRequest<{ section: ProductSection; message: string }>('/admin/product-sections', { method: 'POST', body: JSON.stringify(body) }, token);
+
+export const updatePromotionalSection = (token: string | null, id: number, body: PromotionalSectionInput) =>
+  apiRequest<{ section: ProductSection; message: string }>(`/admin/product-sections/${id}`, { method: 'PUT', body: JSON.stringify(body) }, token);
+
+export async function uploadPromoSectionImage(token: string | null, id: number, file: File): Promise<ProductSection> {
+  const form = new FormData();
+  form.append('image', file);
+  const res = await apiRequest<{ section: ProductSection }>(`/admin/product-sections/${id}/image`, { method: 'POST', body: form }, token);
+  return res.section;
+}
+
+export const deletePromoSectionImage = (token: string | null, id: number) =>
+  apiRequest<{ section: ProductSection; message: string }>(`/admin/product-sections/${id}/image`, { method: 'DELETE' }, token);

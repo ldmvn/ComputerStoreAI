@@ -60,7 +60,7 @@ export const dashboardMenu: DashboardMenuGroup[] = [
       { label: 'Mega Menu',      path: '/admin/mega-menu',        icon: PanelTop,         permission: 'megamenu:view' },
       { label: 'Kho',            path: '/admin/inventory',        icon: Warehouse,        permission: 'inventory:view' },
       { label: 'Quản lý Banner', path: '/admin/banners',          icon: Image,            permission: 'banners:view' },
-      { label: 'Khối sản phẩm',  path: '/admin/product-sections', icon: PanelTop,         permission: 'product_sections:view' },
+      { label: 'Khối trang chủ', path: '/admin/product-sections', icon: PanelTop,         permission: 'product_sections:view' },
       { label: 'Khuyến mãi',     path: '/admin/promotions',       icon: TicketPercent,    permission: 'promotions:view' },
       { label: 'Đánh giá',       path: '/admin/reviews',          icon: Star,             permission: 'reviews:view' },
     ],

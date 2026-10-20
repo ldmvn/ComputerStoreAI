@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowDown, ArrowUp, ChevronDown, ChevronRight,
-  Edit3, Eye, EyeOff, Filter, LayoutGrid, PackageOpen, Plus, ShoppingBag, Trash2, X,
+  Edit3, Eye, EyeOff, Filter, LayoutGrid, Megaphone, PackageOpen, Plus, ShoppingBag, Trash2, X,
 } from 'lucide-react';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminFeedback from '@/components/admin/AdminFeedback';
@@ -12,11 +12,12 @@ import { adminActionButtonClass, adminActionGroupClass } from '@/components/admi
 import EmptyState from '@/components/ui/EmptyState';
 import Modal from '@/components/ui/Modal';
 import { useAuthStore } from '@/store/auth.store';
-import type { ProductSection, ProductSectionInput, QuickFilterConfig, QuickFilterTab, SectionProduct } from '@/types/productSection.type';
+import type { ProductSection, ProductSectionInput, PromotionalSectionInput, QuickFilterConfig, QuickFilterTab, SectionProduct } from '@/types/productSection.type';
 import { mediaUrl } from '@/services/http.client';
 import {
   addProductsToSection,
   createProductSection,
+  createPromotionalSection,
   deleteProductSection,
   getProductSections,
   removeProductFromSection,
@@ -25,12 +26,14 @@ import {
   saveQuickFilterConfig,
   setProductSectionStatus,
   updateProductSection,
+  updatePromotionalSection,
 } from '@/services/productSection.service';
 import { getAdminBrands, type Brand } from '@/services/brand.service';
 import { getAdminCategories, type Category } from '@/services/category.service';
 import { getAttributes, type Attribute } from '@/services/attribute.service';
 import ProductPicker from './ProductPicker';
 import ProductSectionForm from './ProductSectionForm';
+import PromotionalSectionForm from './PromotionalSectionForm';
 
 const btn = adminActionButtonClass;
 
@@ -462,6 +465,7 @@ function QuickFilterEditor({
 
 function sectionVisibility(section: ProductSection) {
   if (!section.isActive) return { label: 'Đang ẩn', cls: 'text-slate-400' };
+  if (section.type === 'PROMOTIONAL_SECTION') return { label: 'Đang hiển thị trên trang chủ', cls: 'text-green-600' };
   if (!section.products.length) return { label: 'Chưa có sản phẩm — không hiển thị', cls: 'text-amber-600' };
   return { label: 'Đang hiển thị trên trang chủ', cls: 'text-green-600' };
 }
@@ -568,6 +572,8 @@ export default function ProductSectionManager() {
   const [sections, setSections] = useState<ProductSection[]>([]);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [editor, setEditor] = useState<ProductSection | null | undefined>(undefined);
+  const [promoEditor, setPromoEditor] = useState<ProductSection | null | undefined>(undefined);
+  const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const [pickerSectionId, setPickerSectionId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<ProductSection | null>(null);
   const [loading, setLoading] = useState(true);
@@ -609,6 +615,17 @@ export default function ProductSectionManager() {
     setEditor(undefined);
   }, editor ? 'Đã cập nhật khối sản phẩm.' : 'Đã tạo khối sản phẩm.');
 
+  const savePromo = (input: PromotionalSectionInput) => void action(async () => {
+    if (promoEditor) await updatePromotionalSection(token!, promoEditor.id, input);
+    else await createPromotionalSection(token!, input);
+    setPromoEditor(undefined);
+  }, promoEditor ? 'Đã cập nhật khối quảng bá.' : 'Đã tạo khối quảng bá.');
+
+  const openEditor = (section: ProductSection) => {
+    if (section.type === 'PROMOTIONAL_SECTION') setPromoEditor(section);
+    else setEditor(section);
+  };
+
   const toggleExpand = (id: number) =>
     setExpanded(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
 
@@ -635,11 +652,47 @@ export default function ProductSectionManager() {
   return (
     <section>
       <AdminPageHeader
-        title="Khối sản phẩm"
+        title="Khối trang chủ"
         action={
-          <button type="button" onClick={() => setEditor(null)} className="ui-button ui-button--primary inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-700">
-            <Plus className="h-4 w-4" />Tạo khối sản phẩm
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setCreateMenuOpen(v => !v)}
+              className="ui-button ui-button--primary inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-700"
+            >
+              <Plus className="h-4 w-4" />Tạo khối mới
+              <ChevronDown className="h-4 w-4" />
+            </button>
+            {createMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setCreateMenuOpen(false)} aria-hidden="true" />
+                <div className="absolute right-0 top-full z-20 mt-1.5 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    onClick={() => { setCreateMenuOpen(false); setEditor(null); }}
+                  >
+                    <LayoutGrid className="h-4 w-4 shrink-0 text-primary-600" />
+                    <span>
+                      <span className="block">Khối sản phẩm</span>
+                      <span className="block text-xs font-normal text-slate-400">Danh sách sản phẩm có bộ lọc</span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-3 border-t border-slate-100 px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    onClick={() => { setCreateMenuOpen(false); setPromoEditor(null); }}
+                  >
+                    <Megaphone className="h-4 w-4 shrink-0 text-amber-600" />
+                    <span>
+                      <span className="block">Khối quảng bá</span>
+                      <span className="block text-xs font-normal text-slate-400">Banner nổi bật với CTA</span>
+                    </span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         }
       />
       <AdminFeedback message={message} error={error} />
@@ -651,8 +704,8 @@ export default function ProductSectionManager() {
       ) : !sections.length ? (
         <EmptyState
           icon={LayoutGrid}
-          title="Chưa có khối sản phẩm."
-          description="Khối sản phẩm là các nhóm hiển thị trên trang chủ."
+          title="Chưa có khối trang chủ."
+          description="Tạo khối sản phẩm hoặc khối quảng bá để hiển thị trên trang chủ."
           action={
             <button type="button" onClick={() => setEditor(null)} className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700">
               Tạo khối sản phẩm
@@ -671,32 +724,43 @@ export default function ProductSectionManager() {
                   {/* expand toggle + info */}
                   <button
                     type="button"
-                    onClick={() => toggleExpand(section.id)}
-                    aria-expanded={isOpen}
-                    aria-label={isOpen ? 'Thu gọn khối' : 'Mở rộng khối'}
+                    onClick={() => section.type !== 'PROMOTIONAL_SECTION' && toggleExpand(section.id)}
+                    aria-expanded={section.type !== 'PROMOTIONAL_SECTION' ? isOpen : undefined}
+                    aria-label={section.type !== 'PROMOTIONAL_SECTION' ? (isOpen ? 'Thu gọn khối' : 'Mở rộng khối') : section.name}
                     className="flex min-w-0 flex-1 items-center gap-2 text-left"
                   >
-                    {isOpen
-                      ? <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
-                      : <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />}
+                    {section.type === 'PROMOTIONAL_SECTION'
+                      ? <Megaphone className="h-4 w-4 shrink-0 text-amber-500" />
+                      : (isOpen
+                          ? <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+                          : <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />)}
                     <span className="truncate font-semibold text-slate-800">{section.name}</span>
-                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                      {section.products.length}
-                    </span>
+                    {section.type === 'PROMOTIONAL_SECTION' ? (
+                      <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">Quảng bá</span>
+                    ) : (
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                        {section.products.length}
+                      </span>
+                    )}
                     <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${section.isActive ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
                       {section.isActive ? 'Active' : 'Ẩn'}
                     </span>
                     <span className={`hidden truncate text-xs sm:block ${vis.cls}`}>{vis.label}</span>
+                    {section.type === 'PROMOTIONAL_SECTION' && section.promoTitle && (
+                      <span className="hidden truncate text-xs text-slate-400 lg:block">{section.promoTitle}</span>
+                    )}
                   </button>
 
                   {/* action buttons */}
                   <div className={adminActionGroupClass}>
-                    <button type="button" className={btn} onClick={() => setEditor(section)} aria-label="Sửa khối">
+                    <button type="button" className={btn} onClick={() => openEditor(section)} aria-label="Sửa khối">
                       <Edit3 className="h-3.5 w-3.5" />Sửa
                     </button>
-                    <button type="button" className={btn} onClick={() => setQuickFilterSectionId(section.id)} aria-label="Cấu hình Quick Filter">
-                      <Filter className="h-3.5 w-3.5" />Filter
-                    </button>
+                    {section.type !== 'PROMOTIONAL_SECTION' && (
+                      <button type="button" className={btn} onClick={() => setQuickFilterSectionId(section.id)} aria-label="Cấu hình Quick Filter">
+                        <Filter className="h-3.5 w-3.5" />Filter
+                      </button>
+                    )}
                     <button type="button" className={btn} disabled={busy} onClick={() => void action(() => setProductSectionStatus(token!, section.id, !section.isActive), section.isActive ? 'Đã tắt khối.' : 'Đã bật khối.')}>
                       {section.isActive ? <><EyeOff className="h-3.5 w-3.5" />Tắt</> : <><Eye className="h-3.5 w-3.5" />Bật</>}
                     </button>
@@ -712,8 +776,8 @@ export default function ProductSectionManager() {
                   </div>
                 </div>
 
-                {/* ── Expanded product list ── */}
-                {isOpen && (
+                {/* ── Expanded product list (PRODUCT_SECTION only) ── */}
+                {isOpen && section.type !== 'PROMOTIONAL_SECTION' && (
                   <div className="border-t border-slate-100 px-4 pb-4 pt-3">
                     <div className="mb-3 flex items-center justify-between gap-2">
                       <p className="text-xs text-slate-500">
@@ -765,6 +829,16 @@ export default function ProductSectionManager() {
         <ProductSectionForm section={editor || undefined} busy={busy} onClose={() => setEditor(undefined)} onSave={save} />
       )}
 
+      {promoEditor !== undefined && (
+        <PromotionalSectionForm
+          section={promoEditor || undefined}
+          token={token}
+          busy={busy}
+          onClose={() => setPromoEditor(undefined)}
+          onSave={savePromo}
+        />
+      )}
+
       {pickerSection && (
         <ProductPicker
           token={token}
@@ -792,9 +866,12 @@ export default function ProductSectionManager() {
       })()}
 
       {deleting && (
-        <Modal title="Xóa khối sản phẩm" onClose={() => setDeleting(null)} busy={busy}>
+        <Modal title="Xóa khối trang chủ" onClose={() => setDeleting(null)} busy={busy}>
           <p className="text-slate-600">
-            Xóa khối <strong>&ldquo;{deleting.name}&rdquo;</strong>? Các sản phẩm trong khối sẽ không bị xóa khỏi cơ sở dữ liệu.
+            Xóa khối <strong>&ldquo;{deleting.name}&rdquo;</strong>?{' '}
+            {deleting.type === 'PROMOTIONAL_SECTION'
+              ? 'Ảnh đính kèm sẽ bị xóa khỏi máy chủ.'
+              : 'Các sản phẩm trong khối sẽ không bị xóa khỏi cơ sở dữ liệu.'}
           </p>
           <div className="mt-6 flex justify-end gap-3">
             <button type="button" onClick={() => setDeleting(null)} disabled={busy} className="ui-button ui-button--neutral rounded-lg border border-slate-200 px-4 py-2.5 text-sm">Hủy</button>

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { getHomeProductSections } from '@/services/productSection.service';
 import type { ProductSection, QuickFilterTab } from '@/types/productSection.type';
 import ProductCard from './ProductCard';
+import PromotionalSection from './PromotionalSection';
 import styles from './HomeProductSections.module.css';
 
 function buildTabUrl(section: ProductSection, tab: QuickFilterTab): string {
@@ -80,7 +81,9 @@ export default function HomeProductSections() {
     return () => controller.abort();
   }, [retry]);
 
-  const visibleSections = sections.filter(s => s.products.length > 0);
+  const visibleSections = sections.filter(s =>
+    s.type === 'PROMOTIONAL_SECTION' || s.products.length > 0
+  );
 
   if (loaded && error) return (
     <div className="container mx-auto px-3 pb-8 lg:px-4" role="status">
@@ -109,14 +112,20 @@ export default function HomeProductSections() {
           </div>
         </div>
       ) : visibleSections.map(section => (
-        <section key={section.id} className={styles.section} aria-labelledby={`home-products-${section.id}`}>
-          <SectionHeader section={section} />
-          <div className={styles.grid}>
-            {section.products.slice(0, 6).map(product => (
-              <ProductCard key={product.id} product={product} showHighlightSpecs={section.showHighlightSpecs} />
-            ))}
+        section.type === 'PROMOTIONAL_SECTION' ? (
+          <div key={section.id} aria-label={section.promoTitle || section.name}>
+            <PromotionalSection section={section} />
           </div>
-        </section>
+        ) : (
+          <section key={section.id} className={styles.section} aria-labelledby={`home-products-${section.id}`}>
+            <SectionHeader section={section} />
+            <div className={styles.grid}>
+              {section.products.slice(0, 6).map(product => (
+                <ProductCard key={product.id} product={product} showHighlightSpecs={section.showHighlightSpecs} />
+              ))}
+            </div>
+          </section>
+        )
       ))}
     </div>
   );

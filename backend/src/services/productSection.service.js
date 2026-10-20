@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma.js';
 import { productSectionError } from '../validators/productSection.validator.js';
+import { removePromoImage } from './promoMedia.service.js';
 
 const productSelect = { id: true, slug: true, sku: true, name: true, price: true, isActive: true, stockQuantity: true, images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }, { id: 'asc' }], select: { imageUrl: true }, take: 1 } };
 const homeProductSelect = {
@@ -37,6 +38,7 @@ const homeSectionInclude = {
 function serialize(section) {
   return {
     id: section.id,
+    type: section.type ?? 'PRODUCT_SECTION',
     name: section.name,
     slug: section.slug,
     subtitle: section.subtitle,
@@ -45,6 +47,20 @@ function serialize(section) {
     isActive: section.isActive,
     showHighlightSpecs: section.showHighlightSpecs ?? true,
     quickFilterConfig: section.quickFilterConfig ?? null,
+    // Promotional fields
+    badge: section.badge ?? null,
+    promoTitle: section.promoTitle ?? null,
+    description: section.description ?? null,
+    ctaEnabled: section.ctaEnabled ?? true,
+    ctaLabel: section.ctaLabel ?? null,
+    ctaUrl: section.ctaUrl ?? null,
+    ctaStyle: section.ctaStyle ?? 'primary',
+    ctaRounded: section.ctaRounded ?? 'pill',
+    imageUrl: section.imageUrl ?? null,
+    imageAlt: section.imageAlt ?? null,
+    imagePos: section.imagePos ?? 'right',
+    colorPreset: section.colorPreset ?? 'dark-premium',
+    layout: section.layout ?? 'text-left-cta-right',
     createdAt: section.createdAt,
     updatedAt: section.updatedAt,
     products: section.items.map(item => ({
@@ -115,7 +131,13 @@ export async function getSection(id) {
 
 export async function getHomeSections() {
   const sections = await prisma.productSection.findMany({
-    where: { isActive: true, items: { some: { product: { isDeleted: false, isActive: true } } } },
+    where: {
+      isActive: true,
+      OR: [
+        { type: 'PRODUCT_SECTION', items: { some: { product: { isDeleted: false, isActive: true } } } },
+        { type: 'PROMOTIONAL_SECTION' },
+      ],
+    },
     orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
     include: homeSectionInclude,
   });
@@ -151,11 +173,6 @@ export async function updateSection(id, data) {
     if (error.code === 'P2002') throw productSectionError('Slug khối sản phẩm đã tồn tại.', 409);
     throw error;
   }
-}
-
-export async function deleteSection(id) {
-  await getSectionOrThrow(id);
-  await prisma.productSection.delete({ where: { id } });
 }
 
 export async function setSectionStatus(id, isActive) {
@@ -200,4 +217,24 @@ export async function reorderSections(ids) {
   }
   await prisma.$transaction(ids.map((id, sortOrder) => prisma.productSection.update({ where: { id }, data: { sortOrder } })));
   return listSections();
+}
+
+export async function updateSectionImage(id, imageUrl) {
+  const current = await getSectionOrThrow(id);
+  if (current.imageUrl) await removePromoImage(current.imageUrl);
+  const section = await prisma.productSection.update({ where: { id }, data: { imageUrl }, include: sectionInclude });
+  return serialize(section);
+}
+
+export async function deleteSectionImage(id) {
+  const current = await getSectionOrThrow(id);
+  if (current.imageUrl) await removePromoImage(current.imageUrl);
+  const section = await prisma.productSection.update({ where: { id }, data: { imageUrl: null, imageAlt: null }, include: sectionInclude });
+  return serialize(section);
+}
+
+export async function deleteSection(id) {
+  const current = await getSectionOrThrow(id);
+  if (current.imageUrl) await removePromoImage(current.imageUrl);
+  await prisma.productSection.delete({ where: { id } });
 }

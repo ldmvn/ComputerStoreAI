@@ -49,6 +49,8 @@ import customerSupportRoutes from './src/routes/v1/customerSupport.route.js';
 import adminSupportRoutes from './src/routes/v1/adminSupport.route.js';
 import adminBrandingRoutes from './src/routes/v1/adminBranding.route.js';
 import { getPublicBranding } from './src/controllers/storeBranding.controller.js';
+import { getPublicStore } from './src/controllers/storeSetting.controller.js';
+import { promoMediaDirectory } from './src/services/promoMedia.service.js';
 
 import { verifyResetMailConnection } from './src/services/passwordResetMail.service.js';
 import { cleanupExpiredPasswordResets } from './src/services/passwordReset.service.js';
@@ -156,6 +158,11 @@ app.use('/api/customer/support', customerSupportRoutes);
 app.use('/api/admin/support-tickets', adminSupportRoutes);
 app.use('/api/admin/branding', adminBrandingRoutes);
 app.get('/api/content/branding', getPublicBranding);
+app.get('/api/content/store-info', getPublicStore);
+app.use('/media/promo-sections', express.static(promoMediaDirectory, {
+  dotfiles: 'deny', immutable: true, maxAge: '30d',
+  setHeaders: res => res.set('X-Content-Type-Options', 'nosniff'),
+}));
 
 app.use('/media/banners', express.static(bannerMediaDirectory, {
   dotfiles: 'deny',

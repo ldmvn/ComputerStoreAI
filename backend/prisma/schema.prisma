@@ -362,8 +362,14 @@ model ProductView {
   @@id([productId, viewId])
 }
 
+enum SectionType {
+  PRODUCT_SECTION
+  PROMOTIONAL_SECTION
+}
+
 model ProductSection {
   id                  Int                  @id @default(autoincrement())
+  type                SectionType          @default(PRODUCT_SECTION)
   name                String
   slug                String               @unique
   subtitle            String?
@@ -372,6 +378,20 @@ model ProductSection {
   isActive            Boolean              @default(true)
   showHighlightSpecs  Boolean              @default(true)
   quickFilterConfig   Json?
+  // Promotional Section fields (null for PRODUCT_SECTION)
+  badge               String?              @db.VarChar(100)
+  promoTitle          String?              @db.VarChar(200)
+  description         String?              @db.Text
+  ctaEnabled          Boolean              @default(true)
+  ctaLabel            String?              @db.VarChar(100)
+  ctaUrl              String?              @db.VarChar(1000)
+  ctaStyle            String               @default("primary") @db.VarChar(20)
+  ctaRounded          String               @default("pill") @db.VarChar(20)
+  imageUrl            String?              @db.VarChar(1000)
+  imageAlt            String?              @db.VarChar(300)
+  imagePos            String               @default("right") @db.VarChar(20)
+  colorPreset         String               @default("dark-premium") @db.VarChar(30)
+  layout              String               @default("text-left-cta-right") @db.VarChar(30)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   items               ProductSectionItem[]

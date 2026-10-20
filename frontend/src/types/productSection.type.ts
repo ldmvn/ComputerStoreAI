@@ -37,8 +37,11 @@ export type QuickFilterConfig = {
   tabs: QuickFilterTab[];
 };
 
+export type SectionType = 'PRODUCT_SECTION' | 'PROMOTIONAL_SECTION';
+
 export type ProductSection = {
   id: number;
+  type: SectionType;
   name: string;
   slug: string;
   subtitle: string | null;
@@ -47,6 +50,20 @@ export type ProductSection = {
   isActive: boolean;
   showHighlightSpecs: boolean;
   quickFilterConfig: QuickFilterConfig | null;
+  // Promotional fields
+  badge: string | null;
+  promoTitle: string | null;
+  description: string | null;
+  ctaEnabled: boolean;
+  ctaLabel: string | null;
+  ctaUrl: string | null;
+  ctaStyle: 'primary' | 'outline';
+  ctaRounded: 'rounded' | 'pill';
+  imageUrl: string | null;
+  imageAlt: string | null;
+  imagePos: 'left' | 'right' | 'background' | 'none';
+  colorPreset: 'dark-premium' | 'ember-orange' | 'light-minimal' | 'image-background';
+  layout: 'text-left-cta-right' | 'image-left' | 'image-right';
   createdAt: string;
   updatedAt: string;
   products: SectionProduct[];
@@ -60,4 +77,24 @@ export type ProductSectionInput = {
   sortOrder: number;
   isActive: boolean;
   showHighlightSpecs: boolean;
+};
+
+export type PromotionalSectionInput = {
+  type: 'PROMOTIONAL_SECTION';
+  name: string;
+  slug: string;
+  sortOrder: number;
+  isActive: boolean;
+  badge: string;
+  promoTitle: string;
+  description: string;
+  ctaEnabled: boolean;
+  ctaLabel: string;
+  ctaUrl: string;
+  ctaStyle: 'primary' | 'outline';
+  ctaRounded: 'rounded' | 'pill';
+  imageAlt: string;
+  imagePos: 'left' | 'right' | 'background' | 'none';
+  colorPreset: 'dark-premium' | 'ember-orange' | 'light-minimal' | 'image-background';
+  layout: 'text-left-cta-right' | 'image-left' | 'image-right';
 };

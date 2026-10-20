@@ -7,6 +7,29 @@ const err = (res, e) => {
   res.status(status).json({ success: false, message: e.message });
 };
 
+// Allowed hostnames per social channel
+const SOCIAL_HOSTNAMES = {
+  zalo: ['zalo.me'],
+  messenger: ['m.me', 'www.messenger.com', 'messenger.com'],
+  telegram: ['t.me', 'telegram.me', 'telegram.org'],
+};
+
+function validateSocialUrl(key, value) {
+  // key format: social.<channel>.url
+  const [, channel] = key.split('.');
+  const allowed = SOCIAL_HOSTNAMES[channel];
+  if (!allowed) return `Kênh '${channel}' không được hỗ trợ.`;
+  if (!value) return null; // empty = cleared, OK
+
+  let parsed;
+  try { parsed = new URL(value); } catch { return 'URL không hợp lệ.'; }
+
+  if (parsed.protocol !== 'https:') return 'Chỉ chấp nhận URL bắt đầu bằng https://.';
+  if (parsed.username || parsed.password) return 'URL không được chứa thông tin đăng nhập.';
+  if (!allowed.includes(parsed.hostname)) return `URL phải thuộc domain: ${allowed.join(', ')}.`;
+  return null;
+}
+
 // In-memory rate limit: max 3 test emails per userId per 60 s
 const _testEmailBucket = new Map();
 function _allowTestEmail(userId) {
@@ -36,7 +59,14 @@ export async function getPublicStore(req, res) {
 
 export async function update(req, res) {
   try {
-    await svc.setSettings(req.body);
+    const body = req.body ?? {};
+    for (const [key, value] of Object.entries(body)) {
+      if (/^social\.[^.]+\.url$/.test(key)) {
+        const msg = validateSocialUrl(key, String(value ?? ''));
+        if (msg) return res.status(400).json({ success: false, message: `${key}: ${msg}` });
+      }
+    }
+    await svc.setSettings(body);
     res.json({ success: true, message: 'Đã lưu cài đặt.' });
   } catch (e) { err(res, e); }
 }

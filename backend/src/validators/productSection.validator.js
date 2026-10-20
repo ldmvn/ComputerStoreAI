@@ -29,6 +29,7 @@ export function validateSection(input) {
   if (subtitle.length > 191) throw productSectionError('Tiêu đề phụ tối đa 191 ký tự.');
   if (viewAllUrl.length > 1000 || (viewAllUrl && !isSafeUrl(viewAllUrl))) throw productSectionError('Link Xem tất cả không hợp lệ.');
   return {
+    type: 'PRODUCT_SECTION',
     name: input.name.trim(),
     slug,
     subtitle: subtitle || null,
@@ -36,6 +37,58 @@ export function validateSection(input) {
     sortOrder: integer(input.sortOrder ?? 0, 'Thứ tự'),
     isActive: input.isActive === false || input.isActive === 'false' ? false : true,
     showHighlightSpecs: input.showHighlightSpecs === false || input.showHighlightSpecs === 'false' ? false : true,
+  };
+}
+
+const ALLOWED_PRESETS = ['dark-premium', 'ember-orange', 'light-minimal', 'image-background'];
+const ALLOWED_LAYOUTS = ['text-left-cta-right', 'image-left', 'image-right'];
+const ALLOWED_IMAGE_POS = ['left', 'right', 'background', 'none'];
+const ALLOWED_CTA_STYLES = ['primary', 'outline'];
+const ALLOWED_CTA_ROUNDED = ['rounded', 'pill'];
+
+export function validatePromoSection(input) {
+  if (!input || typeof input.name !== 'string' || !input.name.trim() || input.name.trim().length > 150) {
+    throw productSectionError('Tên quản lý bắt buộc, tối đa 150 ký tự.');
+  }
+  const slug = typeof input.slug === 'string' ? input.slug.trim().toLowerCase() : '';
+  if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 191) {
+    throw productSectionError('Slug chỉ gồm chữ thường, số và dấu gạch ngang.');
+  }
+  const promoTitle = typeof input.promoTitle === 'string' ? input.promoTitle.trim() : '';
+  if (promoTitle.length > 200) throw productSectionError('Tiêu đề hiển thị tối đa 200 ký tự.');
+  const badge = typeof input.badge === 'string' ? input.badge.trim() : '';
+  if (badge.length > 100) throw productSectionError('Badge tối đa 100 ký tự.');
+  const description = typeof input.description === 'string' ? input.description.trim() : '';
+  const ctaLabel = typeof input.ctaLabel === 'string' ? input.ctaLabel.trim() : '';
+  if (ctaLabel.length > 100) throw productSectionError('Nhãn CTA tối đa 100 ký tự.');
+  const ctaUrl = typeof input.ctaUrl === 'string' ? input.ctaUrl.trim() : '';
+  if (ctaUrl && !isSafeUrl(ctaUrl)) throw productSectionError('URL CTA không hợp lệ. Chỉ chấp nhận đường dẫn nội bộ hoặc https://.');
+  if (ctaUrl.length > 1000) throw productSectionError('URL CTA tối đa 1000 ký tự.');
+  const ctaStyle = ALLOWED_CTA_STYLES.includes(input.ctaStyle) ? input.ctaStyle : 'primary';
+  const ctaRounded = ALLOWED_CTA_ROUNDED.includes(input.ctaRounded) ? input.ctaRounded : 'pill';
+  const imageAlt = typeof input.imageAlt === 'string' ? input.imageAlt.trim() : '';
+  if (imageAlt.length > 300) throw productSectionError('Alt text ảnh tối đa 300 ký tự.');
+  const imagePos = ALLOWED_IMAGE_POS.includes(input.imagePos) ? input.imagePos : 'right';
+  const colorPreset = ALLOWED_PRESETS.includes(input.colorPreset) ? input.colorPreset : 'dark-premium';
+  const layout = ALLOWED_LAYOUTS.includes(input.layout) ? input.layout : 'text-left-cta-right';
+  return {
+    type: 'PROMOTIONAL_SECTION',
+    name: input.name.trim(),
+    slug,
+    sortOrder: integer(input.sortOrder ?? 0, 'Thứ tự'),
+    isActive: input.isActive === false || input.isActive === 'false' ? false : true,
+    badge: badge || null,
+    promoTitle: promoTitle || null,
+    description: description || null,
+    ctaEnabled: input.ctaEnabled === false || input.ctaEnabled === 'false' ? false : true,
+    ctaLabel: ctaLabel || null,
+    ctaUrl: ctaUrl || null,
+    ctaStyle,
+    ctaRounded,
+    imageAlt: imageAlt || null,
+    imagePos,
+    colorPreset,
+    layout,
   };
 }
 

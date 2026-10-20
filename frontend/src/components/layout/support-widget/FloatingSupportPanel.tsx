@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Bot, Send, X } from 'lucide-react';
 import { MessengerGlyph, ZaloGlyph } from './brandIcons';
 import SupportContactItem, { type SupportContact } from './SupportContactItem';
+import { getPublicStoreInfo } from '@/services/adminSettings.service';
 
-const CONTACTS: SupportContact[] = [
+const BASE_CONTACTS: SupportContact[] = [
   {
     id: 'ai',
     label: 'Chatbot AI',
@@ -38,6 +40,27 @@ const CONTACTS: SupportContact[] = [
 ];
 
 export default function FloatingSupportPanel({ onClose }: { onClose: () => void }) {
+  const [contacts, setContacts] = useState<SupportContact[]>(BASE_CONTACTS);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    getPublicStoreInfo(ctrl.signal)
+      .then(res => {
+        const d = res.data ?? {};
+        setContacts(
+          BASE_CONTACTS.map(c => {
+            if (c.id === 'ai') return c;
+            const enabled = d[`social.${c.id}.enabled`];
+            const url = d[`social.${c.id}.url`]?.trim();
+            if (enabled === 'false') return null;
+            return url ? { ...c, href: url } : c;
+          }).filter(Boolean) as SupportContact[],
+        );
+      })
+      .catch(() => {}); // fallback: keep BASE_CONTACTS as-is
+    return () => ctrl.abort();
+  }, []);
+
   return (
     <div
       role="dialog"
@@ -60,7 +83,7 @@ export default function FloatingSupportPanel({ onClose }: { onClose: () => void 
       </div>
 
       <div className="space-y-2 p-3">
-        {CONTACTS.map(c => <SupportContactItem key={c.id} contact={c} />)}
+        {contacts.map(c => <SupportContactItem key={c.id} contact={c} />)}
       </div>
     </div>
   );
