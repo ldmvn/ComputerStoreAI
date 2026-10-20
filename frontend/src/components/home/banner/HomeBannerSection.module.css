@@ -1,59 +1,198 @@
-.layout {
+/* DUCMANH PC - Bố cục Hero theo đúng mẫu HACOM:
+   - Hàng trên: Cột trái (Danh mục), Cột giữa (MAIN_HERO Slider), Cột phải (2 banner dọc)
+     Ba cột căn thẳng mép trên và mép dưới, MAIN_HERO chiếm 100% chiều cao hàng trên.
+   - Hàng dưới: 3 banner ngang bằng nhau trải toàn bộ chiều rộng container.
+*/
+
+.topRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: 'main';
   gap: 12px;
   align-items: stretch;
 }
-.mainColumn { grid-area: main; display: grid; min-width: 0; gap: 12px; }
-.hero { width: 100%; justify-self: center; aspect-ratio: 2 / 1; }
-.bottomRow {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+
+.heroColumn {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  width: 100%;
 }
-.bottomSlot { aspect-ratio: 8 / 3; }
-.singleBottom { grid-template-columns: minmax(0, 1fr); }
-.singleBottom .bottomSlot { aspect-ratio: 16 / 3; }
-.left { grid-area: left; min-height: 0; }
+
+.hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+/* Cột danh mục sản phẩm (Hero Sidebar) - hiển thị trên desktop >=1280px */
+.left {
+  min-height: 0;
+  display: none;
+}
+
+/* Cột phải: 2 banner xếp dọc - hiển thị trên desktop >=1280px */
 .sideColumn {
-  grid-area: right;
-  display: grid;
-  grid-auto-rows: minmax(0, 1fr);
+  display: none;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 12px;
   min-width: 0;
   min-height: 0;
+  height: 100%;
 }
-.sideSlot { min-height: 0; }
-@media (max-width: 768px) {
-  .left, .sideColumn, .bottomRow { display: none; }
+
+.sideSlot {
+  min-height: 0;
+  height: 100%;
 }
-@media (min-width: 769px) {
-  .hero { aspect-ratio: 16 / 7; }
+
+/* Hàng dưới: 3 banner ngang (hoặc 2 banner trên tablet, ẩn trên mobile) */
+.bottomRow {
+  display: none; /* Mobile (<768px): Chỉ MAIN_HERO */
+  margin-top: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.bottomSlot {
+  aspect-ratio: 8 / 3;
+  min-width: 0;
+}
+
+.desktopOnlySlot {
+  display: none !important;
+}
+
+.singleBottom {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.singleBottom .bottomSlot {
+  aspect-ratio: 16 / 3.5;
+}
+
+/* Tablet/iPad (768–1279px): MAIN_HERO + 2 banner phụ bên dưới */
+@media (min-width: 768px) {
+  .hero {
+    aspect-ratio: 16 / 7;
+  }
+  .bottomRow {
+    display: grid;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    max-height: 440px;
+  }
+  .topRow {
+    gap: 16px;
+  }
+  .bottomRow {
+    margin-top: 16px;
+    gap: 16px;
+  }
+  .bottomSlot {
+    aspect-ratio: 8 / 3;
+  }
+}
+
+/* Desktop (>=1280px): Bố cục đầy đủ HACOM
+   - Hàng trên: Danh mục (trái 19fr) + MAIN_HERO (giữa 57fr) + 2 banner phải (24fr)
+   - Ba cột căn thẳng mép trên và mép dưới:
+     MAIN_HERO chiếm 100% chiều cao hàng trên, bằng toàn bộ khu vực 2 banner phải.
+     Không có khoảng trắng bên dưới MAIN_HERO.
+   - Hàng dưới: đúng 3 banner ngang bằng nhau trải 100% container
+*/
+@media (min-width: 1280px) {
+  .topRow {
+    grid-template-columns: minmax(0, 19fr) minmax(0, 57fr) minmax(0, 24fr);
+    align-items: stretch;
+    gap: 16px;
+  }
+
   .hasLeft {
     grid-template-columns: minmax(0, 19fr) minmax(0, 81fr);
-    grid-template-areas: 'left main';
   }
+
   .hasRight {
     grid-template-columns: minmax(0, 73fr) minmax(0, 27fr);
-    grid-template-areas: 'main right';
   }
+
   .hasLeft.hasRight {
-    grid-template-columns: minmax(0, 19fr) minmax(0, 54fr) minmax(0, 27fr);
-    grid-template-areas: 'left main right';
+    grid-template-columns: minmax(0, 19fr) minmax(0, 57fr) minmax(0, 24fr);
   }
-}
-@media (min-width: 1024px) {
-  .hero { aspect-ratio: 16 / 7; max-height: 440px; }
-  .layout, .mainColumn, .sideColumn { gap: 16px; }
-  .hasLeft.hasRight {
-    grid-template-columns: minmax(0, 18fr) minmax(0, 59fr) minmax(0, 23fr);
+
+  /* Cột danh mục trái */
+  .left {
+    display: block;
+    height: 100%;
+    min-height: 480px;
   }
-  .hasLeft.hasRight .bottomRow {
+
+  /* Cột giữa MAIN_HERO: chiếm 100% chiều cao hàng, bằng toàn bộ khu vực hai banner phải */
+  .heroColumn {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 480px;
+  }
+
+  .hero {
+    flex: 1 1 0%;
     width: 100%;
-    justify-self: start;
+    height: 100%;
+    min-height: 480px;
+    max-height: none;
+    aspect-ratio: auto;
   }
-  .bottomSlot { aspect-ratio: 8 / 3.5; }
-  .singleBottom .bottomSlot { aspect-ratio: 16 / 3.5; }
+
+  /* Cột phải: đúng 2 banner xếp dọc chia đều chiều cao hàng */
+  .sideColumn {
+    display: grid;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    height: 100%;
+    min-height: 480px;
+  }
+
+  .sideSlot {
+    height: 100%;
+    min-height: 0;
+  }
+
+  /* Hàng dưới: đúng 3 banner ngang bằng nhau trải 100% container */
+  .bottomRow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 16px;
+    gap: 16px;
+  }
+
+  .bottomSlot {
+    aspect-ratio: 16 / 5.5;
+  }
+
+  .desktopOnlySlot {
+    display: block !important;
+  }
+
+  .doubleBottom {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .doubleBottom .bottomSlot {
+    aspect-ratio: 8 / 3;
+  }
+
+  .singleBottom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .singleBottom .bottomSlot {
+    aspect-ratio: 16 / 4;
+  }
 }

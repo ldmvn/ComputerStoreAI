@@ -8,11 +8,12 @@ import {
   removeProduct,
   reorderProducts,
   reorderSections,
+  saveQuickFilterConfig,
   searchProducts,
   setSectionStatus,
   updateSection,
 } from '../services/productSection.service.js';
-import { productId, sectionId, validateProductIds, validateReorderIds, validateSection } from '../validators/productSection.validator.js';
+import { productId, sectionId, validateProductIds, validateQuickFilterConfig, validateReorderIds, validateSection } from '../validators/productSection.validator.js';
 
 const asyncHandler = handler => (req, res, next) => Promise.resolve(handler(req, res)).catch(next);
 
@@ -32,3 +33,4 @@ export const add = asyncHandler(async (req, res) => res.json({ section: await ad
 export const removeItem = asyncHandler(async (req, res) => res.json({ section: await removeProduct(sectionId(req.params.id), productId(req.params.productId)), message: 'Đã xóa sản phẩm khỏi khối.' }));
 export const reorderItems = asyncHandler(async (req, res) => res.json({ section: await reorderProducts(sectionId(req.params.id), validateReorderIds(req.body, 'sản phẩm')), message: 'Đã lưu thứ tự sản phẩm.' }));
 export const reorder = asyncHandler(async (req, res) => res.json({ sections: await reorderSections(validateReorderIds(req.body, 'khối').map(Number)), message: 'Đã lưu thứ tự khối.' }));
+export const quickFilter = asyncHandler(async (req, res) => res.json({ section: await saveQuickFilterConfig(sectionId(req.params.id), validateQuickFilterConfig(req.body)), message: 'Đã lưu cấu hình Quick Filter.' }));

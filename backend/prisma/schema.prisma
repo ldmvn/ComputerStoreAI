@@ -371,6 +371,7 @@ model ProductSection {
   sortOrder           Int                  @default(0)
   isActive            Boolean              @default(true)
   showHighlightSpecs  Boolean              @default(true)
+  quickFilterConfig   Json?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   items               ProductSectionItem[]

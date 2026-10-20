@@ -1,4 +1,4 @@
-import type { ProductSection, ProductSectionInput, SectionProduct } from '@/types/productSection.type';
+import type { ProductSection, ProductSectionInput, QuickFilterConfig, SectionProduct } from '@/types/productSection.type';
 import { apiRequest } from './http.client';
 
 export const getHomeProductSections = (signal?: AbortSignal) => apiRequest<{ sections: ProductSection[] }>('/product-sections/home', { signal });
@@ -14,3 +14,4 @@ export const addProductsToSection = (token: string | null, id: number, productId
 export const removeProductFromSection = (token: string | null, id: number, productId: number) => apiRequest<{ section: ProductSection; message: string }>(`/admin/product-sections/${id}/products/${productId}`, { method: 'DELETE' }, token);
 export const reorderSectionProducts = (token: string | null, id: number, productIds: number[]) => apiRequest<{ section: ProductSection; message: string }>(`/admin/product-sections/${id}/products/reorder`, { method: 'PATCH', body: JSON.stringify({ ids: productIds }) }, token);
 export const reorderProductSections = (token: string | null, ids: number[]) => apiRequest<{ sections: ProductSection[]; message: string }>('/admin/product-sections/reorder', { method: 'PATCH', body: JSON.stringify({ ids }) }, token);
+export const saveQuickFilterConfig = (token: string | null, id: number, config: QuickFilterConfig | null) => apiRequest<{ section: ProductSection; message: string }>(`/admin/product-sections/${id}/quick-filter`, { method: 'PUT', body: JSON.stringify(config) }, token);

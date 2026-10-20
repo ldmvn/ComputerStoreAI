@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { ChevronRight, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ChevronRight } from 'lucide-react';
 import { getCategoryIcon } from '@/components/category/CategoryIcon';
 import { getPublicCategories, type PublicCategory } from '@/services/category.service';
 import { getPublicMenus, type PublicMenu } from '@/services/megaMenu.service';
@@ -12,13 +12,17 @@ import { useCategoryHeroStore } from '@/store/categoryHero.store';
 // Danh mục mặc định ở cột trái Hero Banner — dùng chung API/dữ liệu với
 // Danh mục trên Header (getPublicCategories, getPublicMenus, MegaMenuPanel).
 // State mở/đóng ở đây độc lập hoàn toàn với Header để không xung đột.
+// Hover → mở panel chi tiết; Click → điều hướng tới trang sản phẩm đã lọc.
 export default function HomeCategorySidebar({ className = '' }: { className?: string }) {
+  const router = useRouter();
   const [categories, setCategories] = useState<PublicCategory[]>([]);
   const [menus, setMenus] = useState<PublicMenu[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
   const [menuError, setMenuError] = useState('');
   const [activeId, setActiveId] = useState<number | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  // Debounce đóng panel để không nhấp nháy khi di chuột từ danh sách sang panel.
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setHeroVisible = useCategoryHeroStore(state => state.setHeroVisible);
   const highlightActive = useCategoryHeroStore(state => state.heroVisible && state.highlightOpen);
   const closeHighlight = useCategoryHeroStore(state => state.closeHighlight);
@@ -31,42 +35,70 @@ export default function HomeCategorySidebar({ className = '' }: { className?: st
     return () => controller.abort();
   }, []);
 
-  // Báo cho Header biết danh sách Hero có đang trong viewport hay không, để
-  // Header quyết định làm nổi bật danh sách này hay mở dropdown riêng của nó.
-  // rootMargin trừ chiều cao Header sticky để không tính là "hiển thị" khi
-  // danh sách chỉ còn ló ra một chút phía dưới Header. Dùng callback ref thay vì
-  // useEffect([]) vì phần tử thật chỉ xuất hiện sau khi categories tải xong
-  // (trước đó component trả về placeholder rỗng) — callback ref tự chạy lại
-  // đúng lúc DOM node thật được gắn, không phụ thuộc thời điểm effect chạy.
-  // useCallback giữ danh tính hàm ref ổn định qua các lần render — nếu không,
-  // mỗi lần heroVisible đổi (gây re-render) React sẽ coi ref prop đã đổi và
-  // gọi lại teardown/setup liên tục, tạo vòng lặp bật/tắt không ngừng.
+  // Sidebar chỉ thực sự "đang hiển thị" khi CẢ HAI đúng: (1) viewport đủ rộng
+  // cho chế độ Desktop (>=1280px, đồng bộ breakpoint xl với CSS ẩn sidebar ở
+  // Tablet) và (2) phần tử thật sự nằm trong vùng nhìn thấy (IntersectionObserver).
+  const [isDesktopWidth, setIsDesktopWidth] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches
+  );
+  const [intersecting, setIntersecting] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 1280px)');
+    const update = () => setIsDesktopWidth(mql.matches);
+    update();
+    mql.addEventListener('change', update);
+    return () => mql.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
+    setHeroVisible(isDesktopWidth && intersecting);
+  }, [isDesktopWidth, intersecting, setHeroVisible]);
+
   const observerRef = useRef<IntersectionObserver | null>(null);
   const setWrapperRef = useCallback((node: HTMLDivElement | null) => {
     wrapperRef.current = node;
     observerRef.current?.disconnect();
-    if (!node) { setHeroVisible(false); return; }
+    if (!node) { setIntersecting(false); return; }
     observerRef.current = new IntersectionObserver(
-      ([entry]) => setHeroVisible(entry.isIntersecting),
+      ([entry]) => setIntersecting(entry.isIntersecting),
       { threshold: 0.15, rootMargin: '-88px 0px 0px 0px' }
     );
     observerRef.current.observe(node);
-  }, [setHeroVisible]);
-  useEffect(() => () => { observerRef.current?.disconnect(); setHeroVisible(false); }, [setHeroVisible]);
+  }, []);
+  useEffect(() => () => { observerRef.current?.disconnect(); setIntersecting(false); }, []);
 
-  // Khi backdrop do Header mở tắt đi (đóng từ true → false), đóng luôn panel
-  // chi tiết đang mở để quay về danh sách thuần — nhưng không đụng tới activeId
-  // khi backdrop chưa từng mở (giữ nguyên hành vi click trực tiếp độc lập).
+  // Khi backdrop do Header mở tắt đi, đóng luôn panel chi tiết đang mở.
   const wasHighlightActive = useRef(highlightActive);
   useEffect(() => {
     if (wasHighlightActive.current && !highlightActive) setActiveId(null);
     wasHighlightActive.current = highlightActive;
   }, [highlightActive]);
 
-  const close = () => setActiveId(null);
+  const close = useCallback(() => setActiveId(null), []);
 
-  function select(id: number) {
-    setActiveId(prev => (prev === id ? null : id));
+  function scheduleClose() {
+    closeTimerRef.current = setTimeout(close, 150);
+  }
+
+  function cancelClose() {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+  }
+
+  useEffect(() => () => { if (closeTimerRef.current) clearTimeout(closeTimerRef.current); }, []);
+
+  // Escape đóng panel và tắt highlight của Header nếu đang bật.
+  useEffect(() => {
+    if (activeId === null && !highlightActive) return;
+    const closeAll = () => { close(); if (highlightActive) closeHighlight(); };
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') closeAll(); };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [activeId, highlightActive, closeHighlight, close]);
+
+  function openPanel(id: number) {
+    cancelClose();
+    setActiveId(id);
     if (!menus.length && !menuLoading) {
       setMenuLoading(true);
       getPublicMenus()
@@ -76,27 +108,27 @@ export default function HomeCategorySidebar({ className = '' }: { className?: st
     }
   }
 
-  useEffect(() => {
-    if (activeId === null && !highlightActive) return;
-    const closeAll = () => { close(); if (highlightActive) closeHighlight(); };
-    const onPointerDown = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) closeAll();
-    };
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') closeAll(); };
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [activeId, highlightActive, closeHighlight]);
-
-  if (!categories.length) return <div className={className} aria-hidden="true" />;
+  if (!categories.length) {
+    return (
+      <div
+        className={`${className} h-full min-h-[480px] rounded-xl border border-slate-200/80 bg-white/70 animate-pulse`}
+        aria-hidden="true"
+      />
+    );
+  }
 
   const activeMenu = activeId !== null ? menus.find(m => m.category.id === activeId) : undefined;
 
   return (
-    <div ref={setWrapperRef} className={`relative ${highlightActive ? 'z-[45]' : ''} ${className}`}>
+    // onMouseLeave/onMouseEnter trên wrapper bao gồm cả panel (absolute child),
+    // nên di chuột giữa danh sách và panel không đóng panel.
+    // pl-3 trên panel container (thay vì ml-3) giúp vùng hover phủ qua khoảng cách 12px.
+    <div
+      ref={setWrapperRef}
+      className={`relative ${(activeId !== null || highlightActive) ? 'z-[45]' : ''} ${className}`}
+      onMouseEnter={cancelClose}
+      onMouseLeave={scheduleClose}
+    >
       <nav
         aria-label="Danh mục sản phẩm"
         className={`h-full w-full overflow-y-auto rounded-xl border bg-white p-1.5 transition-shadow duration-200 ${
@@ -110,9 +142,10 @@ export default function HomeCategorySidebar({ className = '' }: { className?: st
             <button
               key={cat.id}
               type="button"
-              onClick={() => select(cat.id)}
+              onMouseEnter={() => openPanel(cat.id)}
+              onClick={() => router.push(`/customer/products?category=${encodeURIComponent(cat.slug)}`)}
               aria-expanded={isActive}
-              className={`ui-menu-item ui-category-item group flex min-h-10 w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sm font-medium transition-colors ${
+              className={`ui-menu-item ui-category-item group flex min-h-10 w-full cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sm font-medium transition-colors ${
                 isActive ? 'bg-primary-50 text-primary-600' : 'text-slate-700 hover:bg-primary-50 hover:text-primary-600'
               }`}
             >
@@ -127,20 +160,14 @@ export default function HomeCategorySidebar({ className = '' }: { className?: st
       </nav>
 
       {activeId !== null && (
+        // bottom-0 + top-0 = panel stretches to full sidebar height.
+        // h-full overflow-y-auto trên inner div cho phép cuộn nếu nội dung nhiều.
         <div
-          className="absolute left-full top-0 z-30 ml-3 hidden min-w-[min(820px,calc(100vw-20rem))] max-w-[calc(100vw-2rem)] origin-top-left animate-support-toggle-in md:block"
+          className="absolute bottom-0 left-full top-0 z-30 hidden min-w-[min(820px,calc(100vw-20rem))] max-w-[calc(100vw-2rem)] origin-top-left animate-support-toggle-in pl-3 md:block"
           role="dialog"
           aria-label="Chi tiết danh mục"
         >
-          <div className="relative">
-            <button
-              type="button"
-              onClick={close}
-              aria-label="Đóng"
-              className="absolute -right-2 -top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white text-slate-400 shadow-md ring-1 ring-slate-200 transition-colors hover:text-primary-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
+          <div className="h-full overflow-y-auto">
             {menuLoading && !menus.length && (
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-lg"><p className="text-sm text-slate-500">Đang tải...</p></div>
             )}
@@ -148,17 +175,9 @@ export default function HomeCategorySidebar({ className = '' }: { className?: st
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-lg"><p className="text-sm text-red-600">{menuError}</p></div>
             )}
             {activeMenu && <MegaMenuPanel menu={activeMenu} onNavigate={close} />}
-            {!activeMenu && !menuLoading && !menuError && (() => {
-              const cat = categories.find(c => c.id === activeId);
-              if (!cat) return null;
-              return (
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-lg">
-                  <Link href={`/customer/products?category=${encodeURIComponent(cat.slug)}`} onClick={close} className="text-sm font-medium text-primary-700 hover:underline">
-                    Xem sản phẩm {cat.name}
-                  </Link>
-                </div>
-              );
-            })()}
+            {!activeMenu && !menuLoading && !menuError && (
+              <div className="h-full rounded-xl border border-slate-200 bg-white shadow-lg" />
+            )}
           </div>
         </div>
       )}

@@ -1,3 +1,10 @@
+## Quy tắc commit message
+
+- Viết commit message bằng tiếng Việt tự nhiên, ngắn gọn, mô tả rõ nội dung thay đổi.
+- Không dùng tiền tố Conventional Commits: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `style:`, `test:`, `ci:`, `perf:`, hoặc dạng `feat(scope):`.
+- Ví dụ đúng: `Hoàn thiện giao diện Floating Support Widget`, `Sửa lỗi đăng nhập`, `Thêm chức năng tư vấn Build PC`.
+- Không tự động commit hoặc push — chỉ thực hiện khi được yêu cầu rõ ràng.
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.

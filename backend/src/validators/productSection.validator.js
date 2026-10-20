@@ -59,3 +59,43 @@ function isSafeUrl(value) {
   if (value.startsWith('/') && !value.startsWith('//')) return true;
   try { return ['http:', 'https:'].includes(new URL(value).protocol); } catch { return false; }
 }
+
+const FILTER_TYPES = ['ALL', 'BRAND', 'CATEGORY', 'ATTRIBUTE'];
+
+export function validateQuickFilterConfig(input) {
+  if (input === null || input === undefined) return null;
+  if (typeof input !== 'object' || Array.isArray(input)) {
+    throw productSectionError('Cấu hình Quick Filter không hợp lệ.');
+  }
+  const enabled = input.enabled === true || input.enabled === false ? input.enabled : true;
+  if (!Array.isArray(input.tabs)) throw productSectionError('Danh sách tab không hợp lệ.');
+  if (input.tabs.length > 20) throw productSectionError('Tối đa 20 tab cho một khối.');
+  const tabs = input.tabs.map((tab, i) => {
+    if (!tab || typeof tab !== 'object') throw productSectionError(`Tab ${i + 1} không hợp lệ.`);
+    const id = typeof tab.id === 'string' && tab.id.trim() ? tab.id.trim() : null;
+    if (!id) throw productSectionError(`Tab ${i + 1} thiếu id.`);
+    const label = typeof tab.label === 'string' ? tab.label.trim() : '';
+    if (!label || label.length > 50) throw productSectionError(`Tab ${i + 1}: tên hiển thị bắt buộc, tối đa 50 ký tự.`);
+    const filterType = tab.filterType;
+    if (!FILTER_TYPES.includes(filterType)) throw productSectionError(`Tab ${i + 1}: loại bộ lọc không hợp lệ.`);
+    const out = { id, label, filterType, sortOrder: Number(tab.sortOrder ?? i) };
+    if (filterType === 'BRAND') {
+      if (!tab.brandId || !Number.isSafeInteger(Number(tab.brandId))) throw productSectionError(`Tab "${label}" thiếu brandId hợp lệ.`);
+      out.brandId = Number(tab.brandId);
+      out.brandSlug = typeof tab.brandSlug === 'string' ? tab.brandSlug.trim() : null;
+    }
+    if (filterType === 'CATEGORY') {
+      if (!tab.categoryId || !Number.isSafeInteger(Number(tab.categoryId))) throw productSectionError(`Tab "${label}" thiếu categoryId hợp lệ.`);
+      out.categoryId = Number(tab.categoryId);
+      out.categorySlug = typeof tab.categorySlug === 'string' ? tab.categorySlug.trim() : null;
+    }
+    if (filterType === 'ATTRIBUTE') {
+      if (!tab.attributeValueId || !Number.isSafeInteger(Number(tab.attributeValueId))) throw productSectionError(`Tab "${label}" thiếu attributeValueId hợp lệ.`);
+      out.attributeValueId = Number(tab.attributeValueId);
+      out.attributeId = tab.attributeId ? Number(tab.attributeId) : null;
+      out.attributeSlug = typeof tab.attributeSlug === 'string' ? tab.attributeSlug.trim() : null;
+    }
+    return out;
+  });
+  return { enabled, tabs };
+}

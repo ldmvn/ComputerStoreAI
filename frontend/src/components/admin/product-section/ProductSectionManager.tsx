@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowDown, ArrowUp, ChevronDown, ChevronRight,
-  Edit3, Eye, EyeOff, LayoutGrid, PackageOpen, Plus, ShoppingBag, Trash2,
+  Edit3, Eye, EyeOff, Filter, LayoutGrid, PackageOpen, Plus, ShoppingBag, Trash2, X,
 } from 'lucide-react';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminFeedback from '@/components/admin/AdminFeedback';
@@ -12,7 +12,7 @@ import { adminActionButtonClass, adminActionGroupClass } from '@/components/admi
 import EmptyState from '@/components/ui/EmptyState';
 import Modal from '@/components/ui/Modal';
 import { useAuthStore } from '@/store/auth.store';
-import type { ProductSection, ProductSectionInput, SectionProduct } from '@/types/productSection.type';
+import type { ProductSection, ProductSectionInput, QuickFilterConfig, QuickFilterTab, SectionProduct } from '@/types/productSection.type';
 import { mediaUrl } from '@/services/http.client';
 import {
   addProductsToSection,
@@ -22,13 +22,443 @@ import {
   removeProductFromSection,
   reorderProductSections,
   reorderSectionProducts,
+  saveQuickFilterConfig,
   setProductSectionStatus,
   updateProductSection,
 } from '@/services/productSection.service';
+import { getAdminBrands, type Brand } from '@/services/brand.service';
+import { getAdminCategories, type Category } from '@/services/category.service';
+import { getAttributes, type Attribute } from '@/services/attribute.service';
 import ProductPicker from './ProductPicker';
 import ProductSectionForm from './ProductSectionForm';
 
 const btn = adminActionButtonClass;
+
+const FILTER_TYPE_OPTIONS = [
+  { value: 'BRAND', label: 'Thương hiệu' },
+  { value: 'CATEGORY', label: 'Danh mục' },
+  { value: 'ATTRIBUTE', label: 'Thuộc tính' },
+] as const;
+
+const FILTER_TYPE_LABEL: Record<string, string> = { ALL: 'Tất cả', BRAND: 'Thương hiệu', CATEGORY: 'Danh mục', ATTRIBUTE: 'Thuộc tính' };
+
+type TabDraft = {
+  id: string;
+  label: string;
+  labelAutoSet: boolean;
+  filterType: 'BRAND' | 'CATEGORY' | 'ATTRIBUTE';
+  selectedBrandId: number | '';
+  selectedCategoryId: number | '';
+  selectedAttributeId: number | '';
+  selectedAttributeValueId: number | '';
+};
+
+function newDraft(): TabDraft {
+  return { id: crypto.randomUUID(), label: '', labelAutoSet: false, filterType: 'BRAND', selectedBrandId: '', selectedCategoryId: '', selectedAttributeId: '', selectedAttributeValueId: '' };
+}
+
+function draftToTab(d: TabDraft, sortOrder: number, brands: Brand[], categories: Category[], attributes: Attribute[]): QuickFilterTab {
+  const base = { id: d.id, label: d.label, sortOrder };
+  if (d.filterType === 'BRAND' && d.selectedBrandId !== '') {
+    const brand = brands.find(b => b.id === d.selectedBrandId);
+    return { ...base, filterType: 'BRAND', brandId: d.selectedBrandId, brandSlug: brand?.slug ?? null };
+  }
+  if (d.filterType === 'CATEGORY' && d.selectedCategoryId !== '') {
+    const cat = categories.find(c => c.id === d.selectedCategoryId);
+    return { ...base, filterType: 'CATEGORY', categoryId: d.selectedCategoryId, categorySlug: cat?.slug ?? null };
+  }
+  if (d.filterType === 'ATTRIBUTE' && d.selectedAttributeId !== '' && d.selectedAttributeValueId !== '') {
+    const attr = attributes.find(a => a.id === d.selectedAttributeId);
+    return { ...base, filterType: 'ATTRIBUTE', attributeValueId: d.selectedAttributeValueId, attributeId: d.selectedAttributeId, attributeSlug: attr?.slug ?? null };
+  }
+  return { ...base, filterType: d.filterType };
+}
+
+function tabToDraft(t: QuickFilterTab): TabDraft {
+  const filterType = (t.filterType === 'ALL' ? 'BRAND' : t.filterType) as 'BRAND' | 'CATEGORY' | 'ATTRIBUTE';
+  return {
+    id: t.id,
+    label: t.label,
+    labelAutoSet: false,
+    filterType,
+    selectedBrandId: t.brandId ?? '',
+    selectedCategoryId: t.categoryId ?? '',
+    selectedAttributeId: t.attributeId ?? '',
+    selectedAttributeValueId: t.attributeValueId ?? '',
+  };
+}
+
+function validateDraft(d: TabDraft, existingTabs: TabDraft[], editingIdx: number | null): string | null {
+  if (!d.label.trim()) return 'Tên tab không được để trống.';
+  if (d.label.trim().length > 50) return 'Tên tab tối đa 50 ký tự.';
+  if (d.filterType === 'BRAND' && d.selectedBrandId === '') return 'Vui lòng chọn thương hiệu.';
+  if (d.filterType === 'CATEGORY' && d.selectedCategoryId === '') return 'Vui lòng chọn danh mục.';
+  if (d.filterType === 'ATTRIBUTE' && d.selectedAttributeId === '') return 'Vui lòng chọn thuộc tính.';
+  if (d.filterType === 'ATTRIBUTE' && d.selectedAttributeValueId === '') return 'Vui lòng chọn giá trị thuộc tính.';
+  // duplicate check
+  const isDuplicate = existingTabs.some((t, i) => {
+    if (i === editingIdx) return false;
+    if (t.filterType !== d.filterType) return false;
+    if (d.filterType === 'BRAND') return t.selectedBrandId === d.selectedBrandId;
+    if (d.filterType === 'CATEGORY') return t.selectedCategoryId === d.selectedCategoryId;
+    if (d.filterType === 'ATTRIBUTE') return t.selectedAttributeValueId === d.selectedAttributeValueId;
+    return false;
+  });
+  if (isDuplicate) return 'Tab với bộ lọc này đã tồn tại trong khối.';
+  return null;
+}
+
+const selectCls = 'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-200 disabled:bg-slate-50 disabled:text-slate-400';
+
+function TabForm({
+  draft, editingIdx, tabs,
+  brands, categories, attributes,
+  dataLoading, dataError,
+  onChange, onCommit, onCancel,
+}: {
+  draft: TabDraft; editingIdx: number | null; tabs: TabDraft[];
+  brands: Brand[]; categories: Category[]; attributes: Attribute[];
+  dataLoading: boolean; dataError: string;
+  onChange: (d: TabDraft) => void; onCommit: () => void; onCancel: () => void;
+}) {
+  const [error, setError] = useState('');
+
+  const handleFilterTypeChange = (ft: TabDraft['filterType']) => {
+    onChange({ ...draft, filterType: ft, selectedBrandId: '', selectedCategoryId: '', selectedAttributeId: '', selectedAttributeValueId: '', label: draft.labelAutoSet ? '' : draft.label, labelAutoSet: draft.labelAutoSet ? false : draft.labelAutoSet });
+    setError('');
+  };
+
+  const handleBrandChange = (brandId: number | '') => {
+    const brand = brands.find(b => b.id === brandId);
+    const newLabel = (draft.labelAutoSet || !draft.label) && brand ? brand.name : draft.label;
+    onChange({ ...draft, selectedBrandId: brandId, label: newLabel, labelAutoSet: !!(brand && (draft.labelAutoSet || !draft.label)) });
+    setError('');
+  };
+
+  const handleCategoryChange = (catId: number | '') => {
+    const cat = categories.find(c => c.id === catId);
+    const newLabel = (draft.labelAutoSet || !draft.label) && cat ? cat.name : draft.label;
+    onChange({ ...draft, selectedCategoryId: catId, label: newLabel, labelAutoSet: !!(cat && (draft.labelAutoSet || !draft.label)) });
+    setError('');
+  };
+
+  const handleAttributeChange = (attrId: number | '') => {
+    const newLabel = draft.labelAutoSet ? '' : draft.label;
+    onChange({ ...draft, selectedAttributeId: attrId, selectedAttributeValueId: '', label: newLabel, labelAutoSet: false });
+    setError('');
+  };
+
+  const handleValueChange = (valId: number | '') => {
+    const attr = attributes.find(a => a.id === draft.selectedAttributeId);
+    const val = attr?.values.find(v => v.id === valId);
+    const newLabel = (draft.labelAutoSet || !draft.label) && val ? val.value : draft.label;
+    onChange({ ...draft, selectedAttributeValueId: valId, label: newLabel, labelAutoSet: !!(val && (draft.labelAutoSet || !draft.label)) });
+    setError('');
+  };
+
+  const handleLabelChange = (label: string) => onChange({ ...draft, label, labelAutoSet: false });
+
+  const commit = () => {
+    const err = validateDraft(draft, tabs, editingIdx);
+    if (err) { setError(err); return; }
+    setError('');
+    onCommit();
+  };
+
+  const selectedAttr = attributes.find(a => a.id === draft.selectedAttributeId);
+  const attrValues = selectedAttr?.values.filter(v => v.isActive) ?? [];
+
+  // Category display with parent prefix
+  const catById = Object.fromEntries(categories.map(c => [c.id, c]));
+  const catLabel = (c: Category) => c.parentId && catById[c.parentId] ? `${catById[c.parentId].name} › ${c.name}` : c.name;
+
+  return (
+    <div className="mt-3 rounded-xl border border-primary-200 bg-primary-50 p-4 space-y-3">
+      <p className="text-xs font-semibold text-primary-700">{editingIdx !== null ? 'Sửa tab' : 'Tab mới'}</p>
+
+      {dataError && <p className="text-xs text-red-600">{dataError}</p>}
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {/* Filter type */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">Loại bộ lọc *</label>
+          <select
+            value={draft.filterType}
+            onChange={e => handleFilterTypeChange(e.target.value as TabDraft['filterType'])}
+            className={selectCls}
+            disabled={dataLoading}
+          >
+            {FILTER_TYPE_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+          </select>
+        </div>
+
+        {/* Brand selector */}
+        {draft.filterType === 'BRAND' && (
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Thương hiệu *</label>
+            <select
+              value={draft.selectedBrandId}
+              onChange={e => handleBrandChange(e.target.value ? Number(e.target.value) : '')}
+              className={selectCls}
+              disabled={dataLoading || !!dataError}
+            >
+              <option value="">{dataLoading ? 'Đang tải...' : '— Chọn thương hiệu —'}</option>
+              {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+          </div>
+        )}
+
+        {/* Category selector */}
+        {draft.filterType === 'CATEGORY' && (
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Danh mục *</label>
+            <select
+              value={draft.selectedCategoryId}
+              onChange={e => handleCategoryChange(e.target.value ? Number(e.target.value) : '')}
+              className={selectCls}
+              disabled={dataLoading || !!dataError}
+            >
+              <option value="">{dataLoading ? 'Đang tải...' : '— Chọn danh mục —'}</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{catLabel(c)}</option>)}
+            </select>
+          </div>
+        )}
+
+        {/* Attribute selector */}
+        {draft.filterType === 'ATTRIBUTE' && (
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Thuộc tính *</label>
+            <select
+              value={draft.selectedAttributeId}
+              onChange={e => handleAttributeChange(e.target.value ? Number(e.target.value) : '')}
+              className={selectCls}
+              disabled={dataLoading || !!dataError}
+            >
+              <option value="">{dataLoading ? 'Đang tải...' : '— Chọn thuộc tính —'}</option>
+              {attributes.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* Attribute value selector — full width below */}
+      {draft.filterType === 'ATTRIBUTE' && (
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">Giá trị *</label>
+          <select
+            value={draft.selectedAttributeValueId}
+            onChange={e => handleValueChange(e.target.value ? Number(e.target.value) : '')}
+            className={selectCls}
+            disabled={!draft.selectedAttributeId || dataLoading}
+          >
+            <option value="">
+              {!draft.selectedAttributeId ? 'Chọn thuộc tính trước' : attrValues.length === 0 ? 'Không có giá trị nào' : '— Chọn giá trị —'}
+            </option>
+            {attrValues.map(v => <option key={v.id} value={v.id}>{v.value}</option>)}
+          </select>
+        </div>
+      )}
+
+      {/* Label */}
+      <div>
+        <label className="mb-1 block text-xs font-medium text-slate-600">
+          Tên hiển thị trên tab *
+          {draft.labelAutoSet && <span className="ml-1.5 text-[10px] font-normal text-slate-400">(tự điền — bạn có thể sửa)</span>}
+        </label>
+        <input
+          type="text"
+          maxLength={50}
+          value={draft.label}
+          onChange={e => handleLabelChange(e.target.value)}
+          placeholder="Ví dụ: ASUS, Core i5, DDR5..."
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-200"
+        />
+      </div>
+
+      {error && <p className="text-xs text-red-600">{error}</p>}
+
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={onCancel} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100">Hủy</button>
+        <button type="button" onClick={commit} disabled={dataLoading} className="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60 hover:bg-primary-700">
+          {editingIdx !== null ? 'Lưu thay đổi' : 'Thêm tab'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function QuickFilterEditor({
+  section, token, busy, onClose, onSaved,
+}: {
+  section: ProductSection; token: string | null; busy: boolean;
+  onClose: () => void; onSaved: (section: ProductSection) => void;
+}) {
+  const cfg = section.quickFilterConfig;
+  const [enabled, setEnabled] = useState(cfg?.enabled ?? true);
+  const [tabs, setTabs] = useState<TabDraft[]>(() =>
+    cfg?.tabs?.filter(t => t.filterType !== 'ALL').map(tabToDraft) ?? []
+  );
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [draft, setDraft] = useState<TabDraft | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+
+  // Reference data
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState('');
+
+  useEffect(() => {
+    const ac = new AbortController();
+    Promise.all([
+      getAdminBrands(token, ac.signal),
+      getAdminCategories(token, ac.signal),
+      getAttributes(token, ac.signal),
+    ]).then(([b, c, a]) => {
+      if (ac.signal.aborted) return;
+      setBrands(b.brands.filter(x => x.isActive));
+      setCategories(c.categories.filter(x => x.isActive));
+      setAttributes(a.attributes.filter(x => x.isActive && (x.type === 'SELECT' || x.type === 'MULTI_SELECT')));
+      setDataLoading(false);
+    }).catch(e => {
+      if (ac.signal.aborted) return;
+      setDataError(e instanceof Error ? e.message : 'Không tải được dữ liệu. Vui lòng thử lại.');
+      setDataLoading(false);
+    });
+    return () => ac.abort();
+  }, [token]);
+
+  const openAdd = () => { setDraft(newDraft()); setEditingIdx(null); };
+  const openEdit = (idx: number) => { setDraft({ ...tabs[idx] }); setEditingIdx(idx); };
+  const cancelDraft = () => { setDraft(null); setEditingIdx(null); };
+
+  const commitDraft = () => {
+    if (!draft) return;
+    setTabs(prev => {
+      const next = [...prev];
+      if (editingIdx !== null) next[editingIdx] = draft;
+      else next.push(draft);
+      return next;
+    });
+    cancelDraft();
+  };
+
+  const removeTab = (idx: number) => {
+    setTabs(prev => prev.filter((_, i) => i !== idx));
+    if (editingIdx === idx) cancelDraft();
+    else if (editingIdx !== null && idx < editingIdx) setEditingIdx(editingIdx - 1);
+  };
+
+  const tabDisplayText = (t: TabDraft) => {
+    if (t.filterType === 'BRAND') { const b = brands.find(x => x.id === t.selectedBrandId); return b ? `Thương hiệu: ${b.name}` : 'Thương hiệu'; }
+    if (t.filterType === 'CATEGORY') { const c = categories.find(x => x.id === t.selectedCategoryId); return c ? `Danh mục: ${c.name}` : 'Danh mục'; }
+    if (t.filterType === 'ATTRIBUTE') {
+      const attr = attributes.find(x => x.id === t.selectedAttributeId);
+      const val = attr?.values.find(v => v.id === t.selectedAttributeValueId);
+      return attr && val ? `${attr.name}: ${val.value}` : 'Thuộc tính';
+    }
+    return FILTER_TYPE_LABEL[t.filterType] ?? t.filterType;
+  };
+
+  const save = async () => {
+    setSaving(true); setSaveError('');
+    try {
+      const config: QuickFilterConfig | null = tabs.length === 0 ? null : {
+        enabled,
+        tabs: tabs.map((d, i) => draftToTab(d, i, brands, categories, attributes)),
+      };
+      const result = await saveQuickFilterConfig(token, section.id, config);
+      onSaved(result.section);
+      onClose();
+    } catch (reason) {
+      setSaveError(reason instanceof Error ? reason.message : 'Lưu thất bại.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal title={`Quick Filter — ${section.name}`} onClose={onClose} busy={saving || busy}>
+      <div className="space-y-4">
+        {/* enable toggle */}
+        <label className="flex cursor-pointer items-center gap-3">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={e => setEnabled(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+          />
+          <span className="text-sm font-medium text-slate-700">Hiển thị tab bộ lọc cho khối này</span>
+        </label>
+
+        {/* tab list */}
+        <div>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-slate-500">CÁC TAB ({tabs.length}/20)</span>
+            {tabs.length < 20 && !draft && (
+              <button
+                type="button"
+                onClick={openAdd}
+                disabled={dataLoading}
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 disabled:opacity-50"
+              >
+                <Plus className="h-3 w-3" />Thêm tab
+              </button>
+            )}
+          </div>
+
+          {dataLoading && (
+            <p className="rounded-lg border border-dashed border-slate-200 py-3 text-center text-xs text-slate-400">Đang tải dữ liệu thương hiệu, danh mục, thuộc tính...</p>
+          )}
+
+          {tabs.length === 0 && !dataLoading ? (
+            <p className="rounded-lg border border-dashed border-slate-200 py-4 text-center text-sm text-slate-400">Chưa có tab nào — nhấn &ldquo;Thêm tab&rdquo; để bắt đầu.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {tabs.map((tab, idx) => (
+                <div key={tab.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors ${editingIdx === idx ? 'border-primary-200 bg-primary-50' : 'border-slate-100 bg-slate-50'}`}>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-slate-800">{tab.label || '(chưa đặt tên)'}</span>
+                    <span className="block truncate text-[11px] text-slate-400">{tabDisplayText(tab)}</span>
+                  </span>
+                  <button type="button" onClick={() => openEdit(idx)} className={`${btn} shrink-0`} aria-label="Sửa tab" disabled={!!draft && editingIdx !== idx}><Edit3 className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={() => removeTab(idx)} className={`${btn} shrink-0 text-red-600 hover:border-red-200 hover:bg-red-50`} aria-label="Xóa tab"><X className="h-3.5 w-3.5" /></button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {draft && (
+            <TabForm
+              draft={draft}
+              editingIdx={editingIdx}
+              tabs={tabs}
+              brands={brands}
+              categories={categories}
+              attributes={attributes}
+              dataLoading={dataLoading}
+              dataError={dataError}
+              onChange={setDraft}
+              onCommit={commitDraft}
+              onCancel={cancelDraft}
+            />
+          )}
+        </div>
+
+        {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+
+        <div className="flex justify-end gap-3 pt-2">
+          <button type="button" onClick={onClose} disabled={saving} className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Hủy</button>
+          <button type="button" onClick={() => void save()} disabled={saving || !!draft} className="rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60 hover:bg-primary-700">
+            {saving ? 'Đang lưu...' : 'Lưu cấu hình'}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
 
 function sectionVisibility(section: ProductSection) {
   if (!section.isActive) return { label: 'Đang ẩn', cls: 'text-slate-400' };
@@ -144,6 +574,7 @@ export default function ProductSectionManager() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [quickFilterSectionId, setQuickFilterSectionId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -263,6 +694,9 @@ export default function ProductSectionManager() {
                     <button type="button" className={btn} onClick={() => setEditor(section)} aria-label="Sửa khối">
                       <Edit3 className="h-3.5 w-3.5" />Sửa
                     </button>
+                    <button type="button" className={btn} onClick={() => setQuickFilterSectionId(section.id)} aria-label="Cấu hình Quick Filter">
+                      <Filter className="h-3.5 w-3.5" />Filter
+                    </button>
                     <button type="button" className={btn} disabled={busy} onClick={() => void action(() => setProductSectionStatus(token!, section.id, !section.isActive), section.isActive ? 'Đã tắt khối.' : 'Đã bật khối.')}>
                       {section.isActive ? <><EyeOff className="h-3.5 w-3.5" />Tắt</> : <><Eye className="h-3.5 w-3.5" />Bật</>}
                     </button>
@@ -343,6 +777,19 @@ export default function ProductSectionManager() {
           }, 'Đã thêm sản phẩm vào khối.')}
         />
       )}
+
+      {quickFilterSectionId != null && (() => {
+        const qfSection = sections.find(s => s.id === quickFilterSectionId);
+        return qfSection ? (
+          <QuickFilterEditor
+            section={qfSection}
+            token={token}
+            busy={busy}
+            onClose={() => setQuickFilterSectionId(null)}
+            onSaved={updated => setSections(prev => prev.map(s => s.id === updated.id ? updated : s))}
+          />
+        ) : null;
+      })()}
 
       {deleting && (
         <Modal title="Xóa khối sản phẩm" onClose={() => setDeleting(null)} busy={busy}>

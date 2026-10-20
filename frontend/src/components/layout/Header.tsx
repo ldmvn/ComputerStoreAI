@@ -80,6 +80,14 @@ export default function Header() {
   const heroVisible = useCategoryHeroStore(s => s.heroVisible);
   const heroHighlightOpen = useCategoryHeroStore(s => s.highlightOpen);
   const toggleHeroHighlight = useCategoryHeroStore(s => s.toggleHighlight);
+  const closeHeroHighlight = useCategoryHeroStore(s => s.closeHighlight);
+  const [isDesktopCategory, setIsDesktopCategory] = useState(false);
+  // Thiết bị cảm ứng (iPad/Tablet) không có hover thật — trên các thiết bị này
+  // trình duyệt thường mô phỏng hover ở lần chạm đầu tiên trước khi phát sự
+  // kiện click, nên nếu vẫn gắn onMouseEnter/onMouseLeave thì lần chạm đầu sẽ
+  // mở rồi tự đóng ngay (mở bằng hover, đóng bằng click toggle). Chỉ bật
+  // hover-intent khi thiết bị thực sự hỗ trợ hover + con trỏ chính xác.
+  const [supportsHover] = useState(() => typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
   useEffect(() => {
     if (!authHydrated) return;
     if (wishlistToken) { if (!wishlistHydrated) void hydrateWishlist(wishlistToken); }
@@ -118,6 +126,28 @@ export default function Header() {
     return () => { cancelled = true; };
   }, [categoriesOpen, mobileMenuOpen]);
   useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
+  useEffect(() => {
+    const desktopQuery = window.matchMedia('(min-width: 1280px)');
+    const syncCategoryMode = () => {
+      const desktop = desktopQuery.matches;
+      setIsDesktopCategory(desktop);
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+
+      if (desktop) {
+        setMobileMenuOpen(false);
+        setMobileCatId(null);
+        setMobileGroupIdx(null);
+      } else {
+        setCategoriesOpen(false);
+        setActiveCategory(null);
+        closeHeroHighlight();
+      }
+    };
+
+    syncCategoryMode();
+    desktopQuery.addEventListener('change', syncCategoryMode);
+    return () => desktopQuery.removeEventListener('change', syncCategoryMode);
+  }, [closeHeroHighlight]);
   // Hero đã lọt vào viewport trở lại (cuộn lên) → đảm bảo dropdown cũ của
   // Header (nếu đang mở dở từ trước) bị đóng, không hiển thị đồng thời.
   useEffect(() => { if (heroVisible) { setCategoriesOpen(false); setActiveCategory(null); } }, [heroVisible]);
@@ -153,11 +183,23 @@ export default function Header() {
 
 
   const toggleCategories = () => {
+    setMobileMenuOpen(false);
     setCategoriesOpen(prev => {
       if (prev) setActiveCategory(null); // reset panel when closing
       return !prev;
     });
   };
+
+  const toggleMobileMenu = () => {
+    setCategoriesOpen(false);
+    setActiveCategory(null);
+    closeHeroHighlight();
+    setMobileMenuOpen(prev => !prev);
+  };
+
+  const categoryMenuOpen = isDesktopCategory
+    ? (heroVisible ? heroHighlightOpen : categoriesOpen)
+    : mobileMenuOpen;
 
   const categoryHref = (slug: string) => `/customer/products?category=${encodeURIComponent(slug)}`;
 
@@ -169,9 +211,12 @@ export default function Header() {
         <div className="flex min-h-16 flex-wrap items-center gap-x-1 gap-y-2 py-2 sm:gap-x-2 lg:h-20 lg:flex-nowrap lg:py-0 xl:gap-x-4">
           {/* Mobile menu button */}
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            type="button"
+            onClick={toggleMobileMenu}
             className="header-action lg:hidden"
-            aria-label="Toggle menu"
+            aria-label="Danh mục"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-category-drawer"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -183,19 +228,26 @@ export default function Header() {
           <div
             ref={categoriesRef}
             className="relative hidden self-stretch lg:flex lg:items-center"
-            onMouseEnter={heroVisible ? undefined : () => { cancelClose(); setCategoriesOpen(true); }}
-            onMouseLeave={heroVisible ? undefined : scheduleClose}
-            onKeyDown={event => { if (event.key === 'Escape' && !heroVisible) { closeCategories(); categoriesRef.current?.querySelector('button')?.focus(); } }}
-            onBlur={event => { if (!heroVisible && !event.currentTarget.contains(event.relatedTarget as Node)) closeCategories(); }}
+            onMouseEnter={(isDesktopCategory && !heroVisible && supportsHover) ? () => { cancelClose(); setCategoriesOpen(true); } : undefined}
+            onMouseLeave={(isDesktopCategory && !heroVisible && supportsHover) ? scheduleClose : undefined}
+            onKeyDown={event => { if (isDesktopCategory && event.key === 'Escape' && !heroVisible) { closeCategories(); categoriesRef.current?.querySelector('button')?.focus(); } }}
+            onBlur={event => { if (isDesktopCategory && !heroVisible && !event.currentTarget.contains(event.relatedTarget as Node)) closeCategories(); }}
           >
             <button
               type="button"
-              onClick={heroVisible ? toggleHeroHighlight : toggleCategories}
+              onClick={() => {
+                if (!isDesktopCategory) {
+                  toggleMobileMenu();
+                  return;
+                }
+                if (heroVisible) toggleHeroHighlight();
+                else toggleCategories();
+              }}
               className={`ui-header-action inline-flex items-center gap-1.5 rounded-md px-2 py-2 text-sm font-medium transition hover:bg-primary-50 hover:text-primary-600 ${
-                (heroVisible ? heroHighlightOpen : categoriesOpen) ? 'bg-primary-50 text-primary-600' : 'text-slate-700'
+                categoryMenuOpen ? 'bg-primary-50 text-primary-600' : 'text-slate-700'
               }`}
-              aria-expanded={heroVisible ? heroHighlightOpen : categoriesOpen}
-              aria-controls="desktop-category-menu"
+              aria-expanded={categoryMenuOpen}
+              aria-controls={isDesktopCategory ? 'desktop-category-menu' : 'mobile-category-drawer'}
               aria-label="Danh mục"
             >
               {/* Icon 3 gạch, gạch giữa ngắn hơn */}
@@ -219,7 +271,7 @@ export default function Header() {
               <span className="hidden lg:inline">Danh mục</span>
               <ChevronDown
                 className={`h-4 w-4 transition-transform ${
-                  (heroVisible ? heroHighlightOpen : categoriesOpen) ? 'rotate-180' : ''
+                  categoryMenuOpen ? 'rotate-180' : ''
                 }`}
               />
             </button>
@@ -230,7 +282,7 @@ export default function Header() {
             {!heroVisible && (
             <div
               id="desktop-category-menu"
-              className={`absolute left-0 top-full z-50 flex max-h-[calc(100dvh-100px)] items-stretch overflow-y-auto pt-3 origin-top-left transition-all duration-200 ${activeCategory !== null ? 'w-[min(992px,calc(100vw-2rem))] xl:w-[min(1200px,calc(100vw-2rem))]' : ''} ${
+              className={`absolute left-0 top-full z-50 hidden max-h-[calc(100dvh-100px)] items-stretch overflow-y-auto pt-3 origin-top-left transition-all duration-200 xl:flex ${activeCategory !== null ? 'w-[min(1200px,calc(100vw-2rem))]' : ''} ${
                 categoriesOpen
                   ? 'visible translate-y-0 scale-100 opacity-100'
                   : 'invisible -translate-y-2 scale-95 opacity-0 pointer-events-none'
@@ -251,9 +303,17 @@ export default function Header() {
                       key={cat.id}
                       href={categoryHref(cat.slug)}
                       role="menuitem"
-                      onMouseEnter={() => setActiveCategory(cat.id)}
+                      onMouseEnter={supportsHover ? () => setActiveCategory(cat.id) : undefined}
                       onFocus={() => setActiveCategory(cat.id)}
-                      onClick={() => {
+                      onClick={event => {
+                        // Cảm ứng không có hover để xem trước danh mục con — chạm lần đầu
+                        // chỉ mở panel chi tiết (giống hành vi Hero sidebar), chạm lại vào
+                        // đúng danh mục đang mở mới thực sự điều hướng đi.
+                        if (!supportsHover && activeCategory !== cat.id) {
+                          event.preventDefault();
+                          setActiveCategory(cat.id);
+                          return;
+                        }
                         setCategoriesOpen(false);
                         setActiveCategory(null);
                       }}
@@ -402,14 +462,15 @@ export default function Header() {
         {mobileMenuOpen && (
           <button
             type="button"
-            className="fixed left-0 top-0 z-[60] h-[100dvh] w-screen bg-slate-900/35 lg:hidden"
+            className="fixed inset-0 z-[60] h-[100dvh] w-screen bg-slate-900/35 xl:hidden"
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Đóng menu danh mục"
           />
         )}
         <aside
+          id="mobile-category-drawer"
           ref={drawerRef}
-          className={`fixed left-0 top-0 z-[70] flex h-[100dvh] w-[min(82vw,340px)] flex-col bg-white text-slate-800 shadow-2xl shadow-slate-900/20 transition-transform duration-200 ease-out motion-reduce:transition-none lg:hidden ${mobileMenuOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'}`}
+          className={`fixed left-0 top-0 z-[70] flex h-[100dvh] w-[min(82vw,340px)] max-w-full flex-col overflow-hidden bg-white text-slate-800 shadow-2xl shadow-slate-900/20 transition-transform duration-200 ease-out motion-reduce:transition-none md:w-[min(52vw,420px)] xl:hidden ${mobileMenuOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'}`}
           role="dialog"
           aria-modal="true"
           aria-label="Danh mục sản phẩm"
@@ -428,7 +489,7 @@ export default function Header() {
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
             {/* ── Level 0: Build PC + category list ──────────────────────────── */}
             {mobileCatId === null && (
               <div className="px-3 py-4">

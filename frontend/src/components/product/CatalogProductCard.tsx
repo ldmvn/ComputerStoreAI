@@ -35,7 +35,7 @@ export default function CatalogProductCard({ product }: { product: Product }) {
     <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-200 hover:border-primary-200 hover:shadow-md hover:shadow-slate-900/[0.06]">
       {/* Image */}
       <Link href={productDetailHref(product.slug)} tabIndex={-1} aria-hidden="true">
-        <div className="relative aspect-square w-full overflow-hidden bg-slate-50 p-3">
+        <div className="relative aspect-square w-full overflow-hidden bg-slate-50 p-2 sm:p-3">
           {discounted && (
             <span className="absolute left-2 top-2 z-10 rounded-md bg-primary-50 px-1.5 py-0.5 text-[11px] font-bold text-primary-700">
               -{discount}%
@@ -58,7 +58,7 @@ export default function CatalogProductCard({ product }: { product: Product }) {
       </Link>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col gap-2 p-3">
+      <div className="flex flex-1 flex-col gap-1.5 p-2 sm:gap-2 sm:p-3">
         {product.brandInfo && (
           <p className="truncate text-[11px] font-medium uppercase tracking-wide text-slate-400">
             {product.brandInfo.name}
@@ -77,7 +77,7 @@ export default function CatalogProductCard({ product }: { product: Product }) {
 
         {specs.length > 0 && (
           <ul
-            className="flex flex-col gap-0.5 rounded-lg bg-slate-50 px-2.5 py-2"
+            className="hidden flex-col gap-0.5 rounded-lg bg-slate-50 px-2.5 py-2 sm:flex"
             aria-label="Thông số nổi bật"
           >
             {specs.map((s, i) => (
@@ -100,7 +100,7 @@ export default function CatalogProductCard({ product }: { product: Product }) {
               <del>{formatProductPrice(product.originalPrice!)}</del>
             </p>
           )}
-          <p className="text-base font-bold text-primary-700">{formatProductPrice(product.price)}</p>
+          <p className="text-sm font-bold text-primary-700 sm:text-base">{formatProductPrice(product.price)}</p>
         </div>
 
         {/* Actions */}

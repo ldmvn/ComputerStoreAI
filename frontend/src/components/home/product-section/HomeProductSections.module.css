@@ -184,6 +184,81 @@
   min-width: 0;
 }
 
+/* ── Quick Filter nav links (header inline on desktop, scrollable row on mobile) ── */
+
+.headerWithTabs {
+  display: grid;
+  grid-template-areas:
+    "title viewall"
+    "tabs  tabs";
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  column-gap: 8px;
+  row-gap: 8px;
+  margin-bottom: 14px;
+}
+.headerWithTabs .heading { grid-area: title; min-width: 0; }
+.headerWithTabs .viewAll { grid-area: viewall; align-self: center; }
+.tabsBar {
+  grid-area: tabs;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.tabsBar::-webkit-scrollbar { display: none; }
+
+.qfLink {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 4px 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color var(--ui-duration) var(--ui-ease), background var(--ui-duration) var(--ui-ease), border-color var(--ui-duration) var(--ui-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .qfLink:hover {
+    border-color: #C4480A;
+    background: #fff7ed;
+    color: #C4480A;
+    font-weight: 600;
+  }
+}
+
+@media (min-width: 640px) {
+  .headerWithTabs {
+    grid-template-areas: "title tabs viewall";
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    row-gap: 0;
+    margin-bottom: 16px;
+  }
+  .tabsBar {
+    overflow-x: visible;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    padding-bottom: 0;
+    padding-inline: 8px;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 639px) {
+  .headerWithTabs { row-gap: 6px; margin-bottom: 10px; }
+  .qfLink { padding: 3px 10px; font-size: 12px; }
+}
+
 .skeletonTitle { width: 160px; height: 26px; border-radius: 6px; }
 .skeletonName { height: 40px; margin-top: 12px; border-radius: 6px; }
 .skeletonPrice { width: 110px; height: 25px; margin-top: 8px; border-radius: 6px; }

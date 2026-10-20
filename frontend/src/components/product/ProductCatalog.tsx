@@ -31,11 +31,11 @@ type Chip = { id: string; label: string; value: string; clear: Record<string, st
 
 function SkeletonGrid() {
   return (
-    <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-busy="true" aria-label="Đang tải sản phẩm">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4" aria-busy="true" aria-label="Đang tải sản phẩm">
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="animate-pulse rounded-2xl border border-slate-200 bg-white">
           <div className="aspect-square w-full rounded-t-2xl bg-slate-100" />
-          <div className="space-y-2 p-3">
+          <div className="space-y-2 p-2 sm:p-3">
             <div className="h-3 w-2/3 rounded bg-slate-100" />
             <div className="h-4 w-full rounded bg-slate-100" />
             <div className="h-4 w-4/5 rounded bg-slate-100" />
@@ -300,7 +300,7 @@ export default function ProductCatalog() {
                   ) : undefined}
                 />
               ) : (
-                <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
                   {result.products.map(product => <CatalogProductCard key={product.id} product={product} />)}
                 </div>
               )}

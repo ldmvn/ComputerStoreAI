@@ -5,6 +5,12 @@ const productSelect = { id: true, slug: true, sku: true, name: true, price: true
 const homeProductSelect = {
   ...productSelect,
   originalPrice: true,
+  brandId: true,
+  categoryId: true,
+  attributeValues: {
+    where: { attributeValueId: { not: null } },
+    select: { attributeValueId: true },
+  },
   specifications: {
     orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
     select: { id: true, name: true, value: true, sortOrder: true },
@@ -38,6 +44,7 @@ function serialize(section) {
     sortOrder: section.sortOrder,
     isActive: section.isActive,
     showHighlightSpecs: section.showHighlightSpecs ?? true,
+    quickFilterConfig: section.quickFilterConfig ?? null,
     createdAt: section.createdAt,
     updatedAt: section.updatedAt,
     products: section.items.map(item => ({
@@ -49,12 +56,46 @@ function serialize(section) {
       originalPrice: item.product.originalPrice,
       isActive: item.product.isActive,
       stockQuantity: item.product.stockQuantity,
+      brandId: item.product.brandId ?? null,
+      categoryId: item.product.categoryId ?? null,
+      attributeValueIds: item.product.attributeValues?.map(pav => pav.attributeValueId).filter(Boolean) ?? [],
       specifications: item.product.specifications,
       highlightSpecs: item.product.highlightSpecs,
       primaryImage: item.product.images?.[0]?.imageUrl || null,
       sortOrder: item.sortOrder,
     })),
   };
+}
+
+export async function saveQuickFilterConfig(id, config) {
+  await getSectionOrThrow(id);
+  if (config?.tabs?.length) {
+    const brandIds = [...new Set(config.tabs.filter(t => t.filterType === 'BRAND' && t.brandId).map(t => t.brandId))];
+    const categoryIds = [...new Set(config.tabs.filter(t => t.filterType === 'CATEGORY' && t.categoryId).map(t => t.categoryId))];
+    const attrValueIds = [...new Set(config.tabs.filter(t => t.filterType === 'ATTRIBUTE' && t.attributeValueId).map(t => t.attributeValueId))];
+    if (brandIds.length) {
+      const found = await prisma.brand.count({ where: { id: { in: brandIds } } });
+      if (found !== brandIds.length) throw productSectionError('Một hoặc nhiều thương hiệu không tồn tại.', 422);
+    }
+    if (categoryIds.length) {
+      const found = await prisma.category.count({ where: { id: { in: categoryIds } } });
+      if (found !== categoryIds.length) throw productSectionError('Một hoặc nhiều danh mục không tồn tại.', 422);
+    }
+    if (attrValueIds.length) {
+      const avRows = await prisma.attributeValue.findMany({ where: { id: { in: attrValueIds } }, select: { id: true, attributeId: true } });
+      if (avRows.length !== attrValueIds.length) throw productSectionError('Một hoặc nhiều giá trị thuộc tính không tồn tại.', 422);
+      for (const tab of config.tabs.filter(t => t.filterType === 'ATTRIBUTE' && t.attributeValueId && t.attributeId)) {
+        const av = avRows.find(v => v.id === tab.attributeValueId);
+        if (av && av.attributeId !== tab.attributeId) throw productSectionError(`Giá trị thuộc tính không thuộc thuộc tính đã chọn.`, 422);
+      }
+    }
+  }
+  const section = await prisma.productSection.update({
+    where: { id },
+    data: { quickFilterConfig: config },
+    include: sectionInclude,
+  });
+  return serialize(section);
 }
 
 async function getSectionOrThrow(id) {

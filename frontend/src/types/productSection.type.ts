@@ -9,10 +9,32 @@ export type SectionProduct = {
   originalPrice?: number | null;
   isActive?: boolean;
   stockQuantity?: number;
+  brandId?: number | null;
+  categoryId?: number | null;
+  attributeValueIds?: number[];
   specifications?: ProductSpecification[];
   highlightSpecs?: ProductHighlightSpec[];
   primaryImage?: string | null;
   sortOrder?: number;
+};
+
+export type QuickFilterTab = {
+  id: string;
+  label: string;
+  filterType: 'ALL' | 'BRAND' | 'CATEGORY' | 'ATTRIBUTE';
+  sortOrder: number;
+  brandId?: number;
+  brandSlug?: string | null;
+  categoryId?: number;
+  categorySlug?: string | null;
+  attributeValueId?: number;
+  attributeId?: number | null;
+  attributeSlug?: string | null;
+};
+
+export type QuickFilterConfig = {
+  enabled: boolean;
+  tabs: QuickFilterTab[];
 };
 
 export type ProductSection = {
@@ -24,6 +46,7 @@ export type ProductSection = {
   sortOrder: number;
   isActive: boolean;
   showHighlightSpecs: boolean;
+  quickFilterConfig: QuickFilterConfig | null;
   createdAt: string;
   updatedAt: string;
   products: SectionProduct[];

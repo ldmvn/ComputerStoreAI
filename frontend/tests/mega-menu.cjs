@@ -105,27 +105,30 @@ require(path.join(backend, 'node_modules/dotenv')).config({ path: path.join(back
     await page.getByRole('dialog').getByLabel('Thứ tự nhóm').fill('0'); await page.getByRole('dialog').getByLabel('Column span').fill('3');
     await page.getByRole('dialog').getByRole('button', { name: 'Lưu nhóm', exact: true }).click(); await page.getByRole('dialog').waitFor({ state: 'hidden' });
     await store.goto(base); panel = await openDesktop(); assert.equal(await panel.getByRole('heading').first().innerText(), 'Laptop Theo Khoảng Giá');
-    for (const width of [1024, 1280, 1440]) {
+    for (const width of [1280, 1376, 1440]) {
       await store.setViewportSize({ width, height: 1000 }); panel = await openDesktop();
       const bounds = await store.locator('#desktop-category-menu').boundingBox(); assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width + 1, `${width}px menu fits viewport`);
-      const span = await panel.locator('[data-column-span="3"]').evaluate(el => getComputedStyle(el).gridColumnStart); assert.equal(span, width >= 1280 ? 'span 3' : 'span 2');
+      const span = await panel.locator('[data-column-span="3"]').evaluate(el => getComputedStyle(el).gridColumnStart); assert.equal(span, 'span 3');
     }
     await store.keyboard.press('Escape');
-    for (const width of [320, 390, 768]) {
+    for (const width of [320, 390, 768, 820, 1024, 1032, 1180, 1279]) {
       await store.setViewportSize({ width, height: 844 });
-      await store.locator('header button[aria-label="Toggle menu"]').click();
+      const trigger = store.locator('header button[aria-controls="mobile-category-drawer"]:visible').first();
+      await trigger.waitFor();
+      await store.waitForTimeout(100);
+      await trigger.click();
       const drawer = store.getByRole('dialog', { name: 'Danh mục sản phẩm' });
-      await drawer.getByRole('button', { name: `Mở ${category.name}`, exact: true }).click();
-      await drawer.locator('summary').filter({ hasText: 'Laptop Theo Hãng' }).click();
+      await drawer.getByRole('button', { name: category.name, exact: true }).click();
+      await drawer.getByRole('button', { name: 'Laptop Theo Hãng', exact: true }).click();
       await drawer.getByRole('link', { name: 'ASUS', exact: true }).waitFor();
       if (width === 390) await store.screenshot({ path: path.join(artifacts, 'mobile.png') });
       assert.equal(await store.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${width}px no horizontal overflow`);
       await drawer.getByRole('link', { name: 'ASUS', exact: true }).click();
-      await store.getByText(`${marker} Product 1`, { exact: true }).waitFor(); assert.equal(await drawer.isVisible(), false);
+      await store.getByText(`${marker} Product 1`, { exact: true }).waitFor(); assert.equal(await drawer.getAttribute('aria-hidden'), 'true');
       await store.goto(base);
     }
     assert.equal(await prisma.brand.count(), count, 'Admin menu never creates duplicate brands'); assert.deepEqual(errors, []);
-    console.log('PASS real API browser: admin group/item CRUD, Acer/ASUS reuse, three filters, desktop hover/cache/order/span/visibility, featured brands, 320/390/768 mobile accordion and no overflow');
+    console.log('PASS real API browser: admin group/item CRUD, Acer/ASUS reuse, three filters, desktop hover/cache/order/span/visibility, featured brands, mobile/tablet drawer through 1279px and no overflow');
   } finally {
     if (browser) await browser.close();
     await prisma.product.deleteMany({ where: { id: { in: ids.products } } });
