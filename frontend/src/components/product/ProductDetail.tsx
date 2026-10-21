@@ -16,6 +16,7 @@ import ProductDetailContent from './ProductDetailContent';
 import ProductPurchaseActions from './ProductPurchaseActions';
 import ProductStatistics from './ProductStatistics';
 import ProductDescription from './ProductDescription';
+import ProductPromotions from './ProductPromotions';
 import ProductReviews from './ProductReviews';
 import ProductSpecificationsModal from './ProductSpecificationsModal';
 
@@ -61,18 +62,43 @@ export default function ProductDetail({ slug }: { slug: string }) {
   const hasSpecs = (product.productAttributes || []).some(a => a.values?.length) || (product.customSpecifications || []).some(s => s.name.trim() && s.value.trim());
   return <article className="min-w-0" data-testid="product-detail">
     <nav aria-label="Breadcrumb" className="mb-4 text-sm text-slate-500 sm:mb-5"><ol className="flex flex-wrap items-center gap-x-2 gap-y-1"><li><Link href="/" className="hover:text-primary-700">Trang chủ</Link></li>{categoryName && <><li aria-hidden="true"><ChevronRight size={14} /></li><li><Link href={categoryHref} className="hover:text-primary-700">{categoryName}</Link></li></>}<li aria-hidden="true"><ChevronRight size={14} /></li><li aria-current="page" className="min-w-0 break-words text-slate-700">{product.name}</li></ol></nav>
-    <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-      {/* Gallery + Navigation — desktop col 1 row 1; mobile: first (gallery then nav) */}
-      <div className="flex min-w-0 flex-col gap-3 sm:gap-4 lg:col-start-1 lg:row-start-1">
-        <div id="product-gallery" tabIndex={-1} aria-label="Gallery hình ảnh sản phẩm" className="scroll-mt-36">
-          <ProductGallery key={product.id} name={product.name} images={product.images || []} primaryImage={product.primaryImage} />
+    {/*
+      Two-column layout: on desktop, two truly independent flex columns so neither
+      column's height affects spacing inside the other — Reviews lives at the bottom
+      of the LEFT column itself (not as a full-width block after both columns), so
+      it is never pushed down by the right column's height (Price/CTA + Promotions + Specs).
+      On mobile, display:contents on each column wrapper flattens the children into the
+      outer flex-col, and order-* controls the single-column stacking sequence:
+      Gallery+Nav(1) Price+CTA(2) Promotions(3) Description(4) Specs(5) Reviews(6).
+      Gallery and its Navigation tabs are kept in ONE wrapper (order-1) so the tabs
+      always sit immediately below the gallery, never pushed down by other cards.
+    */}
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+
+      {/* Left column — display:contents on mobile, flex-col on desktop */}
+      <div className="contents lg:flex lg:min-w-0 lg:flex-[3] lg:flex-col lg:gap-4">
+        {/* Gallery + Navigation — mobile order 1, always adjacent */}
+        <div className="order-1 flex min-w-0 flex-col gap-3 sm:gap-4">
+          <div id="product-gallery" tabIndex={-1} aria-label="Gallery hình ảnh sản phẩm" className="scroll-mt-36">
+            <ProductGallery key={product.id} name={product.name} images={product.images || []} primaryImage={product.primaryImage} />
+          </div>
+          <ProductDetailNavigation key={product.id} product={product} onOpenSpecifications={() => setIsSpecsModalOpen(true)} />
         </div>
-        <ProductDetailNavigation key={product.id} product={product} onOpenSpecifications={() => setIsSpecsModalOpen(true)} />
+        {/* Description — mobile order 4 */}
+        <div className="order-4">
+          <ProductDescription key={`desc-${product.id}`} description={product.description} />
+        </div>
+        {/* Reviews — mobile order 6, always last; stays in the left column so the
+            right column's height never affects its position. */}
+        <div className="order-6">
+          <ProductReviews key={`reviews-${product.id}`} slug={product.slug} productId={product.id} initialSummary={product.ratingAverage !== undefined || product.reviewCount !== undefined ? { ratingAverage: product.ratingAverage ?? null, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } } : null} />
+        </div>
       </div>
 
-      {/* Right column — col 2, spans rows 1+2 so Price/CTA and Specs flow without grid-row gap; mobile: second */}
-      <div className="flex min-w-0 flex-col gap-3 sm:gap-4 lg:col-start-2 lg:row-start-1 lg:row-span-2">
-        <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+      {/* Right column — display:contents on mobile, flex-col on desktop */}
+      <div className="contents lg:flex lg:min-w-0 lg:flex-[2] lg:flex-col lg:gap-4">
+        {/* Price / CTA card — mobile order 2 */}
+        <div className="order-2 flex min-w-0 flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
           <div>
             <h1 className="break-words text-2xl font-bold leading-snug tracking-tight text-slate-900 sm:text-3xl">{product.name}</h1>
             <ProductStatistics product={product} />
@@ -95,22 +121,22 @@ export default function ProductDetail({ slug }: { slug: string }) {
                 <p className="text-xs font-medium uppercase tracking-wider text-white/80 sm:text-sm">Giá khuyến mãi:</p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4">
                   <p
-                    className="order-1 text-3xl font-extrabold tracking-tight text-white drop-shadow-sm sm:text-4xl"
+                    className="text-3xl font-extrabold tracking-tight text-white drop-shadow-sm sm:text-4xl"
                     aria-label={`Giá bán ${formatProductPrice(product.price)}`}
                   >
                     {formatProductPrice(product.price)}
                   </p>
                   <del
-                    className="order-2 text-base font-medium text-white/70 sm:text-lg"
+                    className="text-base font-medium text-white/70 sm:text-lg"
                     aria-label={`Giá gốc ${formatProductPrice(product.originalPrice!)}`}
                   >
                     {formatProductPrice(product.originalPrice!)}
                   </del>
-                  <span className="order-3 inline-flex shrink-0 items-center rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold text-white ring-1 ring-white/30">
+                  <span className="inline-flex shrink-0 items-center rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold text-white ring-1 ring-white/30">
                     -{discount}%
                   </span>
                   <span
-                    className="order-4 text-sm font-semibold text-white/90 sm:text-base"
+                    className="text-sm font-semibold text-white/90 sm:text-base"
                     aria-label={`Tiết kiệm ${formatProductPrice(product.originalPrice! - product.price)}`}
                   >
                     Tiết kiệm {formatProductPrice(product.originalPrice! - product.price)}
@@ -126,17 +152,22 @@ export default function ProductDetail({ slug }: { slug: string }) {
           )}
           <ProductPurchaseActions key={`${product.id}-${product.stockQuantity}`} product={product} />
         </div>
+        {/* Khuyến mãi & Quà tặng — mobile order 3, hidden entirely when empty */}
+        {product.promotions && product.promotions.length > 0 && (
+          <div className="order-3">
+            <ProductPromotions promotions={product.promotions} />
+          </div>
+        )}
+        {/* Specs — mobile order 5 */}
         {hasSpecs && (
-          <ProductSpecifications key={product.id} productAttributes={product.productAttributes} customSpecifications={product.customSpecifications} />
+          <div className="order-5">
+            <ProductSpecifications key={product.id} productAttributes={product.productAttributes} customSpecifications={product.customSpecifications} />
+          </div>
         )}
       </div>
 
-      {/* Description / Reviews — col 1, row 2; mobile: third */}
-      <div className="flex min-w-0 flex-col gap-3 sm:gap-4 lg:col-start-1 lg:row-start-2">
-        <ProductDescription key={product.id} description={product.description} />
-        <ProductReviews key={product.id} slug={product.slug} productId={product.id} initialSummary={product.ratingAverage !== undefined || product.reviewCount !== undefined ? { ratingAverage: product.ratingAverage ?? null, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } } : null} />
-      </div>
     </div>
+
     <ProductDetailContent key={product.id} product={product} />
     <ProductSpecificationsModal
       open={isSpecsModalOpen}

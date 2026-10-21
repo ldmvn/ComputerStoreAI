@@ -13,9 +13,11 @@ type WishlistButtonProps = {
   variant?: Variant;
   className?: string;
   onRequireLogin?: () => void;
+  /** Overrides the visible label text in `full` variant (favorited state keeps "Đã yêu thích"). */
+  label?: string;
 };
 
-export default function WishlistButton({ productId, productName, variant = 'full', className, onRequireLogin }: WishlistButtonProps) {
+export default function WishlistButton({ productId, productName, variant = 'full', className, onRequireLogin, label }: WishlistButtonProps) {
   const token = useAuthStore(state => state.token);
   const user = useAuthStore(state => state.user);
   const toggle = useWishlistStore(state => state.toggle);
@@ -59,10 +61,10 @@ export default function WishlistButton({ productId, productName, variant = 'full
     ? (isCompact ? 'border-primary-300 bg-primary-50 text-primary-600 hover:bg-primary-100' : 'border border-primary-300 bg-primary-50 text-primary-700 hover:bg-primary-100')
     : (isCompact ? 'border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-primary-500' : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50');
   const ariaLabel = favorited ? `Bỏ yêu thích ${productName}` : `Yêu thích ${productName}`;
+  const visibleLabel = favorited ? 'Đã yêu thích' : (label || 'Yêu thích');
 
-  return <button type="button" onClick={handleClick} disabled={busy} aria-pressed={favorited} aria-label={ariaLabel} title={favorited ? 'Đã yêu thích' : 'Yêu thích'} data-testid="wishlist-button" data-favorited={favorited ? 'true' : 'false'} className={`${baseClass} ${colorClass} ${className || ''}`}>
-    <Heart size={isCompact ? 16 : 18} aria-hidden="true" fill={mounted && favorited ? 'currentColor' : 'none'} strokeWidth={2} />
-    {!isCompact && <span className="hidden sm:inline">{favorited ? 'Đã yêu thích' : 'Yêu thích'}</span>}
-    {!isCompact && <span className="sr-only">{favorited ? 'Đã yêu thích' : 'Yêu thích'}</span>}
+  return <button type="button" onClick={handleClick} disabled={busy} aria-pressed={favorited} aria-label={ariaLabel} title={visibleLabel} data-testid="wishlist-button" data-favorited={favorited ? 'true' : 'false'} className={`${baseClass} ${colorClass} ${className || ''}`}>
+    <Heart size={isCompact ? 16 : 18} className="shrink-0" aria-hidden="true" fill={mounted && favorited ? 'currentColor' : 'none'} strokeWidth={2} />
+    {!isCompact && <span className="leading-tight">{visibleLabel}</span>}
   </button>;
 }

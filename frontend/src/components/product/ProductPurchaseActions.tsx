@@ -53,7 +53,7 @@ export default function ProductPurchaseActions({ product }: { product: Product }
         <button type="button" onClick={handleAddToCart} disabled={unavailable} className={`${buttonClass} border border-primary-300 bg-primary-50 text-primary-700 hover:bg-primary-100`}>
           <ShoppingCart size={18} aria-hidden="true" />Thêm vào giỏ hàng
         </button>
-        <WishlistButton productId={product.id} productName={product.name} onRequireLogin={openAuthModal} />
+        <WishlistButton productId={product.id} productName={product.name} label="Danh sách yêu thích" onRequireLogin={openAuthModal} />
       </div>
       <button type="button" onClick={handleBuyNow} disabled={unavailable} className={`${buttonClass} bg-primary-600 text-white hover:bg-primary-700`}>
         Mua ngay<ArrowRight size={18} aria-hidden="true" />
