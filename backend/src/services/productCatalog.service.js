@@ -4,6 +4,7 @@ import { removeProductImage } from './productMedia.service.js';
 import { resolveBrandFilter } from './brand.service.js';
 import { getProductStatistics } from './productStatistics.service.js';
 import { generateProductSkuForCategoryId } from './productSku.service.js';
+import { getActivePromotionsForProduct } from './promotion.service.js';
 
 const imageOrder = [{ isPrimary: 'desc' }, { sortOrder: 'asc' }, { id: 'asc' }];
 const detailInclude = { images: { orderBy: imageOrder }, specifications: { orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }] }, attributeValues: { include: { attribute: true, attributeValue: true }, orderBy: { id: 'asc' } }, highlightSpecs: { orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }] }, brandRecord: true, categoryRecord: { select: { id: true, name: true, slug: true } } };
@@ -245,7 +246,8 @@ export async function getProduct(id) { return serialize(await getByIdOrThrow(id,
 export async function getProductBySlug(slug) {
   const product = await prisma.product.findFirst({ where: { slug, isDeleted: false, isActive: true }, include: detailInclude });
   if (!product) throw productError('Không tìm thấy sản phẩm.', 404);
-  return { ...serialize(product, true, true), ...await getProductStatistics(product.id) };
+  const promotions = await getActivePromotionsForProduct(product.id, product.categoryId);
+  return { ...serialize(product, true, true), ...await getProductStatistics(product.id), promotions };
 }
 export async function listCategories() {
   const rows = await prisma.product.findMany({ where: { isDeleted: false, category: { not: null } }, distinct: ['category'], select: { category: true }, orderBy: { category: 'asc' } });

@@ -43,6 +43,8 @@ model Product {
   buildPcPresetItems BuildPcPresetItem[]
   categoryRecord    Category?               @relation("ProductCategory", fields: [categoryId], references: [id], onDelete: Restrict)
   brandRecord       Brand?                  @relation("ProductBrand", fields: [brandId], references: [id], onDelete: Restrict)
+  promotionGifts    Promotion[]             @relation("PromotionGiftProduct")
+  promotionLinks    PromotionProduct[]      @relation("PromotionAppliedProduct")
 
   @@index([isActive, isDeleted, stockQuantity])
   @@index([category])
@@ -88,6 +90,7 @@ model Category {
   menuItems   MegaMenuItem[]      @relation("MenuItemCategory")
   attributes  CategoryAttribute[]
   buildPcGroups BuildPcGroupCategory[]
+  promotionLinks PromotionCategory[]
 
   @@index([parentId, sortOrder])
   @@index([isActive, sortOrder])
@@ -701,6 +704,66 @@ model VoucherUsage {
 
   @@index([voucherId])
   @@index([userId])
+}
+
+enum PromotionType {
+  GIFT
+  INFO
+}
+
+enum PromotionScope {
+  ALL
+  CATEGORY
+  PRODUCT
+}
+
+model Promotion {
+  id              Int             @id @default(autoincrement())
+  name            String          @db.VarChar(191)
+  displayTitle    String          @db.VarChar(200)
+  description     String?         @db.Text
+  conditionText   String?         @db.Text
+  detailUrl       String?         @db.VarChar(1000)
+  type            PromotionType
+  scope           PromotionScope  @default(ALL)
+  sortOrder       Int             @default(0)
+  isActive        Boolean         @default(true)
+  startAt         DateTime?
+  endAt           DateTime?
+  giftProductId   Int?
+  giftProductName String?         @db.VarChar(191)
+  giftQuantity    Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  giftProduct     Product?            @relation("PromotionGiftProduct", fields: [giftProductId], references: [id], onDelete: SetNull)
+  categories      PromotionCategory[]
+  products        PromotionProduct[]
+
+  @@index([isActive, startAt, endAt])
+  @@index([scope])
+  @@index([sortOrder])
+}
+
+model PromotionCategory {
+  id          Int       @id @default(autoincrement())
+  promotionId Int
+  categoryId  Int
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, categoryId])
+  @@index([categoryId])
+}
+
+model PromotionProduct {
+  id          Int       @id @default(autoincrement())
+  promotionId Int
+  productId   Int
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  product     Product   @relation("PromotionAppliedProduct", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, productId])
+  @@index([productId])
 }
 
 enum ReturnStatus {

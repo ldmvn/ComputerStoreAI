@@ -19,6 +19,18 @@ export type ProductReview = {
 export type ProductReviewSummary = { ratingAverage: number | null; distribution: { 1: number; 2: number; 3: number; 4: number; 5: number } };
 export type ProductReviewListResponse = { items: ProductReview[]; meta: { page: number; limit: number; total: number; totalPages: number }; summary: ProductReviewSummary };
 
+export type ProductPromotionGift = { productId: number | null; name: string; price: number | null; imageUrl: string | null; quantity: number | null };
+export type ProductPromotion = {
+  id: number;
+  type: 'GIFT' | 'INFO';
+  displayTitle: string;
+  description: string | null;
+  conditionText: string | null;
+  detailUrl: string | null;
+  endAt: string | null;
+  gift: ProductPromotionGift | null;
+};
+
 export type Product = {
   id: number;
   name: string;
@@ -46,6 +58,7 @@ export type Product = {
   customSpecifications?: ProductCustomSpecification[];
   highlightSpecs?: ProductHighlightSpec[];
   productAttributes?: ProductAttribute[];
+  promotions?: ProductPromotion[];
   ratingAverage?: number | null;
   reviewCount?: number;
   commentCount?: number;
