@@ -38,6 +38,11 @@ const nextConfig = {
         protocol: isLocalhost ? 'http' : 'https',
         hostname: backendHost,
       },
+      // Google user profile pictures (OAuth login avatars)
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
     ],
   },
 };

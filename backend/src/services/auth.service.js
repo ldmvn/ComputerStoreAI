@@ -53,7 +53,9 @@ export async function loginUser({ identifier, password }) {
   return { token: createAccessToken(user), user: safeUser };
 }
 
-export async function updateUserProfile(userId, { fullName, phone }) {
+const ALLOWED_GENDERS = new Set(['male', 'female', 'other', '']);
+
+export async function updateUserProfile(userId, { fullName, phone, gender }) {
   if (phone !== undefined && phone !== null && phone !== '') {
     const existing = await findUserByPhone(phone);
     if (existing && existing.id !== userId) throw new AuthConflictError('phone', 'Số điện thoại này đã được sử dụng.');
@@ -61,6 +63,11 @@ export async function updateUserProfile(userId, { fullName, phone }) {
   const data = {};
   if (fullName !== undefined) data.fullName = fullName.trim();
   if (phone !== undefined) data.phone = phone ? phone.trim() : null;
+  if (gender !== undefined) {
+    const g = typeof gender === 'string' ? gender.trim() : '';
+    if (!ALLOWED_GENDERS.has(g)) throw new AuthConflictError('gender', 'Giới tính không hợp lệ.');
+    data.gender = g || null;
+  }
   return updateUserById(userId, data);
 }
 

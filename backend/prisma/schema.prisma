@@ -419,6 +419,7 @@ model User {
   passwordHash String
   googleId     String?         @unique @db.VarChar(191)
   avatarUrl    String?         @db.VarChar(1000)
+  gender       String?         @db.VarChar(20)
   role         String          @default("USER")
   adminRoleId  Int?
   isActive     Boolean         @default(true)

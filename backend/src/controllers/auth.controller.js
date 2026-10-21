@@ -46,12 +46,12 @@ export function logout(_req, res) {
 }
 
 export async function updateMe(req, res, next) {
-  const { fullName, phone } = req.body;
+  const { fullName, phone, gender } = req.body;
   if (fullName !== undefined && !String(fullName).trim()) {
     return res.status(400).json({ success: false, message: 'Họ và tên không được để trống.', field: 'fullName' });
   }
   try {
-    const user = await updateUserProfile(req.user.userId, { fullName, phone });
+    const user = await updateUserProfile(req.user.userId, { fullName, phone, gender });
     return res.status(200).json({ success: true, user });
   } catch (error) {
     return next(error);

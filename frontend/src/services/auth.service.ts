@@ -96,7 +96,7 @@ export async function logoutAccount(): Promise<void> {
   await fetch(`${API_BASE_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
 }
 
-export async function updateProfile(data: { fullName?: string; phone?: string }): Promise<AuthUser> {
+export async function updateProfile(data: { fullName?: string; phone?: string; gender?: string }): Promise<AuthUser> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}/auth/me`, {

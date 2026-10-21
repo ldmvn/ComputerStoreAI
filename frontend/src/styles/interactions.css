@@ -40,6 +40,7 @@
 }
 
 :is(.header-action, .ui-header-action) > svg:first-child,
+:is(.header-action, .ui-header-action) > span.header-icon > svg,
 .ui-avatar,
 .ui-search > svg,
 .ui-menu-item > svg:first-child,
@@ -75,6 +76,7 @@
   }
 
   :is(.header-action, .ui-header-action):hover > svg:first-child,
+  :is(.header-action, .ui-header-action):hover > span.header-icon > svg,
   .ui-header-action:hover .ui-avatar,
   .ui-search:hover > svg {
     translate: 0 -2px;
