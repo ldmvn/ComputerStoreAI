@@ -32,6 +32,16 @@ import SmartSearchBar from '@/components/layout/SmartSearchBar';
 import { useBrandingStore } from '@/store/branding.store';
 import { useCategoryHeroStore } from '@/store/categoryHero.store';
 
+function HeaderLabel({ sub, main, maxW = 'max-w-[7rem]', from = 'lg' }: { sub: string; main: string; maxW?: string; from?: 'md' | 'lg' | 'xl' }) {
+  const showCls = from === 'md' ? 'md:flex' : from === 'xl' ? 'xl:flex' : 'lg:flex';
+  return (
+    <span className={`hidden flex-col items-start leading-none ${showCls}`}>
+      <span className="text-[10px] font-normal text-slate-400">{sub}</span>
+      <span className={`truncate text-sm font-semibold ${maxW}`}>{main}</span>
+    </span>
+  );
+}
+
 export default function Header() {
   const [categories, setCategories] = useState<PublicCategory[]>([]);
   const [menus, setMenus] = useState<PublicMenu[]>([]);
@@ -208,7 +218,7 @@ export default function Header() {
       <header className="site-header sticky top-0 z-50 border-b backdrop-blur-md">
       {/* ===== Main Header ===== */}
       <div className="container mx-auto px-3 sm:px-4">
-        <div className="flex min-h-16 flex-wrap items-center gap-x-1 gap-y-2 py-2 sm:gap-x-2 lg:h-20 lg:flex-nowrap lg:py-0 xl:gap-x-4">
+        <div className="flex min-h-16 flex-wrap items-center gap-x-1 gap-y-2 py-2 sm:gap-x-2 md:flex-nowrap xl:h-20 xl:gap-x-4 xl:py-0">
           {/* Mobile menu button */}
           <button
             type="button"
@@ -357,7 +367,7 @@ export default function Header() {
           </Link>
 
           {/* Smart Search */}
-          <div className="order-last flex min-w-0 basis-full items-center justify-center lg:order-none lg:flex-1 lg:basis-auto">
+          <div className="order-last flex min-w-0 basis-full items-center justify-center md:order-none md:flex-1 md:basis-auto">
             <SmartSearchBar />
           </div>
 
@@ -389,7 +399,7 @@ export default function Header() {
                 aria-label="Build PC"
               >
                 <Wrench className="h-5 w-5" aria-hidden="true" />
-                <span>Build PC</span>
+                <HeaderLabel sub="Xây dựng" main="Cấu hình PC" maxW="max-w-[6rem]" from="xl" />
                 <ChevronDown className={`h-4 w-4 transition-transform ${buildPcOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
               </button>
               {buildPcOpen && <BuildPcDropdown onNavigate={() => setBuildPcOpen(false)} />}
@@ -398,35 +408,39 @@ export default function Header() {
             {/* Wishlist */}
             <Link
               href="/customer/wishlist"
-              className="header-action relative"
+              className="header-action"
               title="Yêu thích"
             >
-              <Heart className="h-5 w-5" aria-hidden="true" />
-              <span className="hidden lg:inline">Yêu thích</span>
-              <span className="sr-only lg:hidden">Yêu thích</span>
-              {wishlistCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-bold tabular-nums text-white">
-                  {wishlistCount > 99 ? '99+' : wishlistCount}
-                  <span className="sr-only"> sản phẩm</span>
-                </span>
-              )}
+              <span className="header-icon relative shrink-0">
+                <Heart className="h-5 w-5" aria-hidden="true" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-bold tabular-nums text-white">
+                    {wishlistCount > 99 ? '99+' : wishlistCount}
+                    <span className="sr-only"> sản phẩm</span>
+                  </span>
+                )}
+              </span>
+              <HeaderLabel sub="Danh sách" main="Yêu thích" maxW="max-w-[5rem]" from="xl" />
+              <span className="sr-only">Yêu thích</span>
             </Link>
 
             {/* Cart with badge */}
             <Link
               href="/customer/cart"
-              className="header-action relative"
+              className="header-action"
               title="Giỏ hàng"
             >
-              <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-              <span className="hidden lg:inline">Giỏ hàng</span>
-              <span className="sr-only lg:hidden">Giỏ hàng</span>
-              {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-bold tabular-nums text-white">
-                  {cartCount > 99 ? '99+' : cartCount}
-                  <span className="sr-only"> sản phẩm</span>
-                </span>
-              )}
+              <span className="header-icon relative shrink-0">
+                <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+                {cartCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-bold tabular-nums text-white">
+                    {cartCount > 99 ? '99+' : cartCount}
+                    <span className="sr-only"> sản phẩm</span>
+                  </span>
+                )}
+              </span>
+              <HeaderLabel sub="Thanh toán" main="Giỏ hàng" maxW="max-w-[5rem]" from="xl" />
+              <span className="sr-only">Giỏ hàng</span>
             </Link>
 
             {isAdmin && (
@@ -437,7 +451,7 @@ export default function Header() {
                 title="Dashboard"
               >
                 <Settings className="h-5 w-5" aria-hidden="true" />
-                <span className="hidden lg:inline">Dashboard</span>
+                <HeaderLabel sub="Quản trị" main="Dashboard" maxW="max-w-[6rem]" from="xl" />
               </Link>
             )}
 
@@ -446,11 +460,11 @@ export default function Header() {
             <button
               type="button"
               onClick={() => openAuthModal()}
-              className="header-action"
+              className="header-action md:h-auto md:w-auto md:px-2 md:py-2"
               aria-label="Đăng nhập"
             >
               <User className="h-5 w-5" />
-              <span className="hidden max-w-32 truncate lg:inline">Đăng nhập</span>
+              <HeaderLabel sub="Xin chào" main="Đăng nhập" maxW="max-w-[6rem]" from="md" />
             </button>
             )}
           </div>
