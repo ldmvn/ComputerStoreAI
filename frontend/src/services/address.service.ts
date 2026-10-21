@@ -1,66 +1,39 @@
+import { apiRequest } from './http.client';
 import type { Address, AddressInput, Province, Commune } from '@/types/address.type';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-
-function authHeaders(token: string | null) {
-  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
-}
-
-// ─── Address CRUD ─────────────────────────────────────────────────────────────
-
 export async function getAddresses(token: string | null): Promise<Address[]> {
-  const res = await fetch(`${API}/addresses`, { headers: authHeaders(token) });
-  if (!res.ok) throw new Error('Không thể tải danh sách địa chỉ.');
-  const data = await res.json();
+  const data = await apiRequest<{ addresses: Address[] }>('/addresses', {}, token);
   return data.addresses;
 }
 
 export async function createAddress(token: string | null, input: AddressInput): Promise<Address> {
-  const res = await fetch(`${API}/addresses`, {
+  const data = await apiRequest<{ address: Address }>('/addresses', {
     method: 'POST',
-    headers: authHeaders(token),
     body: JSON.stringify(input),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Không thể thêm địa chỉ.');
+  }, token);
   return data.address;
 }
 
 export async function updateAddress(token: string | null, id: number, input: AddressInput): Promise<Address> {
-  const res = await fetch(`${API}/addresses/${id}`, {
+  const data = await apiRequest<{ address: Address }>(`/addresses/${id}`, {
     method: 'PUT',
-    headers: authHeaders(token),
     body: JSON.stringify(input),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Không thể cập nhật địa chỉ.');
+  }, token);
   return data.address;
 }
 
 export async function deleteAddress(token: string | null, id: number): Promise<void> {
-  const res = await fetch(`${API}/addresses/${id}`, {
-    method: 'DELETE',
-    headers: authHeaders(token),
-  });
-  if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data.message || 'Không thể xóa địa chỉ.');
-  }
+  await apiRequest<unknown>(`/addresses/${id}`, { method: 'DELETE' }, token);
 }
 
 export async function setDefaultAddress(token: string | null, id: number): Promise<Address> {
-  const res = await fetch(`${API}/addresses/${id}/default`, {
-    method: 'PATCH',
-    headers: authHeaders(token),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Không thể đặt địa chỉ mặc định.');
+  const data = await apiRequest<{ address: Address }>(`/addresses/${id}/default`, { method: 'PATCH' }, token);
   return data.address;
 }
 
 // ─── CAS AddressKit (proxied via Next.js API routes) ─────────────────────────
 
-const provincesCache: Province[] | null = null;
+let provincesCache: Province[] | null = null;
 let provincesPromise: Promise<Province[]> | null = null;
 
 export async function getProvinces(): Promise<Province[]> {
@@ -68,7 +41,11 @@ export async function getProvinces(): Promise<Province[]> {
   if (provincesPromise) return provincesPromise;
   provincesPromise = fetch('/api/address-kit/provinces')
     .then(r => r.json())
-    .then(d => (d.provinces as Array<{ code: string; name: string }>).map(p => ({ code: p.code, name: p.name })));
+    .then(d => {
+      const list = (d.provinces as Array<{ code: string; name: string }>).map(p => ({ code: p.code, name: p.name }));
+      provincesCache = list;
+      return list;
+    });
   return provincesPromise;
 }
 
