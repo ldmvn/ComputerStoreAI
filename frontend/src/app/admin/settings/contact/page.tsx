@@ -18,6 +18,7 @@ import {
   type StoreSettings,
   type SmtpStatus,
 } from '@/services/adminSettings.service';
+import WidgetSettingsSection from './WidgetSettingsSection';
 
 // ─── Validation helpers ──────────────────────────────────────────────────────
 
@@ -32,23 +33,6 @@ function validatePhone(v: string) {
 function validateEmail(v: string) {
   if (!v) return null;
   if (!EMAIL_RE.test(v.trim())) return 'Địa chỉ email không hợp lệ';
-  return null;
-}
-
-const SOCIAL_ALLOWED: Record<string, string[]> = {
-  zalo:      ['zalo.me'],
-  messenger: ['m.me', 'www.messenger.com', 'messenger.com'],
-  telegram:  ['t.me', 'telegram.me', 'telegram.org'],
-};
-
-function validateSocialUrl(channel: string, v: string): string | null {
-  if (!v) return null;
-  let parsed: URL;
-  try { parsed = new URL(v); } catch { return 'URL không hợp lệ.'; }
-  if (parsed.protocol !== 'https:') return 'Chỉ chấp nhận https://.';
-  if (parsed.username || parsed.password) return 'URL không được chứa thông tin đăng nhập.';
-  const allowed = SOCIAL_ALLOWED[channel] ?? [];
-  if (!allowed.includes(parsed.hostname)) return `Domain phải là: ${allowed.join(', ')}.`;
   return null;
 }
 
@@ -86,19 +70,8 @@ const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'contact',       label: 'Thông tin liên hệ', icon: Phone },
   { id: 'smtp',          label: 'Email hệ thống',    icon: Mail },
   { id: 'notifications', label: 'Thông báo tự động', icon: Bell },
-  { id: 'social',        label: 'Kênh xã hội',       icon: MessageCircle },
+  { id: 'social',        label: 'Kênh xã hội & Widget hỗ trợ', icon: MessageCircle },
 ];
-
-// Social channel definitions
-type SocialChannel = { id: string; label: string; placeholder: string; hint: string };
-
-const SOCIAL_CHANNELS: SocialChannel[] = [
-  { id: 'zalo',      label: 'Zalo',      placeholder: 'https://zalo.me/0386220065', hint: 'zalo.me' },
-  { id: 'messenger', label: 'Messenger', placeholder: 'https://m.me/ldmahz',        hint: 'm.me / messenger.com' },
-  { id: 'telegram',  label: 'Telegram',  placeholder: 'https://t.me/ldmahz',        hint: 't.me / telegram.me' },
-];
-
-const SOCIAL_KEYS = SOCIAL_CHANNELS.flatMap(c => [`social.${c.id}.url`, `social.${c.id}.enabled`]);
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -206,6 +179,7 @@ export default function ContactSettingsPage() {
 
   const [activeTab, setActiveTab] = useState<TabId>('contact');
   const [values, setValues] = useState<StoreSettings>({});
+  const [savedValues, setSavedValues] = useState<StoreSettings>({});
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -229,6 +203,7 @@ export default function ContactSettingsPage() {
     ])
       .then(([settingsRes, smtpRes]) => {
         setValues(settingsRes.data ?? {});
+        setSavedValues(settingsRes.data ?? {});
         setSmtp(smtpRes.data ?? null);
       })
       .catch(e => { if (e.name !== 'AbortError') setFeedbackErr(e.message); })
@@ -262,27 +237,6 @@ export default function ContactSettingsPage() {
     try {
       await updateAdminSettings(token, payload);
       setFeedbackMsg('Đã lưu thông tin liên hệ.');
-    } catch (e) {
-      setFeedbackErr(e instanceof Error ? e.message : 'Lưu thất bại.');
-    } finally { setSaving(false); }
-  };
-
-  const handleSaveSocial = async () => {
-    // validate all social URLs before saving
-    const urlErrors: Record<string, string | null> = {};
-    for (const ch of SOCIAL_CHANNELS) {
-      const key = `social.${ch.id}.url`;
-      urlErrors[key] = validateSocialUrl(ch.id, values[key] ?? '');
-    }
-    setErrors(e => ({ ...e, ...urlErrors }));
-    if (Object.values(urlErrors).some(Boolean)) return;
-
-    setSaving(true); setFeedbackMsg(''); setFeedbackErr('');
-    const payload: StoreSettings = {};
-    for (const key of SOCIAL_KEYS) payload[key] = values[key] ?? '';
-    try {
-      await updateAdminSettings(token, payload);
-      setFeedbackMsg('Đã lưu cài đặt kênh xã hội.');
     } catch (e) {
       setFeedbackErr(e instanceof Error ? e.message : 'Lưu thất bại.');
     } finally { setSaving(false); }
@@ -455,96 +409,16 @@ export default function ContactSettingsPage() {
               </div>
             )}
 
-            {/* ── Tab: Kênh xã hội ─────────────────────────────────────── */}
+            {/* ── Tab: Kênh xã hội & Widget hỗ trợ ────────────────────────── */}
             {activeTab === 'social' && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <SectionTitle icon={MessageCircle} title="Kênh xã hội & Widget hỗ trợ" />
-                <p className="mb-5 text-xs text-slate-500">
-                  Cấu hình link và trạng thái hiển thị của từng kênh trong widget hỗ trợ trên trang khách hàng.
-                </p>
-
-                <div className="space-y-5">
-                  {SOCIAL_CHANNELS.map(ch => {
-                    const urlKey = `social.${ch.id}.url`;
-                    const enabledKey = `social.${ch.id}.enabled`;
-                    const isEnabled = values[enabledKey] !== 'false';
-                    const urlVal = values[urlKey] ?? '';
-                    const urlErr = errors[urlKey] ?? null;
-
-                    return (
-                      <div key={ch.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                        <div className="mb-3 flex items-center justify-between gap-3">
-                          <span className="text-sm font-semibold text-slate-700">{ch.label}</span>
-                          <button
-                            type="button"
-                            disabled={!canManage}
-                            onClick={() => setValues(v => ({ ...v, [enabledKey]: isEnabled ? 'false' : 'true' }))}
-                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:cursor-not-allowed
-                              ${isEnabled ? 'bg-primary-600' : 'bg-slate-300'}`}
-                            aria-pressed={isEnabled}
-                            aria-label={`${isEnabled ? 'Tắt' : 'Bật'} ${ch.label}`}
-                          >
-                            <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow ring-0 transition-transform ${isEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
-                          </button>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="url"
-                              value={urlVal}
-                              onChange={e => {
-                                const v = e.target.value;
-                                setValues(prev => ({ ...prev, [urlKey]: v }));
-                                setErrors(prev => ({ ...prev, [urlKey]: validateSocialUrl(ch.id, v) }));
-                              }}
-                              placeholder={ch.placeholder}
-                              disabled={!canManage || !isEnabled}
-                              className={`flex-1 rounded-xl border px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition
-                                ${urlErr ? 'border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100'}
-                                disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
-                            />
-                            {urlVal && !urlErr && (
-                              <a
-                                href={urlVal}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-primary-600"
-                                title="Mở link"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                              </a>
-                            )}
-                          </div>
-                          {urlErr && <p className="mt-1 text-xs text-red-500">{urlErr}</p>}
-                          <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
-                            <Info className="h-3 w-3 flex-shrink-0" />
-                            Chỉ chấp nhận domain: {ch.hint}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {canManage && (
-                  <div className="mt-6 border-t border-slate-100 pt-5">
-                    <button
-                      onClick={handleSaveSocial}
-                      disabled={saving || Object.values(errors).some(Boolean)}
-                      className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-60 transition"
-                    >
-                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      Lưu thay đổi
-                    </button>
-                  </div>
-                )}
-                {!canManage && (
-                  <div className="mt-4 flex items-center gap-1.5 text-xs text-slate-400">
-                    <Lock className="h-3 w-3" /> Bạn chỉ có quyền xem.
-                  </div>
-                )}
-              </div>
+              <WidgetSettingsSection
+                token={token}
+                canManage={canManage}
+                values={values}
+                setValues={setValues}
+                savedValues={savedValues}
+                onSaved={patch => setSavedValues(v => ({ ...v, ...patch }))}
+              />
             )}
 
             {/* ── Tab: Thông báo tự động ────────────────────────────────── */}

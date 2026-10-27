@@ -1,5 +1,19 @@
 import { prisma } from '../config/prisma.js';
 import { refundVoucherUsage } from './voucher.service.js';
+import { cancelPaymentForOrder } from '../payments/services/payment.service.js';
+
+const PAYMENT_SELECT = {
+  id: true, method: true, status: true, amount: true, currency: true, paidAt: true,
+  attempts: {
+    orderBy: { createdAt: 'desc' },
+    take: 1,
+    select: {
+      id: true, status: true, merchantReference: true, providerTransactionId: true, transferContent: true,
+      bankBin: true, bankName: true, bankAccountNumber: true, bankAccountName: true,
+      reportedAt: true, paidAt: true, createdAt: true,
+    },
+  },
+};
 
 const VALID_TRANSITIONS = {
   PENDING:   ['CONFIRMED', 'CANCELLED'],
@@ -8,6 +22,18 @@ const VALID_TRANSITIONS = {
   DELIVERED: [],
   CANCELLED: [],
 };
+
+// Centralized payment-before-fulfillment rule: an order paid through a
+// gateway (bank transfer, or MoMo/VNPAY once wired up) must have a PAID
+// Payment before Admin can approve (CONFIRMED) or ship (SHIPPING) it. COD is
+// the deliberate exception — it is approved/shipped first, cash is
+// confirmed afterwards via adminConfirmCodPayment(). This is the single
+// place that enforces it for the regular status-update path; the merged
+// VietQR "confirm & approve" action in payment.service.js satisfies it by
+// construction (it only reaches the CONFIRMED write after Payment is PAID
+// within the same transaction).
+const PAYMENT_REQUIRED_METHODS = ['BANK_TRANSFER', 'MOMO', 'VNPAY'];
+const PAYMENT_GATED_TARGETS = new Set(['CONFIRMED', 'SHIPPING']);
 
 const orderSelect = {
   id: true, userId: true, status: true, paymentMethod: true, note: true,
@@ -23,12 +49,17 @@ const orderSelect = {
     select: { id: true, status: true, note: true, adminId: true, createdAt: true },
     orderBy: { createdAt: 'asc' },
   },
+  payment: { select: PAYMENT_SELECT },
 };
 
-export async function listAllOrders({ page = 1, limit = 20, status, search, paymentMethod, from, to } = {}) {
+export async function listAllOrders({ page = 1, limit = 20, status, search, paymentMethod, paymentStatus, from, to } = {}) {
   const where = {};
   if (status) where.status = status;
   if (paymentMethod) where.paymentMethod = paymentMethod;
+  // Relation filter — requires an actual Payment row with this status, so an
+  // old order with no Payment record is correctly excluded rather than
+  // assumed to match any status.
+  if (paymentStatus) where.payment = { status: paymentStatus };
   if (from || to) {
     where.createdAt = {};
     if (from) where.createdAt.gte = new Date(from);
@@ -69,6 +100,14 @@ export async function updateOrderStatus(id, { status, note, trackingNumber, ship
     e.statusCode = 400; throw e;
   }
 
+  if (PAYMENT_GATED_TARGETS.has(status) && PAYMENT_REQUIRED_METHODS.includes(order.paymentMethod)) {
+    const payment = await prisma.payment.findUnique({ where: { orderId: id }, select: { status: true } });
+    if (payment?.status !== 'PAID') {
+      const e = new Error(`Đơn hàng chưa được xác nhận thanh toán — không thể chuyển sang ${status === 'CONFIRMED' ? 'Đã xác nhận' : 'Đang giao'}.`);
+      e.statusCode = 409; e.code = 'PAYMENT_NOT_CONFIRMED'; throw e;
+    }
+  }
+
   const now = new Date();
   const timestamps = {
     CONFIRMED: { confirmedAt: now },
@@ -99,6 +138,8 @@ export async function updateOrderStatus(id, { status, note, trackingNumber, ship
     // Refund voucher usage on admin cancel
     if (status === 'CANCELLED') {
       await refundVoucherUsage(tx, id);
+      await cancelPaymentForOrder(tx, id);
+      updated.payment = await tx.payment.findUnique({ where: { orderId: id }, select: PAYMENT_SELECT });
     }
 
     // Restore stock when admin cancels an order

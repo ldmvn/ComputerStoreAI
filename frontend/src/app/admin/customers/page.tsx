@@ -242,7 +242,7 @@ export default function AdminCustomersPage() {
       <div className="mb-4 space-y-3">
         {/* Search + sort row */}
         <div className="flex items-center gap-3">
-          <div className="flex flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
             <Search className="h-4 w-4 shrink-0 text-slate-400" />
             <input
               value={searchInput}

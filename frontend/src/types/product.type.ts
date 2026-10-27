@@ -13,11 +13,19 @@ export type ProductReview = {
   rating: number;
   content: string;
   images: string[];
+  verifiedPurchase: boolean;
   createdAt: string;
   author: ProductReviewAuthor | null;
 };
 export type ProductReviewSummary = { ratingAverage: number | null; distribution: { 1: number; 2: number; 3: number; 4: number; 5: number } };
 export type ProductReviewListResponse = { items: ProductReview[]; meta: { page: number; limit: number; total: number; totalPages: number }; summary: ProductReviewSummary };
+export type ReviewEligibility = {
+  canReview: boolean;
+  hasPurchased: boolean;
+  hasCompletedOrder: boolean;
+  hasReviewed: boolean;
+  reviewId: number | null;
+};
 
 export type ProductPromotionGift = { productId: number | null; name: string; price: number | null; imageUrl: string | null; quantity: number | null };
 export type ProductPromotion = {

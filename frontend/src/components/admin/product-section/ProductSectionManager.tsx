@@ -886,6 +886,7 @@ export default function ProductSectionManager() {
           </div>
         </Modal>
       )}
+
     </section>
   );
 }

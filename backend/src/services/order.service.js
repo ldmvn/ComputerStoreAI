@@ -1,7 +1,8 @@
 import { prisma } from '../config/prisma.js';
 import { validateVoucher, applyVoucherInTx, refundVoucherUsage } from './voucher.service.js';
+import { createPaymentForOrder } from '../payments/services/payment.service.js';
 
-const ALLOWED_PAYMENT = ['COD', 'BANK_TRANSFER'];
+const ALLOWED_PAYMENT = ['COD', 'BANK_TRANSFER', 'MOMO', 'VNPAY'];
 
 const orderSelect = {
   id: true, userId: true, status: true, paymentMethod: true, note: true,
@@ -14,6 +15,21 @@ const orderSelect = {
     select: {
       id: true, productId: true, name: true, slug: true,
       price: true, quantity: true, primaryImage: true,
+    },
+  },
+  payment: {
+    select: {
+      id: true, method: true, status: true, amount: true, currency: true, paidAt: true,
+      attempts: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: {
+          id: true, status: true, merchantReference: true, providerTransactionId: true,
+          transferContent: true, bankBin: true, bankName: true,
+          bankAccountNumber: true, bankAccountName: true,
+          reportedAt: true, paidAt: true, createdAt: true,
+        },
+      },
     },
   },
 };
@@ -159,7 +175,18 @@ export async function createOrder(userId, { items, addressId, paymentMethod, not
       });
     }
 
-    return order;
+    const { payment, attempt } = await createPaymentForOrder(tx, order);
+
+    // Attach payment snapshot so BANK_TRANSFER checkout can show the VietQR
+    // popup immediately without a second round-trip. For MOMO/VNPAY the caller
+    // triggers a separate /payments/orders/:id/{momo,vnpay} request; the
+    // attached payment object is available but not needed there.
+    return {
+      ...order,
+      payment: payment
+        ? { ...payment, attempts: attempt ? [attempt] : [] }
+        : null,
+    };
   });
 }
 
@@ -176,6 +203,131 @@ export async function getOrder(userId, orderId) {
     where: { id: orderId, userId },
     select: orderSelect,
   });
+}
+
+const EDITABLE_PAYMENT_STATUSES = ['PENDING', 'PROCESSING', 'CANCELLED', 'FAILED', 'EXPIRED'];
+
+// Address can be changed until the parcel is handed to carrier (SHIPPING).
+const ADDRESS_EDITABLE_STATUSES = ['PENDING', 'CONFIRMED'];
+
+function assertNotFound(order) {
+  if (!order) { const e = new Error('Đơn hàng không tồn tại.'); e.statusCode = 404; throw e; }
+}
+
+function assertAddressEditable(order) {
+  assertNotFound(order);
+  if (!ADDRESS_EDITABLE_STATUSES.includes(order.status)) {
+    const e = new Error('Không thể đổi địa chỉ sau khi đơn hàng đã được bàn giao vận chuyển.');
+    e.statusCode = 400; throw e;
+  }
+}
+
+function assertOrderEditable(order) {
+  assertNotFound(order);
+  if (order.status !== 'PENDING') { const e = new Error('Chỉ có thể chỉnh sửa đơn hàng đang chờ xử lý.'); e.statusCode = 400; throw e; }
+  if (order.payment && !EDITABLE_PAYMENT_STATUSES.includes(order.payment.status)) {
+    const e = new Error('Đơn hàng đã thanh toán, không thể chỉnh sửa.'); e.statusCode = 400; throw e;
+  }
+}
+
+export async function updateOrderAddress(userId, orderId, addressId) {
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, userId },
+    select: { id: true, status: true },
+  });
+  assertAddressEditable(order);
+
+  const address = await prisma.address.findFirst({ where: { id: addressId, userId } });
+  if (!address) { const e = new Error('Địa chỉ không hợp lệ.'); e.statusCode = 400; throw e; }
+
+  const shippingAddress = `${address.streetAddress}, ${address.communeName}, ${address.provinceName}`;
+  return prisma.order.update({
+    where: { id: orderId },
+    data: {
+      shippingName: address.fullName,
+      shippingPhone: address.phone,
+      shippingAddress,
+    },
+    select: orderSelect,
+  });
+}
+
+export async function updateOrderPaymentMethod(userId, orderId, paymentMethod) {
+  if (!ALLOWED_PAYMENT.includes(paymentMethod)) {
+    const e = new Error('Phương thức thanh toán không hợp lệ.'); e.statusCode = 400; throw e;
+  }
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, userId },
+    select: { id: true, status: true, paymentMethod: true, payment: { select: { id: true, status: true } } },
+  });
+  assertOrderEditable(order);
+
+  if (order.paymentMethod === paymentMethod) {
+    return prisma.order.findFirst({ where: { id: orderId, userId }, select: orderSelect });
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.order.update({
+      where: { id: orderId },
+      data: { paymentMethod },
+      select: orderSelect,
+    });
+    if (order.payment) {
+      await tx.payment.update({
+        where: { id: order.payment.id },
+        data: { method: paymentMethod },
+      });
+    }
+    return updated;
+  });
+}
+
+export async function reorderItems(userId, orderId) {
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, userId, status: 'CANCELLED' },
+    select: { id: true, items: { select: { productId: true, name: true, quantity: true } } },
+  });
+  if (!order) {
+    const err = new Error('Đơn hàng không tồn tại hoặc không thể mua lại.'); err.statusCode = 404; throw err;
+  }
+
+  const productIds = order.items.map(i => i.productId);
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds } },
+    select: {
+      id: true, name: true, slug: true, price: true, stockQuantity: true,
+      isActive: true, isDeleted: true,
+      images: { where: { isPrimary: true }, select: { imageUrl: true }, take: 1 },
+    },
+  });
+  const productMap = new Map(products.map(p => [p.id, p]));
+
+  const available = [];
+  const unavailable = [];
+
+  for (const item of order.items) {
+    const p = productMap.get(item.productId);
+    if (!p || p.isDeleted || !p.isActive) {
+      unavailable.push({ name: item.name, reason: 'Sản phẩm không còn bán' });
+      continue;
+    }
+    if (p.stockQuantity <= 0) {
+      unavailable.push({ name: item.name, reason: 'Hết hàng' });
+      continue;
+    }
+    const addedQuantity = Math.min(item.quantity, p.stockQuantity);
+    available.push({
+      product: {
+        id: p.id, name: p.name, slug: p.slug, price: p.price,
+        stockQuantity: p.stockQuantity, isActive: p.isActive, isDeleted: p.isDeleted,
+        primaryImage: p.images?.[0]?.imageUrl ?? null,
+      },
+      requestedQuantity: item.quantity,
+      addedQuantity,
+    });
+  }
+
+  return { available, unavailable };
 }
 
 export async function cancelOrder(userId, orderId) {

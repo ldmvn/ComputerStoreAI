@@ -28,10 +28,8 @@ export default function ProductSectionCarousel({ products, label, showHighlightS
 
   const move = (direction: number) => {
     const track = trackRef.current;
-    const card = track?.firstElementChild;
-    if (!track || !card) return;
-    const step = card.getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap);
-    track.scrollBy({ left: direction * step * 2, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    if (!track) return;
+    track.scrollBy({ left: direction * track.clientWidth, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   };
 
   return (

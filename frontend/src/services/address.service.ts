@@ -1,5 +1,6 @@
 import { apiRequest } from './http.client';
 import type { Address, AddressInput, Province, Commune } from '@/types/address.type';
+import { VN_PROVINCES } from '@/data/vn-provinces';
 
 export async function getAddresses(token: string | null): Promise<Address[]> {
   const data = await apiRequest<{ addresses: Address[] }>('/addresses', {}, token);
@@ -31,32 +32,43 @@ export async function setDefaultAddress(token: string | null, id: number): Promi
   return data.address;
 }
 
-// ─── CAS AddressKit (proxied via Next.js API routes) ─────────────────────────
-
-let provincesCache: Province[] | null = null;
-let provincesPromise: Promise<Province[]> | null = null;
+// ─── Local static address data (Vietnam 34-province restructuring 2025) ───────
+// Provinces are bundled inline (34 items, < 2KB) — zero network calls.
+// Communes are loaded from /vn-communes.json on first use and cached in memory.
+// This eliminates the external CAS API dependency that caused the ward dropdown
+// to silently fail when the remote service was unreachable.
 
 export async function getProvinces(): Promise<Province[]> {
-  if (provincesCache) return provincesCache;
-  if (provincesPromise) return provincesPromise;
-  provincesPromise = fetch('/api/address-kit/provinces')
-    .then(r => r.json())
-    .then(d => {
-      const list = (d.provinces as Array<{ code: string; name: string }>).map(p => ({ code: p.code, name: p.name }));
-      provincesCache = list;
-      return list;
-    });
-  return provincesPromise;
+  return VN_PROVINCES;
 }
 
-const communesCache = new Map<string, Commune[]>();
+type CommunesByProvince = Record<string, Commune[]>;
+let communesData: CommunesByProvince | null = null;
+let communesLoadPromise: Promise<CommunesByProvince> | null = null;
+
+async function loadCommunesData(): Promise<CommunesByProvince> {
+  if (communesData) return communesData;
+  if (communesLoadPromise) return communesLoadPromise;
+
+  communesLoadPromise = fetch('/vn-communes.json')
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json() as Promise<CommunesByProvince>;
+    })
+    .then(data => {
+      communesData = data;
+      return data;
+    })
+    .catch(err => {
+      // Reset so next call retries instead of getting stuck on the failed promise
+      communesLoadPromise = null;
+      throw err;
+    });
+
+  return communesLoadPromise;
+}
 
 export async function getCommunes(provinceCode: string): Promise<Commune[]> {
-  if (communesCache.has(provinceCode)) return communesCache.get(provinceCode)!;
-  const res = await fetch(`/api/address-kit/provinces/${encodeURIComponent(provinceCode)}/communes`);
-  const data = await res.json();
-  const communes = (data.communes as Array<{ code: string; name: string; provinceCode: string }>)
-    .map(c => ({ code: c.code, name: c.name, provinceCode: c.provinceCode }));
-  communesCache.set(provinceCode, communes);
-  return communes;
+  const data = await loadCommunesData();
+  return data[provinceCode] ?? [];
 }

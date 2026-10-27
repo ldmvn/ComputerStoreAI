@@ -1,6 +1,4 @@
-import { apiRequest } from './http.client';
-
-const PUBLIC_API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
+import { apiRequest, SERVER_API_BASE_URL } from './http.client';
 
 export interface PolicyPageData {
   id: number;
@@ -30,11 +28,13 @@ export const adminUpdatePolicyPage = (
     token,
   );
 
-// ── Public (called from server components) ────────────────────────────────────
+// ── Public (called from server components — always runs server-side, so it
+// goes straight to the backend rather than through the browser-facing
+// rewrite) ──────────────────────────────────────────────────────────────────
 
 export async function getPublicPolicyPage(key: string): Promise<PolicyPageData | null> {
   try {
-    const res = await fetch(`${PUBLIC_API}/content/pages/${key}`, { cache: 'no-store' });
+    const res = await fetch(`${SERVER_API_BASE_URL}/content/pages/${key}`, { cache: 'no-store' });
     if (!res.ok) return null;
     const json = (await res.json()) as { success: boolean; data: PolicyPageData };
     return json.data ?? null;

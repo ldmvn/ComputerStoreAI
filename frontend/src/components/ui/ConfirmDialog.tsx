@@ -127,7 +127,7 @@ function ConfirmDialog({ request, onClose, cancelRef }: { request: ConfirmReques
           </span>
           <div className="min-w-0 flex-1">
             <h2 id="confirm-dialog-title" className="text-base font-semibold text-slate-900">{request.title}</h2>
-            {request.description && <p id="confirm-dialog-description" className="mt-2 text-sm leading-6 text-slate-600">{request.description}</p>}
+            {request.description && <p id="confirm-dialog-description" className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{request.description}</p>}
           </div>
           <button
             type="button"

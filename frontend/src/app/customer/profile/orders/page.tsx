@@ -18,6 +18,8 @@ import {
   X,
   SlidersHorizontal,
   PackageCheck,
+  CreditCard,
+  Loader2,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
@@ -25,11 +27,14 @@ import {
   getMyOrders,
   getOrderStats,
   cancelOrder,
+  reorderItems,
   OrderRequestError,
   type OrderFilters,
 } from '@/services/order.service';
+import { useCheckoutStore } from '@/store/checkout.store';
 import { mediaUrl } from '@/services/http.client';
 import type { Order, OrderStats, OrderStatus } from '@/types/order.type';
+import { useRouter } from 'next/navigation';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -67,10 +72,16 @@ const LIMIT = 10;
 
 // ─── OrderCard ────────────────────────────────────────────────────────────────
 
-function OrderCard({ order, onCancel, cancelling, cancelError }: {
+function OrderCard({ order, onCancel, cancelling, cancelError, onReorder, reordering }: {
   order: Order; onCancel: (id: number) => void; cancelling: boolean; cancelError?: string;
+  onReorder: (id: number) => void; reordering: boolean;
 }) {
-  const meta = STATUS_META[order.status];
+  const paymentStatus = order.payment?.status;
+  const pendingPayment = order.status === 'PENDING' &&
+    (paymentStatus === 'CANCELLED' || paymentStatus === 'FAILED' || paymentStatus === 'EXPIRED');
+  const meta = pendingPayment
+    ? { label: 'Chờ thanh toán', color: 'text-amber-700 bg-amber-50 border-amber-200', icon: CreditCard }
+    : STATUS_META[order.status];
   const StatusIcon = meta.icon;
   const canCancel = order.status === 'PENDING';
   const firstItems = order.items.slice(0, 3);
@@ -155,8 +166,18 @@ function OrderCard({ order, onCancel, cancelling, cancelError }: {
               <span className="text-[10px] text-slate-400">Đơn đang xử lý</span>
             </div>
           )}
+          {order.status === 'CANCELLED' && (
+            <button
+              onClick={() => onReorder(order.id)}
+              disabled={reordering}
+              className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {reordering ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+              Mua lại
+            </button>
+          )}
           <Link href={`/customer/profile/orders/${order.id}`}
-            className="inline-flex min-h-[2.75rem] items-center gap-1 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700">
+            className={`inline-flex min-h-[2.75rem] items-center gap-1 rounded-lg px-4 py-2 text-sm font-semibold transition ${order.status === 'CANCELLED' ? 'border border-slate-200 text-slate-700 hover:bg-slate-50' : 'bg-primary-600 text-white hover:bg-primary-700'}`}>
             Xem chi tiết <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         </div>
@@ -184,9 +205,13 @@ function OrdersPageContent() {
   const [searchInput, setSearchInput] = useState('');
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const router = useRouter();
+  const prepareCheckout = useCheckoutStore(s => s.prepare);
   const confirm = useConfirm();
   const [cancellingId, setCancellingId] = useState<number | null>(null);
   const [cancelError, setCancelError]   = useState<{ orderId: number; message: string } | null>(null);
+  const [reorderingId, setReorderingId] = useState<number | null>(null);
+  const [reorderToast, setReorderToast] = useState<{ message: string; skipped: string[] } | null>(null);
 
   const hasFilter = Boolean(activeTab || search);
   const totalPages = Math.ceil(total / LIMIT);
@@ -248,6 +273,32 @@ function OrdersPageContent() {
     } catch (err: unknown) {
       setCancelError({ orderId, message: err instanceof OrderRequestError ? err.message : 'Không thể hủy đơn hàng.' });
     } finally { setCancellingId(null); }
+  };
+
+  const handleReorder = async (orderId: number) => {
+    setReorderingId(orderId);
+    try {
+      const result = await reorderItems(token, orderId);
+      if (result.available.length === 0) {
+        setReorderToast({ message: 'Không có sản phẩm nào có thể mua lại.', skipped: result.unavailable.map(u => `${u.name} (${u.reason})`) });
+        return;
+      }
+      const checkoutItems = result.available.map(e => ({
+        id: e.product.id, name: e.product.name, slug: e.product.slug,
+        price: e.product.price, primaryImage: e.product.primaryImage,
+        stockQuantity: e.product.stockQuantity, quantity: e.addedQuantity,
+      }));
+      if (result.unavailable.length > 0) {
+        setReorderToast({ message: `${result.unavailable.length} sản phẩm không còn khả dụng`, skipped: result.unavailable.map(u => `${u.name} (${u.reason})`) });
+        await new Promise(r => setTimeout(r, 1800));
+      }
+      prepareCheckout('buynow', checkoutItems);
+      router.push('/customer/checkout');
+    } catch {
+      setReorderToast({ message: 'Không thể xử lý. Vui lòng thử lại.', skipped: [] });
+    } finally {
+      setReorderingId(null);
+    }
   };
 
   if (!user) return null;
@@ -322,7 +373,13 @@ function OrdersPageContent() {
         </div>
 
         {/* Tabs */}
-        <div className="overflow-x-auto border-b border-slate-100 scrollbar-none">
+        {/* contain:paint — WebKit can otherwise let this row's wide, horizontally-
+            scrolled content leak into document.documentElement.scrollWidth even
+            though it's already clipped by overflow-x-auto, which on real iOS
+            Safari triggers a page-wide shrink-to-fit zoom (shrunk layout, blank
+            strip on the right). contain:paint gives WebKit an explicit boundary
+            instead of relying on overflow clipping alone. */}
+        <div className="overflow-x-auto border-b border-slate-100 scrollbar-none [contain:paint]">
           <div className="flex min-w-max">
             {TABS.map((tab) => {
               const count = tab.statsKey ? (stats?.[tab.statsKey] ?? 0) : 0;
@@ -400,7 +457,8 @@ function OrdersPageContent() {
             orders.map(order => (
               <OrderCard key={order.id} order={order}
                 onCancel={handleCancel} cancelling={cancellingId === order.id}
-                cancelError={cancelError?.orderId === order.id ? cancelError.message : undefined} />
+                cancelError={cancelError?.orderId === order.id ? cancelError.message : undefined}
+                onReorder={handleReorder} reordering={reorderingId === order.id} />
             ))
           )}
 
@@ -426,6 +484,22 @@ function OrdersPageContent() {
           )}
         </div>
       </div>
+
+      {reorderToast && (
+        <div className="fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-2xl bg-slate-800 px-4 py-3.5 shadow-xl">
+          <div className="flex items-start gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-white">{reorderToast.message}</p>
+              {reorderToast.skipped.length > 0 && (
+                <ul className="mt-1.5 space-y-0.5">
+                  {reorderToast.skipped.map((s, i) => <li key={i} className="text-xs text-slate-400">• {s}</li>)}
+                </ul>
+              )}
+            </div>
+            <button type="button" onClick={() => setReorderToast(null)} className="mt-0.5 shrink-0 text-slate-400 hover:text-white"><X className="h-4 w-4" /></button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -11,15 +11,20 @@ import { useAuthModal } from '@/store/authModal.store';
 import { useToast } from '@/components/ui/Toast';
 import { getAddresses, createAddress } from '@/services/address.service';
 import { createOrder } from '@/services/order.service';
+import { createVnpayPayment, createMomoPayment } from '@/services/payment.service';
 import { validateVoucher, type VoucherValidation } from '@/services/voucher.service';
 import { mediaUrl } from '@/services/http.client';
 import { formatProductPrice } from '@/lib/product';
 import type { Address, AddressInput } from '@/types/address.type';
 import AddressForm from '@/app/customer/profile/addresses/AddressForm';
+import VietQrPopup from './VietQrPopup';
+import type { Payment, PaymentAttempt } from '@/types/payment.type';
 
 const PAYMENT_METHODS = [
   { value: 'COD', label: 'Thanh toán khi nhận hàng', short: 'COD', icon: Banknote, description: 'Trả tiền mặt khi nhận hàng' },
   { value: 'BANK_TRANSFER', label: 'Chuyển khoản ngân hàng', short: 'Chuyển khoản', icon: CreditCard, description: 'Thông tin tài khoản gửi qua email sau khi đặt hàng' },
+  { value: 'VNPAY', label: 'Thanh toán qua VNPAY', short: 'VNPAY', icon: CreditCard, description: 'Thẻ ATM/Visa/Mastercard, QR hoặc ví điện tử qua cổng VNPAY' },
+  { value: 'MOMO', label: 'Thanh toán qua MoMo', short: 'MoMo', icon: CreditCard, description: 'Thanh toán bằng thẻ ATM nội địa qua cổng MoMo' },
 ];
 
 function AddressCard({ addr, selected, onSelect }: { addr: Address; selected: boolean; onSelect: () => void }) {
@@ -69,6 +74,9 @@ export default function CheckoutView() {
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [addFormOpen, setAddFormOpen] = useState(false);
+  // Set after a successful BANK_TRANSFER order — shows the VietQR popup
+  // before navigating away, instead of navigating immediately like COD does.
+  const [vietQr, setVietQr] = useState<{ orderId: number; payment: Payment; attempt: PaymentAttempt } | null>(null);
   // Tracks whether we already opened the auth modal for this checkout visit,
   // so we can detect "modal closed without login" and redirect back to cart.
   const didOpenModalRef = useRef(false);
@@ -124,19 +132,36 @@ export default function CheckoutView() {
 
   useEffect(() => {
     if (!isAuthHydrated) return;
-    if (orderPlacedRef.current) return; // order success — router.push already in flight
+    if (orderPlacedRef.current) return;
     if (!session || session.items.length === 0) {
       router.replace('/customer/cart');
     }
   }, [session, isAuthHydrated, router]);
 
-  if (!session || session.items.length === 0 || !isAuthHydrated) {
+  // `vietQr` is set AFTER clearSession() for a successful BANK_TRANSFER
+  // order — session is legitimately empty at that point, but the component
+  // must keep rendering (just the popup, nothing else) instead of falling
+  // into the "redirect to cart" loading state and hiding it.
+  if ((!session || session.items.length === 0 || !isAuthHydrated) && !vietQr) {
     return (
       <div className="flex items-center justify-center py-24">
         <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
       </div>
     );
   }
+
+  if (vietQr && (!session || session.items.length === 0)) {
+    return (
+      <VietQrPopup
+        orderId={vietQr.orderId}
+        payment={vietQr.payment}
+        attempt={vietQr.attempt}
+        onClose={() => { router.push(`/customer/profile/orders/${vietQr.orderId}`); setVietQr(null); }}
+      />
+    );
+  }
+
+  if (!session) return null; // unreachable given the guards above — narrows the type for TS below
 
   const subtotal = session.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const itemCount = session.items.reduce((sum, item) => sum + item.quantity, 0);
@@ -191,6 +216,40 @@ export default function CheckoutView() {
       }
 
       clearSession();
+
+      // BANK_TRANSFER: show the VietQR popup before leaving checkout.
+      const attempt = order.payment?.attempts?.[0];
+      if (paymentMethod === 'BANK_TRANSFER' && order.payment && attempt) {
+        toast.success('Đặt hàng thành công!', `Đơn hàng #${order.id} đã được ghi nhận.`);
+        setVietQr({ orderId: order.id, payment: order.payment, attempt });
+        return;
+      }
+
+      // VNPAY: redirect directly to gateway, no premature "thành công" toast.
+      if (paymentMethod === 'VNPAY') {
+        try {
+          const vnpay = await createVnpayPayment(order.id, token);
+          window.location.href = vnpay.data.url;
+        } catch {
+          toast.error('Không tạo được giao dịch VNPAY', 'Vui lòng thử lại từ trang chi tiết đơn hàng.');
+          router.push(`/customer/profile/orders/${order.id}`);
+        }
+        return;
+      }
+
+      // MoMo: same pattern as VNPAY.
+      if (paymentMethod === 'MOMO') {
+        try {
+          const momo = await createMomoPayment(order.id, token, 'atm');
+          window.location.href = momo.data.url;
+        } catch {
+          toast.error('Không tạo được giao dịch MoMo', 'Vui lòng thử lại từ trang chi tiết đơn hàng.');
+          router.push(`/customer/profile/orders/${order.id}`);
+        }
+        return;
+      }
+
+      // COD and other sync methods.
       toast.success('Đặt hàng thành công!', `Đơn hàng #${order.id} đã được ghi nhận.`);
       router.push(`/customer/profile/orders/${order.id}`);
     } catch (err) {
@@ -209,7 +268,7 @@ export default function CheckoutView() {
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
 
         {/* ── Left column ── */}
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
 
           {/* 1. Address */}
           <div className="rounded-2xl border border-slate-200 bg-white">
@@ -311,7 +370,7 @@ export default function CheckoutView() {
         </div>
 
         {/* ── Right column: payment & summary ── */}
-        <aside className="space-y-4 lg:sticky lg:top-24">
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-24">
 
           {/* Voucher */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -408,6 +467,7 @@ export default function CheckoutView() {
                   </button>
                 );
               })}
+
             </div>
           </div>
 
@@ -440,6 +500,15 @@ export default function CheckoutView() {
           initial={null}
           onSave={handleAddAddress}
           onClose={() => setAddFormOpen(false)}
+        />
+      )}
+
+      {vietQr && (
+        <VietQrPopup
+          orderId={vietQr.orderId}
+          payment={vietQr.payment}
+          attempt={vietQr.attempt}
+          onClose={() => { router.push(`/customer/profile/orders/${vietQr.orderId}`); setVietQr(null); }}
         />
       )}
     </section>

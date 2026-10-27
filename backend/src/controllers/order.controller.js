@@ -35,6 +35,33 @@ export const detail = asyncHandler(async (req, res) => {
   res.json({ order });
 });
 
+export const updateAddress = asyncHandler(async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ message: 'ID không hợp lệ.' });
+  const { addressId } = req.body;
+  if (!addressId || !Number.isInteger(parseInt(addressId))) {
+    return res.status(400).json({ message: 'addressId không hợp lệ.' });
+  }
+  const order = await service.updateOrderAddress(req.user.userId, id, parseInt(addressId));
+  res.json({ order, message: 'Đã cập nhật địa chỉ giao hàng.' });
+});
+
+export const updatePaymentMethod = asyncHandler(async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ message: 'ID không hợp lệ.' });
+  const { paymentMethod } = req.body;
+  if (!paymentMethod) return res.status(400).json({ message: 'paymentMethod không hợp lệ.' });
+  const order = await service.updateOrderPaymentMethod(req.user.userId, id, paymentMethod);
+  res.json({ order, message: 'Đã cập nhật phương thức thanh toán.' });
+});
+
+export const reorder = asyncHandler(async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ message: 'ID không hợp lệ.' });
+  const result = await service.reorderItems(req.user.userId, id);
+  res.json(result);
+});
+
 export const cancel = asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id);
   if (!id) return res.status(400).json({ message: 'ID không hợp lệ.' });

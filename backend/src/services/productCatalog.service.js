@@ -300,6 +300,11 @@ export async function updateProduct(id, payload, images) {
   } catch (error) { mapUniqueError(error); }
 }
 
+export async function updateProductDescription(id, description) {
+  await getByIdOrThrow(id, false);
+  return serialize(await prisma.product.update({ where: { id }, data: { description }, include: detailInclude }), true);
+}
+
 export async function setStatus(id, isActive) {
   await getByIdOrThrow(id, false);
   return serialize(await prisma.product.update({ where: { id }, data: { isActive }, include: detailInclude }), true);

@@ -52,6 +52,8 @@ import adminBrandingRoutes from './src/routes/v1/adminBranding.route.js';
 import { getPublicBranding } from './src/controllers/storeBranding.controller.js';
 import { getPublicStore } from './src/controllers/storeSetting.controller.js';
 import { promoMediaDirectory } from './src/services/promoMedia.service.js';
+import { paymentRouter } from './src/payments/routes/payment.routes.js';
+import { adminPaymentRouter } from './src/payments/routes/adminPayment.routes.js';
 
 import { verifyResetMailConnection } from './src/services/passwordResetMail.service.js';
 import { cleanupExpiredPasswordResets } from './src/services/passwordReset.service.js';
@@ -159,6 +161,8 @@ app.use('/api/support',          supportRoutes);
 app.use('/api/customer/support', customerSupportRoutes);
 app.use('/api/admin/support-tickets', adminSupportRoutes);
 app.use('/api/admin/branding', adminBrandingRoutes);
+app.use('/api/payments', paymentRouter);
+app.use('/api/admin/payments', adminPaymentRouter);
 app.get('/api/content/branding', getPublicBranding);
 app.get('/api/content/store-info', getPublicStore);
 app.use('/media/promo-sections', express.static(promoMediaDirectory, {

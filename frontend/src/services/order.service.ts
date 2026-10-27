@@ -1,5 +1,5 @@
 import { apiRequest } from './http.client';
-import type { Order, OrderStats, CreateOrderPayload } from '@/types/order.type';
+import type { Order, OrderStats, CreateOrderPayload, ReorderResult } from '@/types/order.type';
 
 export class OrderRequestError extends Error {
   constructor(message: string, public readonly status: number) {
@@ -85,4 +85,24 @@ export async function getOrder(id: number, token: string | null): Promise<Order>
 export async function cancelOrder(token: string | null, id: number): Promise<{ order: Order }> {
   const { order } = await apiRequest<{ order: Order }>(`/orders/${id}/cancel`, { method: 'PATCH' }, token);
   return { order };
+}
+
+export async function updateOrderAddress(token: string | null, id: number, addressId: number): Promise<Order> {
+  const { order } = await apiRequest<{ order: Order }>(`/orders/${id}/address`, {
+    method: 'PATCH',
+    body: JSON.stringify({ addressId }),
+  }, token);
+  return order;
+}
+
+export async function reorderItems(token: string | null, id: number): Promise<ReorderResult> {
+  return apiRequest<ReorderResult>(`/orders/${id}/reorder`, { method: 'POST' }, token);
+}
+
+export async function updateOrderPaymentMethod(token: string | null, id: number, paymentMethod: string): Promise<Order> {
+  const { order } = await apiRequest<{ order: Order }>(`/orders/${id}/payment-method`, {
+    method: 'PATCH',
+    body: JSON.stringify({ paymentMethod }),
+  }, token);
+  return order;
 }

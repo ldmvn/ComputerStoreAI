@@ -1,4 +1,4 @@
-import { createProduct, getFilterMetadata, getProduct, getProductBySlug, listCategories, listProducts, removeImage, setStatus, softDeleteProduct, updateProduct } from '../services/productCatalog.service.js';
+import { createProduct, getFilterMetadata, getProduct, getProductBySlug, listCategories, listProducts, removeImage, setStatus, softDeleteProduct, updateProduct, updateProductDescription } from '../services/productCatalog.service.js';
 import { discardProductTemp, removeProductImage, saveDescriptionImage, saveProductImages, uploadDescriptionImageMiddleware } from '../services/productMedia.service.js';
 import { parseFilterContextQuery, parseProductListQuery, parseProductPayload, productId, productError } from '../validators/product.validator.js';
 import { recordProductView } from '../services/productStatistics.service.js';
@@ -45,6 +45,15 @@ export const update = asyncHandler(async (req, res) => withImages(req, async ima
 export const status = asyncHandler(async (req, res) => res.json({ product: await setStatus(productId(req.params.id), req.body?.isActive === true || req.body?.isActive === 'true'), message: 'Đã cập nhật trạng thái sản phẩm.' }));
 export const remove = asyncHandler(async (req, res) => res.json({ result: await softDeleteProduct(productId(req.params.id)), message: 'Đã ẩn sản phẩm.' }));
 export const deleteImage = asyncHandler(async (req, res) => res.json({ product: await removeImage(productId(req.params.id), productId(req.params.imageId)), message: 'Đã xóa ảnh sản phẩm.' }));
+
+export const patchDescription = asyncHandler(async (req, res) => {
+  const id = productId(req.params.id);
+  const raw = req.body?.description;
+  if (typeof raw !== 'string') throw productError('Trường description bắt buộc là chuỗi.');
+  const description = raw.trim() ? sanitizeHtml(raw.trim(), DESCRIPTION_SANITIZE) : null;
+  const product = await updateProductDescription(id, description);
+  res.json({ product, message: 'Đã cập nhật mô tả sản phẩm.' });
+});
 
 export const uploadDescriptionImageMw = uploadDescriptionImageMiddleware;
 export const uploadDescriptionImage = asyncHandler(async (req, res) => {

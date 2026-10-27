@@ -1,6 +1,15 @@
 import * as svc from '../services/storeSetting.service.js';
 import { ensureResetMailReady, sendTestMail } from '../services/passwordResetMail.service.js';
 import { logActivity } from '../services/activityLog.service.js';
+import {
+  uploadWidgetMediaMiddleware,
+  saveWidgetMedia,
+  discardWidgetMediaTemp,
+  removeWidgetMedia,
+  keyFromWidgetMediaUrl,
+  WIDGET_MEDIA_CHANNELS,
+} from '../services/supportWidgetMedia.service.js';
+import { validateWidgetKey } from '../validators/supportWidget.validator.js';
 
 const err = (res, e) => {
   const status = e?.status ?? e?.statusCode ?? 500;
@@ -53,7 +62,8 @@ export async function getPublicStore(req, res) {
     const data = await svc.getSettingsByPrefix('store.');
     const social = await svc.getSettingsByPrefix('social.');
     const footer = await svc.getSettingsByPrefix('footer.');
-    res.json({ success: true, data: { ...data, ...social, ...footer } });
+    const widget = await svc.getSettingsByPrefix('widget.');
+    res.json({ success: true, data: { ...data, ...social, ...footer, ...widget } });
   } catch (e) { err(res, e); }
 }
 
@@ -64,10 +74,56 @@ export async function update(req, res) {
       if (/^social\.[^.]+\.url$/.test(key)) {
         const msg = validateSocialUrl(key, String(value ?? ''));
         if (msg) return res.status(400).json({ success: false, message: `${key}: ${msg}` });
+        continue;
+      }
+      if (key.startsWith('widget.')) {
+        const msg = validateWidgetKey(key, value);
+        if (msg) return res.status(400).json({ success: false, message: msg });
       }
     }
     await svc.setSettings(body);
     res.json({ success: true, message: 'Đã lưu cài đặt.' });
+  } catch (e) { err(res, e); }
+}
+
+// ── Widget media (channel logo / chatbot avatar) ──────────────────────────────
+
+export { uploadWidgetMediaMiddleware as uploadWidgetMediaMw };
+
+export async function uploadWidgetMedia(req, res) {
+  const { channel } = req.params;
+  let saved;
+  try {
+    if (!WIDGET_MEDIA_CHANNELS[channel]) {
+      return res.status(400).json({ success: false, message: 'Kênh không được hỗ trợ.' });
+    }
+    saved = await saveWidgetMedia(req.file, channel);
+    const settingKey = WIDGET_MEDIA_CHANNELS[channel];
+    const old = await svc.getSetting(settingKey);
+    await svc.setSettings({ [settingKey]: saved.url });
+    if (old) await removeWidgetMedia(keyFromWidgetMediaUrl(old));
+    await logActivity({ req, action: 'update_widget_media', module: 'settings', description: `Cập nhật ảnh widget hỗ trợ (${channel})`, success: true }).catch(() => {});
+    res.json({ success: true, data: { url: saved.url }, message: 'Đã cập nhật ảnh.' });
+  } catch (e) {
+    if (saved) await removeWidgetMedia(saved.key);
+    err(res, e);
+  } finally {
+    await discardWidgetMediaTemp(req.file);
+  }
+}
+
+export async function deleteWidgetMedia(req, res) {
+  try {
+    const { channel } = req.params;
+    if (!WIDGET_MEDIA_CHANNELS[channel]) {
+      return res.status(400).json({ success: false, message: 'Kênh không được hỗ trợ.' });
+    }
+    const settingKey = WIDGET_MEDIA_CHANNELS[channel];
+    const old = await svc.getSetting(settingKey);
+    await svc.setSettings({ [settingKey]: '' });
+    if (old) await removeWidgetMedia(keyFromWidgetMediaUrl(old));
+    await logActivity({ req, action: 'delete_widget_media', module: 'settings', description: `Khôi phục ảnh mặc định widget hỗ trợ (${channel})`, success: true }).catch(() => {});
+    res.json({ success: true, message: 'Đã khôi phục ảnh mặc định.' });
   } catch (e) { err(res, e); }
 }
 

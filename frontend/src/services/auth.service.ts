@@ -1,6 +1,5 @@
 import type { AuthUser } from '@/types/user.type';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import { API_BASE_URL } from './http.client';
 
 async function passwordResetRequest<T>(path: string, payload: Record<string, string>): Promise<T> {
   let response: Response;

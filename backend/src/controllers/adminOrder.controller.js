@@ -4,11 +4,11 @@ import { notifyStatusChanged, notifyOrderCancelled } from '../services/telegramN
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
 
 export const list = asyncHandler(async (req, res) => {
-  const { page, limit, status, search, paymentMethod, from, to } = req.query;
+  const { page, limit, status, search, paymentMethod, paymentStatus, from, to } = req.query;
   const result = await service.listAllOrders({
     page: page ? parseInt(page) : 1,
     limit: limit ? Math.min(parseInt(limit), 100) : 20,
-    status, search, paymentMethod, from, to,
+    status, search, paymentMethod, paymentStatus, from, to,
   });
   res.json(result);
 });

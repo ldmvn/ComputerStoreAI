@@ -42,3 +42,4 @@ export const updateProduct = (token: string | null, id: number, body: FormData) 
 export const setProductStatus = (token: string | null, id: number, isActive: boolean) => apiRequest<{ product: Product; message: string }>(`/admin/products/${id}/status`, { method: 'PATCH', body: JSON.stringify({ isActive }) }, token);
 export const deleteProduct = (token: string | null, id: number) => apiRequest<{ message: string }>(`/admin/products/${id}`, { method: 'DELETE' }, token);
 export const deleteProductImage = (token: string | null, productId: number, imageId: number) => apiRequest<{ product: Product; message: string }>(`/admin/products/${productId}/images/${imageId}`, { method: 'DELETE' }, token);
+export const patchProductDescription = (token: string | null, productId: number, description: string) => apiRequest<{ product: Product; message: string }>(`/admin/products/${productId}/description`, { method: 'PATCH', body: JSON.stringify({ description }) }, token);

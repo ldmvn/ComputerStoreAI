@@ -27,6 +27,8 @@ type CartState = {
   /** Reset state and mark as not hydrated so the next hydrate() re-reads storage */
   reset: () => void;
   addItem: (product: Product, buyNow?: boolean) => boolean;
+  /** Add multiple products at once (reorder). Each entry's quantity is clamped to stockQuantity. */
+  bulkAdd: (entries: Array<{ product: Product; quantity: number }>) => number;
   setQuantity: (id: number, quantity: number) => boolean;
   removeItem: (id: number) => boolean;
 };
@@ -64,6 +66,27 @@ export const useCartStore = create<CartState>((set, get) => ({
     const items = [...get().items.filter(row => row.id !== product.id), item];
     if (!persist(items, get()._key)) return false;
     set({ items }); return true;
+  },
+
+  bulkAdd: (entries) => {
+    get().hydrate();
+    const current = [...get().items];
+    let added = 0;
+    for (const { product, quantity } of entries) {
+      if (!product.isActive || product.isDeleted || product.stockQuantity <= 0) continue;
+      const existing = current.find(i => i.id === product.id);
+      const newQty = Math.min((existing?.quantity ?? 0) + quantity, product.stockQuantity);
+      if (newQty <= 0) continue;
+      const item: CartItem = { id: product.id, name: product.name, slug: product.slug, price: product.price, primaryImage: product.primaryImage, stockQuantity: product.stockQuantity, quantity: newQty };
+      const idx = current.findIndex(i => i.id === product.id);
+      if (idx >= 0) current[idx] = item; else current.push(item);
+      added++;
+    }
+    if (added > 0) {
+      if (!persist(current, get()._key)) return 0;
+      set({ items: current });
+    }
+    return added;
   },
 
   setQuantity: (id, quantity) => {

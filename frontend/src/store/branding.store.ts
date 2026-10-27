@@ -1,15 +1,9 @@
 import { create } from 'zustand';
-
-const PUBLIC_API = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+import { API_BASE_URL, mediaUrl } from '@/services/http.client';
 
 function resolveMediaUrl(url: string): string {
   if (!url) return '';
-  if (url.startsWith('http')) return url;
-  try {
-    return new URL(url, new URL(PUBLIC_API).origin).href;
-  } catch {
-    return url;
-  }
+  return mediaUrl(url);
 }
 
 interface BrandingStore {
@@ -31,7 +25,7 @@ export const useBrandingStore = create<BrandingStore>((set, get) => ({
   hydrate: async () => {
     if (get().loaded) return;
     try {
-      const res = await fetch(`${PUBLIC_API}/content/branding`, { cache: 'no-store' });
+      const res = await fetch(`${API_BASE_URL}/content/branding`, { cache: 'no-store' });
       if (!res.ok) return;
       const json = (await res.json()) as { data?: { logoUrl?: string; faviconUrl?: string; version?: string } };
       set({

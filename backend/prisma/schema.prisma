@@ -328,20 +328,21 @@ model ProductSpecification {
 }
 
 model ProductReview {
-  id          Int      @id @default(autoincrement())
-  productId   Int
-  rating      Int      @db.UnsignedTinyInt
-  content     String   @db.Text
-  images      String?  @db.Text
-  isPublished Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  author      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  userId      Int?
+  id               Int      @id @default(autoincrement())
+  productId        Int
+  rating           Int      @db.UnsignedTinyInt
+  content          String   @db.Text
+  images           String?  @db.Text
+  isPublished      Boolean  @default(false)
+  verifiedPurchase Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  author           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId           Int?
 
+  @@unique([userId, productId])
   @@index([productId, isPublished])
-  @@index([userId])
 }
 
 model ProductComment {
@@ -607,10 +608,84 @@ model Order {
   statusHistory    OrderStatusHistory[]
   returnRequests   ReturnRequest[]
   voucherUsage     VoucherUsage?
+  payment          Payment?
 
   @@index([userId, createdAt])
   @@index([status])
   @@index([createdAt])
+}
+
+// ── Payment Module (MoMo/VNPAY/VietQR/COD) ──────────────────────────────────
+// Order.paymentMethod (String, above) is left untouched for backward
+// compatibility — these are new, additive tables. See docs/payment-architecture.md.
+
+enum PaymentMethod {
+  COD
+  BANK_TRANSFER // VietQR — chuyển khoản MB Bank, đối soát thủ công
+  MOMO
+  VNPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  AWAITING_VERIFICATION // khách tự báo "Tôi đã chuyển khoản" (VietQR) — CHƯA xác minh, KHÔNG phải PAID
+  PROCESSING // đã redirect sang MoMo/VNPAY, đang chờ IPN
+  PAID // đã xác minh chắc chắn — KHÔNG phải dead-end: có thể chuyển tiếp sang REFUNDED
+  FAILED
+  CANCELLED
+  EXPIRED
+  REFUNDED
+}
+
+model Payment {
+  id         Int              @id @default(autoincrement())
+  orderId    Int              @unique
+  method     PaymentMethod
+  status     PaymentStatus    @default(PENDING)
+  amount     Int // VNĐ — Backend tự tính lại từ Order, không nhận từ Frontend
+  currency   String           @default("VND") @db.VarChar(10)
+  paidAt     DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  order      Order            @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  attempts   PaymentAttempt[]
+
+  @@index([status])
+  @@index([method])
+}
+
+model PaymentAttempt {
+  id                     Int           @id @default(autoincrement())
+  paymentId              Int
+  method                 PaymentMethod
+  merchantReference      String        @unique @db.VarChar(100) // mã tham chiếu DUY NHẤT — chống trùng/replay
+  providerTransactionId  String?       @db.VarChar(100) // mã giao dịch MoMo/VNPAY trả về
+  amount                 Int
+  currency               String        @default("VND") @db.VarChar(10)
+  status                 PaymentStatus @default(PENDING)
+
+  // VietQR — snapshot TOÀN BỘ thông tin thụ hưởng tại thời điểm tạo giao dịch
+  // (đọc từ StoreSetting payment.bank.* một lần, lưu cứng). Admin đổi cấu hình
+  // ngân hàng sau này không ảnh hưởng các attempt cũ.
+  bankBin                String?  @db.VarChar(20) // MB Bank hiện tại = "970422"
+  bankName               String?  @db.VarChar(100)
+  bankAccountNumber      String?  @db.VarChar(50)
+  bankAccountName        String?  @db.VarChar(191)
+  transferContent        String?  @db.VarChar(255)
+
+  requestPayload         Json? // tham số gửi đi — KHÔNG chứa secret
+  responsePayload        Json? // IPN/return đã verify, lưu để audit
+  errorMessage           String?  @db.VarChar(500)
+  reportedAt             DateTime? // khách tự báo đã CK (VietQR)
+  paidAt                 DateTime? // xác nhận chính thức
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  payment                Payment  @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@unique([method, providerTransactionId], name: "PaymentAttempt_method_providerTxId_key")
+  @@index([paymentId])
+  @@index([status])
+  @@index([providerTransactionId])
 }
 
 model OrderItem {

@@ -54,7 +54,6 @@
 .track::-webkit-scrollbar { display: none; }
 .card {
   flex: 0 0 calc((100% - (var(--visible-cards) - 1) * var(--product-gap)) / var(--visible-cards));
-  max-width: 220px;
   min-width: 0;
   scroll-snap-align: start;
   padding: 10px;
@@ -325,16 +324,13 @@
   .price { font-size: 20px; }
 }
 @media (min-width: 1280px) {
-  .track { --visible-cards: 5; }
+  .track { --visible-cards: 6; }
   .grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .title { font-size: 24px; }
   .productName { min-height: 38px; font-size: 14px; line-height: 18px; }
   .originalPrice { font-size: 14px; line-height: 18px; }
   .discountPercent { font-size: 12px; }
   .price { font-size: 22px; }
-}
-@media (min-width: 1440px) {
-  .track { --visible-cards: 6; }
 }
 @media (hover: hover) and (pointer: fine) {
   .productCard:hover { box-shadow: var(--ui-card-shadow); border-color: #fed7aa; }

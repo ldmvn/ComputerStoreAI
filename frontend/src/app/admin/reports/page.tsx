@@ -81,19 +81,19 @@ export default function AdminReportsPage() {
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${!useCustom && preset === r.days ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
           >{r.label}</button>
         ))}
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
           <input
             type="date"
             value={customFrom}
             onChange={e => { setCustomFrom(e.target.value); setUseCustom(true); }}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-primary-400"
+            className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-primary-400 sm:flex-none"
           />
           <span className="text-xs text-slate-400">—</span>
           <input
             type="date"
             value={customTo}
             onChange={e => { setCustomTo(e.target.value); setUseCustom(true); }}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-primary-400"
+            className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-primary-400 sm:flex-none"
           />
           {useCustom && (
             <button onClick={load} className="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">
@@ -159,7 +159,7 @@ export default function AdminReportsPage() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             {/* Status breakdown */}
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <p className="mb-4 text-sm font-semibold text-slate-800">Phân bổ đơn hàng</p>
               <ul className="space-y-2">
                 {Object.entries(report.revenue.statusBreakdown).map(([status, data]) => (
@@ -172,7 +172,7 @@ export default function AdminReportsPage() {
             </div>
 
             {/* Top products */}
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <p className="mb-4 text-sm font-semibold text-slate-800">Sản phẩm bán chạy</p>
               {report.topProducts.length === 0 ? (
                 <p className="text-sm text-slate-400">Chưa có dữ liệu.</p>

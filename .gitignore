@@ -40,4 +40,4 @@ graphify-out/
 
 # MySQL Shell database backups (local only, never commit)
 /backend/db-backups/
-
+/backend/db_backups/

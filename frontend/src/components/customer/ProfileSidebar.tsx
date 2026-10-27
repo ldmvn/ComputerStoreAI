@@ -38,7 +38,13 @@ export default function ProfileSidebar({ user }: { user: AuthUser }) {
     <>
       {/* ── Mobile: horizontal scrollable nav ── */}
       <nav aria-label="Menu tài khoản" className="relative lg:hidden">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {/* contain:paint — WebKit can otherwise let this row's wide, horizontally-
+            scrolled content leak into document.documentElement.scrollWidth even
+            though it's already clipped by overflow-x-auto, which on real iOS
+            Safari triggers a page-wide shrink-to-fit zoom (shrunk layout, blank
+            strip on the right). contain:paint gives WebKit an explicit boundary
+            instead of relying on overflow clipping alone. */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none [contain:paint]">
           {navItems.map(({ href, label, icon: Icon, exact }) => {
             const active = isActive(href, exact);
             return (

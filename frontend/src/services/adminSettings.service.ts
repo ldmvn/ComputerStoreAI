@@ -65,6 +65,24 @@ export const deleteBrandingLogo = (token: string | null) =>
 export const deleteBrandingFavicon = (token: string | null) =>
   apiRequest<{ success: boolean; message: string }>('/admin/branding/favicon', { method: 'DELETE' }, token);
 
+// ── Floating Support Widget media (channel logos / chatbot avatar) ───────────
+
+export type WidgetMediaChannel = 'ai' | 'ai-toggle' | 'zalo' | 'messenger' | 'telegram';
+
+export async function uploadWidgetMedia(token: string | null, channel: WidgetMediaChannel, file: File): Promise<{ url: string }> {
+  const form = new FormData();
+  form.append('image', file);
+  const res = await apiRequest<{ success: boolean; data: { url: string } }>(
+    `/admin/settings/widget-media/${channel}`,
+    { method: 'POST', body: form },
+    token,
+  );
+  return { url: mediaUrl(res.data.url) };
+}
+
+export const deleteWidgetMedia = (token: string | null, channel: WidgetMediaChannel) =>
+  apiRequest<{ success: boolean; message: string }>(`/admin/settings/widget-media/${channel}`, { method: 'DELETE' }, token);
+
 export async function getPublicBrandingInfo(): Promise<BrandingData> {
   try {
     const res = await fetch(`${API_BASE_URL}/content/branding`, { cache: 'no-store' });

@@ -1,65 +1,78 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Bot, Send, X } from 'lucide-react';
+import { useMemo } from 'react';
+import { Send, X } from 'lucide-react';
 import { MessengerGlyph, ZaloGlyph } from './brandIcons';
+import MascotAvatar from './MascotAvatar';
 import SupportContactItem, { type SupportContact } from './SupportContactItem';
-import { getPublicStoreInfo } from '@/services/adminSettings.service';
+import { resolveWidgetConfig, type ResolvedWidgetConfig, type WidgetChannelId } from '@/lib/supportWidget';
 
-const BASE_CONTACTS: SupportContact[] = [
-  {
-    id: 'ai',
-    label: 'Chatbot AI',
-    description: 'Hỏi đáp nhanh 24/7',
-    icon: <Bot className="h-5 w-5" />,
-    iconBgClassName: 'bg-primary-500',
-  },
-  {
-    id: 'zalo',
-    label: 'Zalo',
-    description: 'Tư vấn trực tiếp',
-    icon: <ZaloGlyph className="h-11 w-11" />,
-    iconBgClassName: '',
-    iconRoundedClassName: 'rounded-full overflow-hidden',
-  },
-  {
-    id: 'messenger',
-    label: 'Messenger',
-    description: 'Chat với nhân viên',
-    icon: <MessengerGlyph className="h-11 w-11" />,
-    iconBgClassName: '',
-    iconRoundedClassName: 'rounded-full overflow-hidden',
-  },
-  {
-    id: 'telegram',
-    label: 'Telegram',
-    description: 'Nhận hỗ trợ nhanh',
-    icon: <Send className="h-4.5 w-4.5" />,
-    iconBgClassName: 'bg-[#29A9EB]',
-  },
-];
+// Chuyển cấu hình đã resolve (tên/mô tả/logo/thứ tự/bật-tắt từ Store Settings)
+// thành danh sách SupportContact để render. Dùng chung cho Storefront và Live
+// Preview trong Dashboard nên tách thành hàm thuần, không gọi API ở đây.
+export function buildSupportContacts(config: ResolvedWidgetConfig): SupportContact[] {
+  return config.order
+    .map(id => config.channels[id])
+    .filter(c => c.enabled)
+    .map(c => contactFromChannel(c.id, c));
+}
 
-export default function FloatingSupportPanel({ onClose }: { onClose: () => void }) {
-  const [contacts, setContacts] = useState<SupportContact[]>(BASE_CONTACTS);
+function ChannelLogo({ src }: { src: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt="" className="h-11 w-11 object-cover" />;
+}
 
-  useEffect(() => {
-    const ctrl = new AbortController();
-    getPublicStoreInfo(ctrl.signal)
-      .then(res => {
-        const d = res.data ?? {};
-        setContacts(
-          BASE_CONTACTS.map(c => {
-            if (c.id === 'ai') return c;
-            const enabled = d[`social.${c.id}.enabled`];
-            const url = d[`social.${c.id}.url`]?.trim();
-            if (enabled === 'false') return null;
-            return url ? { ...c, href: url } : c;
-          }).filter(Boolean) as SupportContact[],
-        );
-      })
-      .catch(() => {}); // fallback: keep BASE_CONTACTS as-is
-    return () => ctrl.abort();
-  }, []);
+function contactFromChannel(id: WidgetChannelId, c: ResolvedWidgetConfig['channels'][WidgetChannelId]): SupportContact {
+  if (id === 'ai') {
+    return {
+      id,
+      label: c.name,
+      description: c.description,
+      icon: <MascotAvatar src={c.logoUrl} />,
+      iconBgClassName: 'bg-primary-50',
+      iconRoundedClassName: 'rounded-full overflow-hidden ring-1 ring-primary-200',
+      highlighted: true,
+    };
+  }
+  if (id === 'zalo') {
+    return {
+      id,
+      label: c.name,
+      description: c.description,
+      icon: c.logoUrl ? <ChannelLogo src={c.logoUrl} /> : <ZaloGlyph className="h-11 w-11" />,
+      iconBgClassName: '',
+      iconRoundedClassName: 'rounded-full overflow-hidden',
+      href: c.href,
+    };
+  }
+  if (id === 'messenger') {
+    return {
+      id,
+      label: c.name,
+      description: c.description,
+      icon: c.logoUrl ? <ChannelLogo src={c.logoUrl} /> : <MessengerGlyph className="h-11 w-11" />,
+      iconBgClassName: '',
+      iconRoundedClassName: 'rounded-full overflow-hidden',
+      href: c.href,
+    };
+  }
+  // telegram
+  return {
+    id,
+    label: c.name,
+    description: c.description,
+    icon: c.logoUrl ? <ChannelLogo src={c.logoUrl} /> : <Send className="h-4.5 w-4.5" />,
+    iconBgClassName: c.logoUrl ? '' : 'bg-[#29A9EB]',
+    iconRoundedClassName: c.logoUrl ? 'rounded-full overflow-hidden' : undefined,
+    href: c.href,
+  };
+}
+
+const FALLBACK_CONFIG = resolveWidgetConfig({});
+
+export default function FloatingSupportPanel({ config, onClose, onOpenChat }: { config: ResolvedWidgetConfig | null; onClose: () => void; onOpenChat: () => void }) {
+  const effective = config ?? FALLBACK_CONFIG;
+  const contacts = useMemo(() => buildSupportContacts(effective), [effective]);
 
   return (
     <div
@@ -69,8 +82,8 @@ export default function FloatingSupportPanel({ onClose }: { onClose: () => void 
     >
       <div className="sticky top-0 flex items-start justify-between gap-3 border-b border-slate-100 bg-white px-4 pb-3 pt-4">
         <div className="min-w-0">
-          <p className="truncate text-base font-bold text-slate-800">Liên hệ hỗ trợ</p>
-          <p className="mt-0.5 truncate text-xs text-slate-500">Chúng tôi luôn sẵn sàng 24/7</p>
+          <p className="truncate text-base font-bold text-slate-800">{effective.popupTitle}</p>
+          <p className="mt-0.5 truncate text-xs text-slate-500">{effective.popupDescription}</p>
         </div>
         <button
           type="button"
@@ -83,7 +96,12 @@ export default function FloatingSupportPanel({ onClose }: { onClose: () => void 
       </div>
 
       <div className="space-y-2 p-3">
-        {contacts.map(c => <SupportContactItem key={c.id} contact={c} />)}
+        {contacts.length === 0 && (
+          <p className="px-2 py-4 text-center text-xs text-slate-400">Hiện chưa có kênh hỗ trợ nào khả dụng.</p>
+        )}
+        {contacts.map(c => (
+          <SupportContactItem key={c.id} contact={c} onClick={c.id === 'ai' ? onOpenChat : undefined} />
+        ))}
       </div>
     </div>
   );

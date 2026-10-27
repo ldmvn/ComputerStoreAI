@@ -42,6 +42,22 @@ function HeaderLabel({ sub, main, maxW = 'max-w-[7rem]', from = 'lg' }: { sub: s
   );
 }
 
+// Icon wrapper is sized larger than the glyph itself (28px vs 20px) so the
+// count badge has room to sit at the icon's corner without covering it.
+function HeaderIconWithBadge({ icon: Icon, count }: { icon: typeof Heart; count: number }) {
+  return (
+    <span className="header-icon relative flex h-7 w-7 shrink-0 items-center justify-center">
+      <Icon className="h-5 w-5" aria-hidden="true" />
+      {count > 0 && (
+        <span className="pointer-events-none absolute -right-1.5 -top-1.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-bold leading-none tabular-nums text-white">
+          {count > 99 ? '99+' : count}
+          <span className="sr-only"> sản phẩm</span>
+        </span>
+      )}
+    </span>
+  );
+}
+
 export default function Header() {
   const [categories, setCategories] = useState<PublicCategory[]>([]);
   const [menus, setMenus] = useState<PublicMenu[]>([]);
@@ -411,15 +427,7 @@ export default function Header() {
               className="header-action"
               title="Yêu thích"
             >
-              <span className="header-icon relative shrink-0">
-                <Heart className="h-5 w-5" aria-hidden="true" />
-                {wishlistCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-bold tabular-nums text-white">
-                    {wishlistCount > 99 ? '99+' : wishlistCount}
-                    <span className="sr-only"> sản phẩm</span>
-                  </span>
-                )}
-              </span>
+              <HeaderIconWithBadge icon={Heart} count={wishlistCount} />
               <HeaderLabel sub="Danh sách" main="Yêu thích" maxW="max-w-[5rem]" from="xl" />
               <span className="sr-only">Yêu thích</span>
             </Link>
@@ -430,15 +438,7 @@ export default function Header() {
               className="header-action"
               title="Giỏ hàng"
             >
-              <span className="header-icon relative shrink-0">
-                <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-                {cartCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-bold tabular-nums text-white">
-                    {cartCount > 99 ? '99+' : cartCount}
-                    <span className="sr-only"> sản phẩm</span>
-                  </span>
-                )}
-              </span>
+              <HeaderIconWithBadge icon={ShoppingCart} count={cartCount} />
               <HeaderLabel sub="Thanh toán" main="Giỏ hàng" maxW="max-w-[5rem]" from="xl" />
               <span className="sr-only">Giỏ hàng</span>
             </Link>

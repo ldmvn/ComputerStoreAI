@@ -11,10 +11,17 @@ export type SupportContact = {
   iconBgClassName: string;
   iconRoundedClassName?: string;
   href?: string;
+  highlighted?: boolean;
 };
 
-const ITEM_CLASS =
-  'group flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm shadow-slate-900/[0.03] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary-200 hover:shadow-md hover:shadow-slate-900/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400';
+const ITEM_CLASS_BASE =
+  'group flex w-full items-center gap-3 rounded-xl border bg-white px-3 py-2.5 text-left shadow-sm shadow-slate-900/[0.03] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md hover:shadow-slate-900/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400';
+
+function itemClassName(highlighted?: boolean) {
+  return highlighted
+    ? `${ITEM_CLASS_BASE} border-primary-200 bg-primary-50/40 hover:border-primary-500`
+    : `${ITEM_CLASS_BASE} border-slate-200 hover:border-primary-200`;
+}
 
 function ItemBody({ contact }: { contact: SupportContact }) {
   return (
@@ -32,15 +39,16 @@ function ItemBody({ contact }: { contact: SupportContact }) {
 }
 
 export default function SupportContactItem({ contact, onClick }: { contact: SupportContact; onClick?: () => void }) {
+  const className = itemClassName(contact.highlighted);
   if (contact.href) {
     return (
-      <a href={contact.href} target="_blank" rel="noopener noreferrer" className={ITEM_CLASS}>
+      <a href={contact.href} target="_blank" rel="noopener noreferrer" className={className}>
         <ItemBody contact={contact} />
       </a>
     );
   }
   return (
-    <button type="button" onClick={onClick} className={ITEM_CLASS}>
+    <button type="button" onClick={onClick} className={className}>
       <ItemBody contact={contact} />
     </button>
   );

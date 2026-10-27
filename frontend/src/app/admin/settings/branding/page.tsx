@@ -396,9 +396,9 @@ export default function BrandingPage() {
                   <div className="flex h-14 items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={effectiveLogo} alt="Header logo" className="h-9 max-w-[120px] object-contain" onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
-                    <div className="flex flex-1 items-center gap-2">
-                      <div className="h-2 w-32 rounded-full bg-slate-100" />
-                      <div className="ml-auto flex gap-2">
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <div className="h-2 min-w-0 flex-1 rounded-full bg-slate-100" />
+                      <div className="flex shrink-0 gap-2">
                         <div className="h-7 w-7 rounded-full bg-slate-100" />
                         <div className="h-7 w-7 rounded-full bg-slate-100" />
                       </div>

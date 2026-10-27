@@ -9,6 +9,7 @@ export type AdminOrderFilters = {
   status?: string;
   search?: string;
   paymentMethod?: string;
+  paymentStatus?: string;
   from?: string;
   to?: string;
 };

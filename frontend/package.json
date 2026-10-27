@@ -15,7 +15,9 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "test:banners": "node tests/banners.cjs"
+    "test:banners": "node tests/banners.cjs",
+    "test:support-widget": "node --import tsx --test tests/supportWidget.unit.test.ts",
+    "test:payment-return": "node --import tsx --test tests/paymentReturn.unit.test.ts"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.31.4",
@@ -48,6 +50,7 @@
     "playwright": "^1.63.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
+    "tsx": "^4.23.15",
     "typescript": "^5.6.2"
   },
   "engines": {

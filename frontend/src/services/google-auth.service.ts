@@ -1,7 +1,7 @@
 import { AuthRequestError } from './auth.service';
+import { API_BASE_URL } from './http.client';
 import type { AuthUser } from '@/types/user.type';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 const PENDING_KEY = 'googleLoginPending';
 type PendingGoogleLogin = { verifier: string; rememberMe: boolean; returnTo: string; createdAt: number };
 

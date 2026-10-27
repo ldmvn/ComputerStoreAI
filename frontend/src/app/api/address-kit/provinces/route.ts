@@ -1,14 +1,10 @@
+// This route is no longer the primary path — getProvinces() in address.service.ts
+// now reads directly from the bundled VN_PROVINCES array (zero network calls).
+// Kept for any external/legacy consumers that may call it directly.
 export const dynamic = 'force-dynamic';
 
-const CAS_BASE = 'https://production.cas.so/address-kit/2025-07-01';
+import { VN_PROVINCES } from '@/data/vn-provinces';
 
-export async function GET() {
-  try {
-    const res = await fetch(`${CAS_BASE}/provinces`, { next: { revalidate: 3600 } });
-    if (!res.ok) return Response.json({ error: 'Không thể tải danh sách tỉnh/thành.' }, { status: 502 });
-    const data = await res.json();
-    return Response.json(data);
-  } catch {
-    return Response.json({ error: 'Lỗi kết nối đến dịch vụ địa chỉ.' }, { status: 503 });
-  }
+export function GET() {
+  return Response.json({ provinces: VN_PROVINCES });
 }

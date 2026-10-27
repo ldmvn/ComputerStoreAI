@@ -8,6 +8,20 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   CANCELLED: 'Đã hủy',
 };
 
+import type { Payment } from './payment.type';
+import type { Product } from './product.type';
+
+export type ReorderEntry = {
+  product: Pick<Product, 'id' | 'name' | 'slug' | 'price' | 'stockQuantity' | 'isActive' | 'isDeleted' | 'primaryImage'>;
+  requestedQuantity: number;
+  addedQuantity: number;
+};
+
+export type ReorderResult = {
+  available: ReorderEntry[];
+  unavailable: Array<{ name: string; reason: string }>;
+};
+
 export type OrderItem = {
   id: number;
   productId: number;
@@ -38,6 +52,8 @@ export type Order = {
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
+  /** null for orders created before the Payment Module shipped — always null-check. */
+  payment: Payment | null;
 };
 
 export type OrderStats = {

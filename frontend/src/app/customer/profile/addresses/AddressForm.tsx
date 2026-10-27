@@ -8,6 +8,7 @@ import type { Address, AddressInput, AddressType, Province, Commune } from '@/ty
 // ─── normalise Vietnamese for search ──────────────────────────────────────────
 
 function normalize(s: string) {
+  // NFD decomposes Vietnamese characters; ̀-ͯ removes all combining diacritics
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
@@ -122,6 +123,7 @@ export default function AddressForm({ initial, onSave, onClose }: Props) {
   const [loadingProvinces, setLoadingProvinces] = useState(false);
   const [loadingCommunes, setLoadingCommunes]   = useState(false);
   const [provinceError, setProvinceError]       = useState<string | null>(null);
+  const [communeError, setCommuneError]         = useState<string | null>(null);
 
   const [errors, setErrors]   = useState<Partial<Record<string, string>>>({});
   const [saving, setSaving]   = useState(false);
@@ -138,11 +140,12 @@ export default function AddressForm({ initial, onSave, onClose }: Props) {
 
   // Load communes when province changes
   useEffect(() => {
-    if (!provinceCode) { setCommunes([]); return; }
+    if (!provinceCode) { setCommunes([]); setCommuneError(null); return; }
     setLoadingCommunes(true);
+    setCommuneError(null);
     getCommunes(provinceCode)
-      .then(setCommunes)
-      .catch(() => {})
+      .then(list => { setCommunes(list); })
+      .catch(() => setCommuneError('Không tải được danh sách phường/xã. Vui lòng thử lại.'))
       .finally(() => setLoadingCommunes(false));
   }, [provinceCode]);
 
@@ -238,6 +241,18 @@ export default function AddressForm({ initial, onSave, onClose }: Props) {
                   loading={loadingCommunes}
                   disabled={!provinceCode}
                 />
+                {communeError && (
+                  <div className="-mt-1 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                    <span className="flex-1">{communeError}</span>
+                    <button
+                      type="button"
+                      onClick={() => { const code = provinceCode; setProvinceCode(''); setTimeout(() => setProvinceCode(code), 0); }}
+                      className="shrink-0 font-semibold underline hover:no-underline"
+                    >
+                      Thử lại
+                    </button>
+                  </div>
+                )}
                 {errors.commune && <p className="-mt-2 text-xs text-red-500">{errors.commune}</p>}
 
                 <div>
