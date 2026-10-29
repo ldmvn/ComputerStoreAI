@@ -39,7 +39,9 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}, tok
 
 export function mediaUrl(url: string) {
   if (!url) return url;
-  if (/^https?:\/\//i.test(url)) return url; // already absolute — nothing to resolve
+  // Object URLs already identify browser-owned bytes. Prefixing "/" turns
+  // blob: into an HTTP path and makes every local media preview fail.
+  if (/^(https?:\/\/|blob:)/i.test(url)) return url;
   // API_BASE_URL is absolute only when it still points at a separate host
   // (legacy/cross-origin config) — resolve against ITS origin in that case.
   if (/^https?:\/\//i.test(API_BASE_URL)) return new URL(url, new URL(API_BASE_URL).origin).href;

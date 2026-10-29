@@ -4,6 +4,8 @@
   "private": true,
   "description": "Frontend for ComputerStoreAI - E-commerce platform for PCs and Laptops",
   "scripts": {
+    "test:ai-citations": "node --import tsx --test tests/aiCitations.unit.test.ts",
+    "test:ai-citations:e2e": "node tests/ai-citations.playwright.mjs",
     "test:product-detail": "node tests/product-detail.cjs",
     "test:specifications-modal": "node tests/product-specifications-modal.cjs",
     "test:brand-filter": "node tests/brand-filter.cjs",

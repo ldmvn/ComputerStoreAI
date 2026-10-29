@@ -1,9 +1,9 @@
 'use client';
 
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, RotateCcw, X } from 'lucide-react';
 import MascotAvatar from '@/components/layout/support-widget/MascotAvatar';
 
-export default function AIChatHeader({ onBack, onClose }: { onBack: () => void; onClose: () => void }) {
+export default function AIChatHeader({ onBack, onClose, onReset }: { onBack: () => void; onClose: () => void; onReset: () => void }) {
   return (
     <div className="flex items-center gap-3 rounded-t-2xl bg-primary-600 px-4 py-3.5">
       <button
@@ -24,6 +24,9 @@ export default function AIChatHeader({ onBack, onClose }: { onBack: () => void; 
         <p className="truncate text-xs text-white/80">Trợ lý DUCMANH PC</p>
       </div>
 
+      <button type="button" onClick={onReset} aria-label="Cuộc trò chuyện mới" title="Cuộc trò chuyện mới" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/90 transition-colors hover:bg-white/15">
+        <RotateCcw className="h-4 w-4" />
+      </button>
       <button
         type="button"
         onClick={onClose}

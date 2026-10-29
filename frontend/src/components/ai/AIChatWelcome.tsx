@@ -1,9 +1,8 @@
 'use client';
 
 import MascotAvatar from '@/components/layout/support-widget/MascotAvatar';
-import AIChatQuickActions from './AIChatQuickActions';
 
-export default function AIChatWelcome({ onNavigate }: { onNavigate: () => void }) {
+export default function AIChatWelcome() {
   return (
     <div className="space-y-4 p-4">
       <div className="flex items-start gap-2.5">
@@ -15,7 +14,6 @@ export default function AIChatWelcome({ onNavigate }: { onNavigate: () => void }
           <p>Mình có thể giúp gì cho bạn?</p>
         </div>
       </div>
-      <AIChatQuickActions onNavigate={onNavigate} />
     </div>
   );
 }

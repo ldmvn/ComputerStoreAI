@@ -18,6 +18,10 @@ export type AiChatRequest = {
 };
 
 export type AiCitation = {
+  sourceNumber?: number;
+  chunkId?: string;
+  sku?: string;
+  updatedAt?: string;
   documentId: string;
   sourceType: string;
   sourceRef: string;
@@ -41,6 +45,7 @@ export type AiChatResponse = {
 export type ChatRole = 'user' | 'assistant';
 
 export type ChatMessage = {
+  citations?: AiCitation[];
   id: string;
   role: ChatRole;
   content: string;
