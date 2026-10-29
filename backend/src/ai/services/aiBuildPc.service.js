@@ -245,14 +245,23 @@ export function createBuildPcService({ provider, tools = TOOLS, retrieve = query
 
     async function complete(withTools = true) {
       metrics.geminiCalls++;
-      return prov.complete({
-        messages,
-        ...(withTools ? { tools: toolDefs } : {}),
-        maxTokens: 8192,
-      });
+      console.log(`[AI BuildPC] Calling Gemini #${metrics.geminiCalls} (tools=${withTools}, msgs=${messages.length})`);
+      try {
+        const result = await prov.complete({
+          messages,
+          ...(withTools ? { tools: toolDefs } : {}),
+          maxTokens: 8192,
+        });
+        console.log(`[AI BuildPC] Gemini #${metrics.geminiCalls} returned: toolCalls=${result.toolCalls?.length || 0}, text=${(result.content || '').length} chars`);
+        return result;
+      } catch (err) {
+        console.error(`[AI BuildPC] Gemini #${metrics.geminiCalls} error:`, err.message, `statusCode=${err.statusCode}`);
+        throw err;
+      }
     }
 
     let completion = await complete();
+    console.log('[AI BuildPC] Initial completion:', completion.toolCalls?.length ? `${completion.toolCalls.length} tool calls` : `text ${(completion.content || '').length} chars`);
     const executed = new Map();
     const MAX_ROUNDS = 10;
 
@@ -291,7 +300,11 @@ export function createBuildPcService({ provider, tools = TOOLS, retrieve = query
     let responseText = completion.content || '';
     let parsed = extractJsonFromResponse(responseText);
 
-    if (!parsed?.tiers?.length && !responseText.trim() && metrics.toolCalls > 0) {
+    if (!parsed?.tiers?.length && metrics.toolCalls > 0) {
+      console.log('[AI BuildPC] No JSON tiers in response, retrying without tools...');
+      if (responseText.trim()) {
+        messages.push({ role: 'assistant', content: responseText });
+      }
       messages.push({ role: 'user', content: 'Hãy trả về kết quả 3 cấu hình PC dưới dạng JSON block theo format đã yêu cầu (với parsedRequirements, tiers, selectedTier). Không gọi thêm tool.' });
       const retry = await complete(false);
       responseText = retry.content || '';
@@ -323,6 +336,9 @@ export function createBuildPcService({ provider, tools = TOOLS, retrieve = query
     }
 
     if (!parsed?.tiers?.length) {
+      console.error('[AI BuildPC] Failed to parse tiers from Gemini response.');
+      console.error('[AI BuildPC] Metrics:', JSON.stringify(metrics));
+      console.error('[AI BuildPC] Response (first 800 chars):', responseText.slice(0, 800));
       return {
         success: false,
         error: 'AI không thể tạo cấu hình phù hợp với yêu cầu. Vui lòng thử với ngân sách hoặc yêu cầu khác.',
