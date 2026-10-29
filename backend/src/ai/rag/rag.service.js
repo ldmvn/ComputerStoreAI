@@ -1,75 +1,126 @@
-// RAG orchestrator — wires loader → chunker → embedding → vector store →
-// retriever → context builder into the two operations the rest of the AI
-// module needs: ingest a source, and answer a query with grounded context.
+// RAG orchestrator — wires the Hybrid RAG pipeline into the chatbot.
+// Phase 2: real components (GeminiEmbedding, JsonVectorStore, BM25, HybridRetriever).
 //
-// With the default config (RAG_ENABLED=false, no embedding/vector-store
-// provider chosen) every exported function here throws a clear 501 instead
-// of doing partial, silently-wrong work — ingesting without real embeddings
-// would corrupt an index, and querying without one would return nothing
-// while looking like it succeeded.
+// When RAG_ENABLED=false or the index hasn't loaded yet, queryRag() returns
+// empty context instead of throwing — the chatbot continues working with
+// Function Calling alone. This is the graceful degradation contract.
 
-import { isRagConfigured } from '../config/ai.config.js';
-import { loadPolicyPageDocuments } from './loaders/documentLoader.js';
-import { chunkDocument } from './chunking/textChunker.js';
+import { aiConfig } from '../config/ai.config.js';
+import { GeminiEmbeddingProvider } from './embeddings/gemini.embedding.js';
 import { NullEmbeddingProvider } from './embeddings/embedding.interface.js';
-import { InMemoryVectorStore } from './vectorstores/vectorStore.interface.js';
-import { Retriever } from './retrieval/retriever.interface.js';
-import { buildContext } from './context/contextBuilder.js';
+import { JsonVectorStore } from './vectorstores/jsonVectorStore.js';
+import { BM25Index } from './retrieval/bm25.js';
+import { HybridRetriever } from './retrieval/hybridRetriever.js';
+import { buildContext, contextBudget } from './context/contextBuilder.js';
+import { atomicWriteJson, ragDataDirectory } from './storage/atomicJson.js';
+import { join } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { indexedProducts } from './routing/productContext.js';
 
-// Process-local singletons. Swapping NullEmbeddingProvider/InMemoryVectorStore
-// for real adapters (once configured) only means changing these two lines —
-// everything that calls ragService below stays the same.
-const embeddingProvider = new NullEmbeddingProvider();
-const vectorStore = new InMemoryVectorStore();
-const retriever = new Retriever({ embeddingProvider, vectorStore });
+const DATA_DIR = ragDataDirectory();
+const BM25_FILE = join(DATA_DIR, 'bm25-corpus.json');
 
-function ragNotConfiguredError() {
-  const error = new Error('RAG chưa được cấu hình (cần RAG_ENABLED=true, VECTOR_STORE_PROVIDER và EMBEDDING_PROVIDER hợp lệ).');
-  error.statusCode = 501;
-  error.code = 'RAG_NOT_CONFIGURED';
-  return error;
+let embeddingProvider = null;
+let vectorStore = null;
+let bm25Index = null;
+let hybridRetriever = null;
+let ragReady = false;
+let productCorpus, productCatalog = [];
+
+const EMPTY_CONTEXT = { contextText: '', citations: [], hasContext: false };
+
+export function isRagReady() { return ragReady; }
+
+/**
+ * Initialize RAG components and load indexes from disk.
+ * Called once at server startup from bootstrap.js.
+ */
+export async function initializeRag() {
+  if (!aiConfig.ragEnabled) {
+    console.log('[RAG] Disabled — RAG_ENABLED is not set.');
+    return false;
+  }
+
+  try {
+    // Vector store loads from JSON file on first access
+    vectorStore = new JsonVectorStore({ dir: DATA_DIR });
+    let indexCount;
+    try { indexCount = await vectorStore.count(); }
+    catch (err) { console.error('[RAG]', err.message); await vectorStore.recoverIndex(); indexCount = 0; }
+
+    // Keep the retriever alive with an empty store so background repair is visible.
+
+    // BM25 index loads from corpus file
+    bm25Index = new BM25Index();
+    const corpus = await vectorStore.getAllContent();
+    if (corpus.length) {
+      bm25Index.build(corpus);
+      // Rebuild from canonical vectors; persistence failure must not disable retrieval.
+      try { await atomicWriteJson(BM25_FILE, corpus); }
+      catch (err) { console.warn('[RAG] BM25 persistence unavailable:', err.message); }
+    } else {
+      try {
+        const saved = JSON.parse(await readFile(BM25_FILE, 'utf8'));
+        if (!Array.isArray(saved) || saved.some(r => !r.id || typeof r.content !== 'string' || !r.metadata)) throw new Error('Invalid lexical corpus');
+        bm25Index.build(saved);
+      } catch { console.warn('[RAG] No usable index; background reconciliation will rebuild from sources.'); }
+    }
+
+    // Embedding provider for query-time embedding
+    if (aiConfig.embeddingProvider === 'gemini') {
+      try { embeddingProvider = new GeminiEmbeddingProvider(); }
+      catch { embeddingProvider = new NullEmbeddingProvider(); }
+    } else {
+      embeddingProvider = new NullEmbeddingProvider();
+      console.warn('[RAG] No embedding provider configured. Semantic search disabled.');
+    }
+
+    hybridRetriever = new HybridRetriever({
+      embeddingProvider,
+      vectorStore,
+      bm25Index,
+    });
+
+    ragReady = true;
+    console.log(`[RAG] Ready — ${indexCount} vectors, ${bm25Index.size} BM25 docs.`);
+    return true;
+  } catch (err) {
+    console.error('[RAG] Initialization failed:', err.message);
+    ragReady = false;
+    return false;
+  }
 }
 
 /**
- * Loads Policy Page documents and chunks them — the real, working part of
- * ingestion. Embedding/indexing those chunks requires a configured provider
- * and is where this currently stops (by design, per task scope).
- * @returns {Promise<{ documents: number, chunks: ReturnType<typeof chunkDocument> }>}
+ * Retrieves grounded context for a user query via Hybrid RAG.
+ * Returns empty context (never throws) if RAG is not ready — the chatbot
+ * falls back to Function Calling seamlessly.
  */
-export async function prepareChunksForPolicyPages() {
-  const documents = await loadPolicyPageDocuments();
-  const chunks = documents.flatMap(doc => chunkDocument(doc));
-  return { documents: documents.length, chunks };
+export async function queryRag({ query, topK = 5, filter, products, complexity = 'simple' } = {}) {
+  if (!ragReady || !hybridRetriever) return EMPTY_CONTEXT;
+
+  try {
+    const diagnostics = {};
+    const chunks = await hybridRetriever.retrieve({ query, topK, filter, products, diagnostics });
+    const context = buildContext(chunks, { tokenBudget: contextBudget(complexity), query, products });
+    return { ...context, diagnostics: { ...diagnostics, contextTokensEstimate: context.estimatedTokens, selectedChunks: context.chunks.length } };
+  } catch (err) {
+    console.error('[RAG] Query failed (degrading gracefully):', err.message);
+    return EMPTY_CONTEXT;
+  }
 }
 
-/**
- * Full ingest: chunk → embed → upsert. Requires a real embedding provider,
- * so with the current NullEmbeddingProvider this always throws 501 — that is
- * the correct behavior, not a bug, until an operator configures one.
- * @returns {Promise<{ documents: number, chunksIndexed: number }>}
- */
-export async function ingestPolicyPages() {
-  if (!isRagConfigured()) throw ragNotConfiguredError();
-  const { documents, chunks } = await prepareChunksForPolicyPages();
-  const vectors = await embeddingProvider.embed(chunks.map(c => c.content));
-  await vectorStore.upsert(chunks.map((chunk, i) => ({ id: chunk.id, vector: vectors[i], content: chunk.content, metadata: { ...chunk.metadata, documentId: chunk.documentId } })));
-  return { documents, chunksIndexed: chunks.length };
-}
-
-/**
- * Retrieves grounded context for a user query. Used by aiChat.service once a
- * chat provider exists; throws 501 until RAG is configured so a caller never
- * silently gets an empty context and mistakes it for "no relevant sources".
- * @param {{ query: string, topK?: number, filter?: Record<string, unknown> }} params
- * @returns {Promise<ReturnType<typeof buildContext>>}
- */
-export async function queryRag({ query, topK = 5, filter } = {}) {
-  if (!isRagConfigured()) throw ragNotConfiguredError();
-  const chunks = await retriever.retrieve({ query, topK, filter });
-  return buildContext(chunks);
-}
-
-// Exposed for health/debug tooling and tests — never on a public route.
 export async function getIndexedChunkCount() {
-  return vectorStore.count();
+  return vectorStore ? vectorStore.count() : 0;
+}
+
+export function getVectorStore() { return vectorStore; }
+export function getBm25Index() { return bm25Index; }
+export async function getIndexedProducts() {
+  if (!vectorStore) return [];
+  try {
+    const corpus = await vectorStore.getAllContent();
+    if (corpus !== productCorpus) { productCatalog = indexedProducts(corpus); productCorpus = corpus; }
+    return productCatalog;
+  } catch { return []; }
 }

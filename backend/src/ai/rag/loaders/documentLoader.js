@@ -63,14 +63,75 @@ export async function loadPolicyPageDocuments() {
 }
 
 /**
- * Contract for a future product-description/spec-sheet source. Deliberately
- * NOT implemented yet (task scope: don't ingest from every source now) — it
- * exists so rag.service.js's ingestion list has one real entry point to add
- * without redesigning the loader contract. Calling it tells the caller so,
- * loudly, instead of silently returning an empty array that could be
- * mistaken for "no products exist".
+ * Loads active products as RagDocuments. Each product becomes one document
+ * combining: name, brand, category, HTML description (→ plain text),
+ * specifications, and highlight specs into a single coherent text block.
+ * Price/stock are deliberately excluded — those come from live Prisma queries.
+ * @param {{ productIds?: number[] }} [options] - optionally limit to specific products (for incremental sync)
  * @returns {Promise<RagDocument[]>}
  */
-export async function loadProductDescriptionDocuments() {
-  throw new Error('loadProductDescriptionDocuments is not implemented yet — product descriptions are not ingested into RAG in this phase.');
+export async function loadProductDocuments({ productIds } = {}) {
+  const where = { isActive: true, isDeleted: false };
+  if (productIds?.length) where.id = { in: productIds };
+
+  const products = await prisma.product.findMany({
+    where,
+    select: {
+      id: true, name: true, slug: true, sku: true,
+      description: true,
+      categoryId: true,
+      brandId: true,
+      updatedAt: true,
+      specifications: { select: { name: true, value: true }, orderBy: { sortOrder: 'asc' } },
+      highlightSpecs: { select: { content: true }, orderBy: { sortOrder: 'asc' } },
+    },
+  });
+
+  const categoryIds = [...new Set(products.map(p => p.categoryId).filter(Boolean))];
+  const brandIds = [...new Set(products.map(p => p.brandId).filter(Boolean))];
+
+  const [categories, brands] = await Promise.all([
+    categoryIds.length ? prisma.category.findMany({ where: { id: { in: categoryIds } }, select: { id: true, name: true } }) : [],
+    brandIds.length ? prisma.brand.findMany({ where: { id: { in: brandIds } }, select: { id: true, name: true } }) : [],
+  ]);
+
+  const catMap = new Map(categories.map(c => [c.id, c.name]));
+  const brandMap = new Map(brands.map(b => [b.id, b.name]));
+
+  return products.map(product => {
+    const category = catMap.get(product.categoryId) || '';
+    const brand = brandMap.get(product.brandId) || '';
+    const descText = htmlToPlainText(product.description);
+
+    const parts = [`Sản phẩm: ${product.name}`];
+    if (brand) parts.push(`Thương hiệu: ${brand}`);
+    if (category) parts.push(`Danh mục: ${category}`);
+    if (product.sku) parts.push(`SKU: ${product.sku}`);
+
+    if (product.highlightSpecs.length > 0) {
+      parts.push('Thông số nổi bật:');
+      product.highlightSpecs.forEach(hs => parts.push(`- ${hs.content}`));
+    }
+
+    if (product.specifications.length > 0) {
+      parts.push('Thông số kỹ thuật:');
+      product.specifications.forEach(s => parts.push(`- ${s.name}: ${s.value}`));
+    }
+
+    if (descText) {
+      parts.push('Mô tả chi tiết:');
+      parts.push(descText);
+    }
+
+    return {
+      id: `product:${product.id}`,
+      sourceType: 'product',
+      sourceRef: product.slug || String(product.id),
+      title: product.name,
+      content: parts.join('\n'),
+      productId: product.id,
+      updatedAt: product.updatedAt.toISOString(),
+      metadata: { category, brand, sku: product.sku },
+    };
+  });
 }

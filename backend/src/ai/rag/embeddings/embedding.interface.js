@@ -21,6 +21,13 @@ export class EmbeddingProvider {
    * @returns {Promise<number[][]>} one vector per input text, same order
    */
   async embed(_texts) { throw new Error('EmbeddingProvider.embed() is not implemented.'); }
+
+  /**
+   * Embed a single query text (may use different taskType than document embedding).
+   * @param {string} _text
+   * @returns {Promise<number[]>} single vector
+   */
+  async embedQuery(_text) { throw new Error('EmbeddingProvider.embedQuery() is not implemented.'); }
 }
 
 export class NullEmbeddingProvider extends EmbeddingProvider {
@@ -33,4 +40,6 @@ export class NullEmbeddingProvider extends EmbeddingProvider {
     error.code = 'EMBEDDING_PROVIDER_UNAVAILABLE';
     throw error;
   }
+
+  async embedQuery() { return this.embed(); }
 }

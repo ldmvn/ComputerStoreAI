@@ -35,7 +35,7 @@ export class Retriever {
    */
   async retrieve({ query, topK = 5, minScore = 0, filter } = {}) {
     if (!query?.trim()) throw new Error('retrieve: query must be a non-empty string.');
-    const [vector] = await this.embeddingProvider.embed([query]);
+    const vector = await this.embeddingProvider.embedQuery(query);
     const results = await this.vectorStore.search({ vector, topK, filter });
     return results.filter(r => r.score >= minScore);
   }

@@ -64,6 +64,8 @@ export function chunkDocument(document, options) {
     chunkIndex: index,
     content,
     metadata: {
+      ...document.metadata,
+      documentId: document.id,
       sourceType: document.sourceType,
       sourceRef: document.sourceRef,
       title: document.title,
