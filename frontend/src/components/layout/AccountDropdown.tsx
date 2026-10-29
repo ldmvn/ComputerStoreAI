@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown, LogOut, ShoppingBag, User } from 'lucide-react';
 import type { AuthUser } from '@/types/user.type';
@@ -40,6 +40,7 @@ export default function AccountDropdown({ user }: { user: AuthUser }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const pathname = usePathname();
+  const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => setOpen(false), [pathname]);
@@ -105,7 +106,7 @@ export default function AccountDropdown({ user }: { user: AuthUser }) {
             <Link href="/customer/profile/orders" onClick={() => setOpen(false)} className={itemClass}>
               <ShoppingBag className="h-4 w-4" aria-hidden="true" /> Đơn hàng của tôi
             </Link>
-            <button type="button" onClick={() => { setOpen(false); logout(); }} className={`${itemClass} hover:text-red-600`}>
+            <button type="button" onClick={async () => { setOpen(false); await logout(); router.push('/'); }} className={`${itemClass} hover:text-red-600`}>
               <LogOut className="h-4 w-4" aria-hidden="true" /> Đăng xuất
             </button>
           </nav>

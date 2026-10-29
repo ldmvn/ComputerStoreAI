@@ -38,6 +38,9 @@ graphify-out/
 .claude/
 .impeccable/
 
+# RAG vector index and embedding data (generated, local only)
+backend/data/rag/
+
 # MySQL Shell database backups (local only, never commit)
 /backend/db-backups/
 /backend/db_backups/

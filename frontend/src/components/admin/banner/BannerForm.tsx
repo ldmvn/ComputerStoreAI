@@ -13,6 +13,17 @@ import { useBannerAspectRatio } from '@/hooks/useBannerAspectRatio';
 const inputClass = 'mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:opacity-50';
 const labelClass = 'block text-xs font-semibold uppercase tracking-wider text-slate-600';
 
+function validateMediaFile(file: File, mediaType: MediaType): string {
+  if (!(file instanceof File)) return 'Không thể đọc file media đã chọn. Vui lòng chọn file khác.';
+  if (!file.size) return 'File media rỗng. Vui lòng chọn file khác.';
+  const types = mediaType === 'IMAGE' ? ['image/jpeg', 'image/png', 'image/webp'] : ['video/mp4', 'video/webm'];
+  if (!types.includes(file.type)) return mediaType === 'IMAGE'
+    ? 'Định dạng ảnh không được hỗ trợ. Chỉ chấp nhận MIME image/jpeg, image/png hoặc image/webp.'
+    : 'Định dạng video không được hỗ trợ. Chỉ chấp nhận MIME video/mp4 hoặc video/webm.';
+  if (file.size > (mediaType === 'IMAGE' ? IMAGE_LIMIT : VIDEO_LIMIT)) return mediaType === 'IMAGE' ? 'Ảnh tối đa 10 MB.' : 'Video tối đa 50 MB.';
+  return '';
+}
+
 const FILTER_SUGGESTIONS = [
   { label: 'Danh mục PC', url: '/customer/products?category=pc' },
   { label: 'Danh mục VGA', url: '/customer/products?category=vga' },
@@ -64,13 +75,18 @@ export default function BannerForm({
   const [sortOrder, setSortOrder] = useState(banner?.sortOrder || 0);
   const [seconds, setSeconds] = useState((banner?.autoplayInterval || 4500) / 1000);
   const [isActive, setIsActive] = useState(banner?.isActive ?? true);
-  const [file, setFile] = useState<File | null>(null);
+  const existingMediaUrl = banner?.mediaType === mediaType ? mediaUrl(banner.mediaUrl) : '';
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileKey, setFileKey] = useState(0);
-  const [preview, setPreview] = useState('');
+  const [localPreview, setLocalPreview] = useState<{
+    file: File;
+    url: string;
+    status: 'loading' | 'ready' | 'error';
+  } | null>(null);
+  const [selectionError, setSelectionError] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
-  const [invalid, setInvalid] = useState(false);
 
   // Sync group when position changes
   const handlePositionChange = (newPos: BannerPositionSelection) => {
@@ -87,54 +103,53 @@ export default function BannerForm({
 
   useEffect(() => {
     setDimensions(null);
-    setInvalid(false);
-    if (!file) {
-      setPreview('');
+    if (!selectedFile) {
+      setLocalPreview(null);
       return;
     }
-    const url = URL.createObjectURL(file);
-    setPreview(url);
+    const url = URL.createObjectURL(selectedFile);
+    setLocalPreview({ file: selectedFile, url, status: 'loading' });
     return () => URL.revokeObjectURL(url);
-  }, [file]);
+  }, [selectedFile]);
+
+  // Never render a previous file's URL while the new effect is pending.
+  const preview = localPreview?.file === selectedFile ? localPreview : null;
+  const previewUrl = preview?.url || '';
+  const readError = preview?.status === 'error' ? 'Không thể đọc media đã chọn. Vui lòng chọn file khác.' : '';
+  const displayedError = selectionError || readError || error;
 
   const resetFile = () => {
-    setFile(null);
+    setSelectedFile(null);
+    setSelectionError('');
     setFileKey(value => value + 1);
     setError('');
   };
 
   const chooseFile = (selected: File | undefined) => {
     setError('');
-    setFile(null);
-    if (!selected) return;
-    if (!selected.size) {
-      setError('File media rỗng. Vui lòng chọn file khác.');
-      setFileKey(value => value + 1);
-      return;
-    }
-    const types = mediaType === 'IMAGE' ? ['image/jpeg', 'image/png', 'image/webp'] : ['video/mp4', 'video/webm'];
-    const extension = mediaType === 'IMAGE' ? /\.(jpe?g|png|webp)$/i : /\.(mp4|webm)$/i;
-    if (!types.includes(selected.type) || !extension.test(selected.name)) {
-      setError('Định dạng/MIME không đúng loại media đã chọn.');
-      setFileKey(value => value + 1);
-      return;
-    }
-    if (selected.size > (mediaType === 'IMAGE' ? IMAGE_LIMIT : VIDEO_LIMIT)) {
-      setError(mediaType === 'IMAGE' ? 'Ảnh tối đa 10 MB.' : 'Video tối đa 50 MB.');
-      setFileKey(value => value + 1);
-      return;
-    }
-    setFile(selected);
+    const fileError = selected ? validateMediaFile(selected, mediaType) : '';
+    setSelectionError(fileError);
+    setSelectedFile(selected && !fileError ? selected : null);
+    if (fileError) setFileKey(value => value + 1);
   };
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (busy) return;
     setError('');
-    if (file && invalid) {
-      setError('Không thể đọc media đã chọn. Vui lòng chọn file hợp lệ.');
-      return;
+    if (selectionError || readError) return;
+    if (selectedFile) {
+      const fileError = validateMediaFile(selectedFile, mediaType);
+      if (fileError) {
+        setSelectionError(fileError);
+        return;
+      }
+      if (preview?.status !== 'ready') {
+        setError('Đang đọc media đã chọn. Vui lòng đợi xem trước tải xong.');
+        return;
+      }
     }
-    if (!file && (!banner || banner.mediaType !== mediaType)) {
+    if (!selectedFile && !existingMediaUrl) {
       setError('Vui lòng chọn media phù hợp trước khi lưu.');
       return;
     }
@@ -156,7 +171,7 @@ export default function BannerForm({
     })) {
       body.set(key, String(value));
     }
-    if (file) body.set('media', file);
+    if (selectedFile) body.set('media', selectedFile);
 
     setBusy(true);
     try {
@@ -169,7 +184,7 @@ export default function BannerForm({
     }
   };
 
-  const source = preview || (banner && banner.mediaType === mediaType ? mediaUrl(banner.mediaUrl) : '');
+  const source = selectedFile ? previewUrl : existingMediaUrl;
   const effectiveCta = showCta && ctaLabel.trim() ? ctaLabel.trim() : '';
 
   return (
@@ -312,6 +327,7 @@ export default function BannerForm({
             <div className="flex items-center gap-1">
               <button
                 type="button"
+                disabled={busy}
                 onClick={() => {
                   setMediaType('IMAGE');
                   resetFile();
@@ -324,6 +340,7 @@ export default function BannerForm({
               </button>
               <button
                 type="button"
+                disabled={busy}
                 onClick={() => {
                   setMediaType('VIDEO');
                   resetFile();
@@ -340,14 +357,16 @@ export default function BannerForm({
           <div className="space-y-4">
             {/* File Upload Box */}
             <div>
-              <label className={labelClass}>
+              <label htmlFor="banner-media-file" className={labelClass}>
                 Chọn file {mediaType === 'IMAGE' ? 'hình ảnh' : 'video'}{' '}
                 {!banner && <span className="text-red-500">*</span>}
               </label>
               <div className="mt-1.5 flex items-center gap-3">
                 <input
                   key={fileKey}
+                  id="banner-media-file"
                   type="file"
+                  disabled={busy}
                   accept={mediaType === 'IMAGE' ? 'image/jpeg,image/png,image/webp' : 'video/mp4,video/webm'}
                   onChange={event => chooseFile(event.target.files?.[0])}
                   className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-700 hover:file:bg-slate-200"
@@ -380,12 +399,13 @@ export default function BannerForm({
                     key={source}
                     banner={{ name: name || 'Media preview', altText: description, mediaType, mediaUrl: source }}
                     preview
-                    onDimensions={(width, height) => setDimensions({ width, height })}
+                    onDimensions={(width, height) => {
+                      setDimensions({ width, height });
+                      setLocalPreview(current => current?.url === source ? { ...current, status: 'ready' } : current);
+                      setError('');
+                    }}
                     onInvalid={() => {
-                      if (file) {
-                        setInvalid(true);
-                        setError('Không thể đọc media đã chọn. Vui lòng chọn file hợp lệ.');
-                      }
+                      setLocalPreview(current => current?.url === source ? { ...current, status: 'error' } : current);
                     }}
                   />
                   {/* Overlay text and CTA preview */}
@@ -555,9 +575,9 @@ export default function BannerForm({
           </div>
         )}
 
-        {error && (
+        {displayedError && (
           <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {error}
+            {displayedError}
           </div>
         )}
       </form>

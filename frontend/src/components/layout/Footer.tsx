@@ -205,6 +205,16 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
                 COD
               </span>
             </div>
+
+            <a
+              href="http://online.gov.vn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-block"
+              aria-label="Đã thông báo Bộ Công Thương"
+            >
+              <Image src="/bo-cong-thuong.png" alt="Đã thông báo Bộ Công Thương" width={150} height={56} className="h-auto w-[150px] object-contain" />
+            </a>
           </div>
 
         </div>

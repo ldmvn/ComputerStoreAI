@@ -61,8 +61,26 @@ try {
   assert.equal((await request('/admin/banners', { method: 'POST', body: form({ targetUrl: '//evil.example' }) })).status, 400);
   assert.equal((await request('/admin/banners', { method: 'POST', body: form({}, Buffer.from('<script>bad</script>')) })).status, 400);
   assert.equal((await request('/admin/banners', { method: 'POST', body: form({}, Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) })).status, 400);
-  assert.equal((await request('/admin/banners', { method: 'POST', body: form({}, png, 'bad.js', 'image/png') })).status, 400);
-  assert.equal((await request('/admin/banners', { method: 'POST', body: form({}, Buffer.alloc(10 * 1024 * 1024 + 1)) })).status, 400);
+  for (const [filename, type] of [['document.pdf', 'application/pdf'], ['text.txt', 'text/plain']]) {
+    const rejected = await request('/admin/banners', { method: 'POST', body: form({}, png, filename, type) });
+    assert.equal(rejected.status, 400);
+    assert.match(rejected.data.message, /Định dạng/);
+  }
+  const oversized = await request('/admin/banners', { method: 'POST', body: form({}, Buffer.alloc(10 * 1024 * 1024 + 1)) });
+  assert.equal(oversized.status, 400);
+  assert.equal(oversized.data.message, 'Ảnh tối đa 10 MB.');
+  const empty = await request('/admin/banners', { method: 'POST', body: form({}, Buffer.alloc(0)) });
+  assert.equal(empty.status, 400);
+  assert.match(empty.data.message, /rỗng/);
+  const wrongField = form();
+  wrongField.set('file', wrongField.get('media'));
+  wrongField.delete('media');
+  assert.equal((await request('/admin/banners', { method: 'POST', body: wrongField })).status, 400);
+  // A valid MIME plus matching decoded bytes is sufficient, regardless of filename.
+  for (const filename of ['a9f837c1', 'renamed.jpg', 'renamed.js']) {
+    const renamed = await create({ name: marker + '-renamed', isActive: false }, png, filename, 'image/png');
+    assert.match(renamed.mediaUrl, /\.webp$/);
+  }
   assert.equal((await request('/admin/banners', { method: 'POST', body: form({ autoplayInterval: 0 }) })).status, 400);
   console.log('PASS API: position/group/media/link/MIME/signature/size/interval validation');
 

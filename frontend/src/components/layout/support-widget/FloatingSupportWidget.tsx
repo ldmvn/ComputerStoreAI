@@ -9,12 +9,15 @@ import { useEffect, useRef, useState } from 'react';
 import FloatingSupportToggle from './FloatingSupportToggle';
 import FloatingSupportPanel from './FloatingSupportPanel';
 import AIChatWindow from '@/components/ai/AIChatWindow';
+import { useAIChat } from '@/hooks/useAIChat';
 import { getPublicStoreInfo } from '@/services/adminSettings.service';
 import { resolveWidgetConfig, resolveWidgetConfigOnFetchError, type ResolvedWidgetConfig } from '@/lib/supportWidget';
 
 type View = 'support' | 'chat';
 
 export default function FloatingSupportWidget() {
+  // Keep the session alive while the chat panel is closed or showing Support.
+  const chat = useAIChat();
   const [isOpen, setIsOpen] = useState(false);
   const [view, setView] = useState<View>('support');
   const [config, setConfig] = useState<ResolvedWidgetConfig | null>(null);
@@ -56,7 +59,7 @@ export default function FloatingSupportWidget() {
       {isOpen && (
         <div className="animate-support-panel-in">
           {view === 'chat' ? (
-            <AIChatWindow onBack={() => setView('support')} onClose={closeAll} />
+            <AIChatWindow chat={chat} onBack={() => setView('support')} onClose={closeAll} />
           ) : (
             <FloatingSupportPanel config={config} onClose={closeAll} onOpenChat={() => setView('chat')} />
           )}

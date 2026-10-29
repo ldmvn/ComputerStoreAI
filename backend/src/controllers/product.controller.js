@@ -18,6 +18,7 @@ import { StatusCodes } from 'http-status-codes';
 import { productService } from '../services/product.service.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { sendSuccess } from '../utils/response.js';
+import { onProductCreated, onProductUpdated, onProductDeleted } from '../ai/rag/sync/knowledgeSync.js';
 
 // ---------------------------------------------------------------------------
 // READ — Khách hàng + Admin
@@ -113,6 +114,7 @@ const getRelatedProducts = catchAsync(async (req, res) => {
  */
 const createProduct = catchAsync(async (req, res) => {
   const product = await productService.createProduct(req.body);
+  onProductCreated(product.id);
 
   return sendSuccess(res, StatusCodes.CREATED, {
     message: 'Tạo sản phẩm thành công',
@@ -126,6 +128,7 @@ const createProduct = catchAsync(async (req, res) => {
 const updateProduct = catchAsync(async (req, res) => {
   const { id } = req.params;
   const product = await productService.updateProduct(id, req.body);
+  onProductUpdated(Number(id));
 
   return sendSuccess(res, StatusCodes.OK, {
     message: 'Cập nhật sản phẩm thành công',
@@ -139,6 +142,7 @@ const updateProduct = catchAsync(async (req, res) => {
 const deleteProduct = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await productService.deleteProduct(id);
+  onProductDeleted(Number(id));
 
   return sendSuccess(res, StatusCodes.OK, {
     message: 'Xóa sản phẩm thành công',

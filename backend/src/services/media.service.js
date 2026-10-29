@@ -15,7 +15,6 @@ export const IMAGE_LIMIT = 10 * 1024 * 1024;
 export const VIDEO_LIMIT = 50 * 1024 * 1024;
 const imageMimes = ['image/jpeg', 'image/png', 'image/webp'];
 const videoMimes = ['video/mp4', 'video/webm'];
-const extensions = { 'image/jpeg': ['.jpg', '.jpeg'], 'image/png': ['.png'], 'image/webp': ['.webp'], 'video/mp4': ['.mp4'], 'video/webm': ['.webm'] };
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -24,7 +23,9 @@ const upload = multer({
   }),
   limits: { fileSize: VIDEO_LIMIT, files: 1, fields: 12, fieldSize: 4096, parts: 14 },
   fileFilter: (_req, file, callback) => {
-    if (!extensions[file.mimetype]?.includes(path.extname(file.originalname).toLowerCase())) return callback(bannerError('Chỉ chấp nhận JPG, PNG, WEBP, MP4 hoặc WEBM với MIME đúng.'));
+    // Client filenames are not a format signal. Content signatures and image
+    // decoding are verified again by saveBannerMedia before anything is stored.
+    if (![...imageMimes, ...videoMimes].includes(file.mimetype)) return callback(bannerError('Định dạng không được hỗ trợ. Chỉ chấp nhận MIME của JPG, PNG, WEBP, MP4 hoặc WEBM.'));
     callback(null, true);
   },
 }).single('media');
@@ -43,6 +44,7 @@ export async function discardTemporary(file) {
 // Storage boundary: replace these save/remove implementations for S3/R2/Cloudinary.
 export async function saveBannerMedia(file, mediaType) {
   if (!file) throw bannerError('Vui lòng chọn ảnh hoặc video cho banner.');
+  if (!file.size) throw bannerError('File media rỗng. Vui lòng chọn file khác.');
   const allowed = mediaType === 'IMAGE' ? imageMimes : videoMimes;
   if (!allowed.includes(file.mimetype)) throw bannerError('File không đúng loại media đã chọn.');
   if (file.size > (mediaType === 'IMAGE' ? IMAGE_LIMIT : VIDEO_LIMIT)) throw bannerError(mediaType === 'IMAGE' ? 'Ảnh tối đa 10 MB.' : 'Video tối đa 50 MB.');
