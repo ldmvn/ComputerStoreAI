@@ -48,6 +48,8 @@ import publicContentPageRoutes from './src/routes/v1/publicContentPage.route.js'
 import supportRoutes from './src/routes/v1/support.route.js';
 import customerSupportRoutes from './src/routes/v1/customerSupport.route.js';
 import adminSupportRoutes from './src/routes/v1/adminSupport.route.js';
+import { aiRouter } from './src/ai/routes/ai.routes.js';
+import { bootstrapAI } from './src/ai/bootstrap.js';
 import adminBrandingRoutes from './src/routes/v1/adminBranding.route.js';
 import { getPublicBranding } from './src/controllers/storeBranding.controller.js';
 import { getPublicStore } from './src/controllers/storeSetting.controller.js';
@@ -163,6 +165,7 @@ app.use('/api/admin/support-tickets', adminSupportRoutes);
 app.use('/api/admin/branding', adminBrandingRoutes);
 app.use('/api/payments', paymentRouter);
 app.use('/api/admin/payments', adminPaymentRouter);
+app.use('/api/ai', aiRouter);
 app.get('/api/content/branding', getPublicBranding);
 app.get('/api/content/store-info', getPublicStore);
 app.use('/media/promo-sections', express.static(promoMediaDirectory, {
@@ -242,7 +245,7 @@ const server = app.listen(PORT, () => {
   console.log(`❤️  Health check       : http://localhost:${PORT}/api/health`);
   console.log(`🌍 Environment        : ${process.env.NODE_ENV || 'development'}`);
   console.log('──────────────────────────────────────────────');
-  // Verification logs SMTP ready or the exact failure without blocking other APIs.
+  void bootstrapAI().catch(err => console.warn('[AI] Bootstrap failed:', err.message));
   void verifyResetMailConnection().catch(() => {});
 });
 

@@ -6,6 +6,10 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
+    "test:rag:multiturn": "node --test tests/unit/productContext.test.mjs tests/multiturnRag.http.mjs",
+    "test:rag:phase3": "node --test tests/unit/ragPhase3.test.mjs tests/unit/ragSync.test.mjs tests/unit/ragChatFlow.test.mjs tests/unit/aiFoundation.test.mjs tests/unit/aiChatService.test.mjs tests/unit/geminiProvider.test.mjs",
+    "benchmark:rag:phase3": "node tests/evaluation/phase3.benchmark.mjs",
+    "rag:health": "node scripts/rag-index-health.mjs",
     "test:product-detail": "node tests/productDetail.integration.mjs",
     "test:attributes": "node tests/attribute.integration.mjs",
     "test:specification-sources": "node tests/productSpecificationSources.integration.mjs",
@@ -55,6 +59,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",
+    "@google/genai": "^2.31.0",
     "@prisma/client": "^5.20.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",

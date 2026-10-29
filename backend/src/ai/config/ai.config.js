@@ -15,7 +15,7 @@ function str(name) {
 }
 
 const SUPPORTED_AI_PROVIDERS = new Set(['openai', 'gemini', 'python']);
-const SUPPORTED_VECTOR_STORES = new Set(['qdrant', 'memory']);
+const SUPPORTED_VECTOR_STORES = new Set(['qdrant', 'memory', 'json']);
 const SUPPORTED_EMBEDDING_PROVIDERS = new Set(['openai', 'gemini']);
 
 export const aiConfig = Object.freeze({

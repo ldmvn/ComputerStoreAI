@@ -23,7 +23,7 @@ export const productSearchToolDefinition = {
       brand: { type: 'string', description: 'Tên hoặc slug thương hiệu.' },
       minPrice: { type: 'number', description: 'Giá tối thiểu (VNĐ).' },
       maxPrice: { type: 'number', description: 'Giá tối đa (VNĐ), dùng để lọc theo ngân sách.' },
-      limit: { type: 'number', description: 'Số sản phẩm tối đa trả về, mặc định 10, tối đa 20.' },
+      limit: { type: 'number', description: 'Số sản phẩm tối đa trả về, mặc định 5, tối đa 10.' },
     },
   },
 };
@@ -40,17 +40,23 @@ export async function searchProducts(args = {}) {
     minPrice: args.minPrice,
     maxPrice: args.maxPrice,
     status: 'active', // AI never surfaces inactive/hidden products
-    limit: Math.min(Math.max(Number.parseInt(args.limit, 10) || 10, 1), 20),
+    limit: Math.min(Math.max(Number.parseInt(args.limit, 10) || 5, 1), 10),
     sort: 'newest',
   });
   const result = await listProducts(query);
+  const items = result.items.map(p => ({
+    id: p.id, name: p.name, slug: p.slug, sku: p.sku,
+    brand: p.brand, category: p.category,
+    price: p.price, originalPrice: p.originalPrice,
+    stockStatus: p.stockStatus, primaryImage: p.primaryImage,
+  }));
+  const inStock = items.filter(p => p.stockStatus === 'IN_STOCK').length;
+  const outOfStock = items.filter(p => p.stockStatus === 'OUT_OF_STOCK').length;
   return {
-    items: result.items.map(p => ({
-      id: p.id, name: p.name, slug: p.slug, sku: p.sku,
-      brand: p.brand, category: p.category,
-      price: p.price, originalPrice: p.originalPrice,
-      stockStatus: p.stockStatus, primaryImage: p.primaryImage,
-    })),
+    items,
     total: result.meta.total,
+    summary: items.length === 0
+      ? 'Không tìm thấy sản phẩm nào phù hợp với tiêu chí tìm kiếm.'
+      : `Tìm thấy ${result.meta.total} sản phẩm (${inStock} còn hàng, ${outOfStock} hết hàng).`,
   };
 }

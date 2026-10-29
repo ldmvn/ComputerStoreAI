@@ -10,7 +10,10 @@ const err = (res, e) => {
   // generic message, so it can never leak a stack trace or internal detail.
   const status = e?.statusCode ?? 500;
   const message = e?.statusCode ? e.message : 'Đã xảy ra lỗi. Vui lòng thử lại sau.';
-  res.status(status).json({ success: false, message, ...(e.code ? { code: e.code } : {}) });
+  const extra = { ...(e.code ? { code: e.code } : {}) };
+  if (e.rateLimitType) extra.rateLimitType = e.rateLimitType;
+  if (e.retryAfterMs > 0) extra.retryAfterMs = e.retryAfterMs;
+  res.status(status).json({ success: false, message, ...extra });
 };
 
 // GET /api/ai/status — public, booleans only (see ai.config.js#getAiStatus for what is deliberately withheld).

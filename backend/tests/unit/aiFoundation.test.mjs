@@ -141,7 +141,7 @@ test('Retriever wires embedding → vector store and applies minScore', async ()
   // A deterministic stand-in embedding used ONLY in this test to exercise the
   // Retriever's real search/threshold logic — never used in production code,
   // where NullEmbeddingProvider is the only active implementation.
-  const testEmbedding = { async embed(texts) { return texts.map(() => [1, 0, 0]); } };
+  const testEmbedding = { async embedQuery() { return [1, 0, 0]; } };
   const retriever = new Retriever({ embeddingProvider: testEmbedding, vectorStore: store });
   const all = await retriever.retrieve({ query: 'anything', topK: 5 });
   assert.equal(all.length, 2);
@@ -191,13 +191,22 @@ test('isStale treats a missing updatedAt as stale, never assumes freshness', () 
 
 // ── aiBuildPc.service ────────────────────────────────────────────────────────
 
-test('validateBuildPcRequest enforces budget/usage and normalizes optional fields', () => {
-  const parsed = validateBuildPcRequest({ budget: 15000000, usage: 'GAMING', preferredBrand: ' Intel ' });
+test('validateBuildPcRequest enforces budget/purpose (structured) and accepts prompt (freetext)', () => {
+  const parsed = validateBuildPcRequest({ budget: 15000000, purpose: 'GAMING', cpuPreference: ' Intel ' });
   assert.equal(parsed.budget, 15000000);
-  assert.equal(parsed.usage, 'gaming');
-  assert.equal(parsed.preferredBrand, 'Intel');
-  assert.deepEqual(parsed.existingComponents, []);
+  assert.equal(parsed.purpose, 'gaming');
+  assert.equal(parsed.purposeLabel, 'Gaming');
+  assert.equal(parsed.cpuPreference, 'Intel');
+  assert.equal(parsed.mode, 'structured');
 
-  assert.throws(() => validateBuildPcRequest({ budget: -1, usage: 'gaming' }), /budget/);
-  assert.throws(() => validateBuildPcRequest({ budget: 1000, usage: 'not-a-real-usage' }), /usage/);
+  assert.throws(() => validateBuildPcRequest({ budget: -1, purpose: 'gaming' }), /3\.000\.000/);
+  assert.throws(() => validateBuildPcRequest({ budget: 5000000, purpose: 'not-valid' }), /Mục đích/);
+
+  const freetext = validateBuildPcRequest({ prompt: 'Máy chơi game tầm 25 triệu' });
+  assert.equal(freetext.mode, 'freetext');
+  assert.equal(freetext.budget, 25_000_000);
+  assert.ok(freetext.prompt.includes('25 triệu'));
+
+  const nobudget = validateBuildPcRequest({ prompt: 'Máy chơi game mạnh' });
+  assert.equal(nobudget.budget, 20_000_000);
 });
