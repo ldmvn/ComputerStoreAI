@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import MotionProvider from '@/components/ui/motion/MotionProvider';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 import { SERVER_API_BASE_URL } from '@/services/http.client';
@@ -53,9 +54,11 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className="min-h-screen antialiased">
-        <ToastProvider>
-          <ConfirmProvider>{children}</ConfirmProvider>
-        </ToastProvider>
+        <MotionProvider>
+          <ToastProvider>
+            <ConfirmProvider>{children}</ConfirmProvider>
+          </ToastProvider>
+        </MotionProvider>
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { getHomeProductSections } from '@/services/productSection.service';
 import type { ProductSection, QuickFilterTab } from '@/types/productSection.type';
 import ProductCard from './ProductCard';
 import PromotionalSection from './PromotionalSection';
+import { FadeIn } from '@/components/ui/motion/ScrollReveal';
 import styles from './HomeProductSections.module.css';
 
 function buildTabUrl(section: ProductSection, tab: QuickFilterTab): string {
@@ -111,20 +112,24 @@ export default function HomeProductSections() {
             </div>
           </div>
         </div>
-      ) : visibleSections.map(section => (
+      ) : visibleSections.map((section, sectionIndex) => (
         section.type === 'PROMOTIONAL_SECTION' ? (
-          <div key={section.id} aria-label={section.promoTitle || section.name}>
-            <PromotionalSection section={section} />
-          </div>
-        ) : (
-          <section key={section.id} className={styles.section} aria-labelledby={`home-products-${section.id}`}>
-            <SectionHeader section={section} />
-            <div className={styles.grid}>
-              {section.products.slice(0, 6).map(product => (
-                <ProductCard key={product.id} product={product} showHighlightSpecs={section.showHighlightSpecs} />
-              ))}
+          <FadeIn key={section.id} delay={sectionIndex * 0.05}>
+            <div aria-label={section.promoTitle || section.name}>
+              <PromotionalSection section={section} />
             </div>
-          </section>
+          </FadeIn>
+        ) : (
+          <FadeIn key={section.id} delay={sectionIndex * 0.05}>
+            <section className={styles.section} aria-labelledby={`home-products-${section.id}`}>
+              <SectionHeader section={section} />
+              <div className={styles.grid}>
+                {section.products.slice(0, 6).map(product => (
+                  <ProductCard key={product.id} product={product} showHighlightSpecs={section.showHighlightSpecs} />
+                ))}
+              </div>
+            </section>
+          </FadeIn>
         )
       ))}
     </div>

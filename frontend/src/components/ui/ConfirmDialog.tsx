@@ -1,6 +1,8 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, m } from 'motion/react';
 import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { overlayVariants, dialogVariants, overlayTransition, panelTransition } from './motion/transitions';
 
 export type ConfirmTone = 'danger' | 'warning' | 'info';
 
@@ -81,7 +83,9 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   return (
     <ConfirmContext.Provider value={value}>
       {children}
-      {request && <ConfirmDialog request={request} onClose={close} cancelRef={cancelRef} />}
+      <AnimatePresence>
+        {request && <ConfirmDialog key="confirm" request={request} onClose={close} cancelRef={cancelRef} />}
+      </AnimatePresence>
     </ConfirmContext.Provider>
   );
 }
@@ -108,18 +112,28 @@ function ConfirmDialog({ request, onClose, cancelRef }: { request: ConfirmReques
   const tone = TONE_STYLES[request.tone];
   const Icon = request.destructive || request.tone === 'danger' ? Trash2 : AlertTriangle;
   return (
-    <div
-      className="fixed inset-0 z-[210] flex items-center justify-center bg-slate-950/45 px-4 py-4 backdrop-blur-[2px] animate-toast-in"
+    <m.div
+      className="fixed inset-0 z-[210] flex items-center justify-center bg-slate-950/45 px-4 py-4 backdrop-blur-[2px]"
       role="presentation"
+      variants={overlayVariants}
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+      transition={overlayTransition}
       onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(false); }}
     >
-      <div
+      <m.div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
         aria-describedby={request.description ? 'confirm-dialog-description' : undefined}
         onMouseDown={(event) => event.stopPropagation()}
         className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.18)]"
+        variants={dialogVariants}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        transition={panelTransition}
       >
         <div className="flex items-start gap-4">
           <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${tone.iconWrap}`}>
@@ -155,7 +169,7 @@ function ConfirmDialog({ request, onClose, cancelRef }: { request: ConfirmReques
             {request.confirmLabel}
           </button>
         </div>
-      </div>
-    </div>
+      </m.div>
+    </m.div>
   );
 }

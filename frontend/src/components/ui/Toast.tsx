@@ -1,6 +1,8 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, m } from 'motion/react';
 import { CheckCircle2, Info, AlertTriangle, XCircle, X } from 'lucide-react';
+import { toastVariants, toastTransition } from './motion/transitions';
 
 export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
 
@@ -146,9 +148,11 @@ function ToastViewport({ toasts, onDismiss }: { toasts: ToastEntry[]; onDismiss:
       aria-live="polite"
       className="pointer-events-none fixed right-3 top-5 z-[9999] flex w-full max-w-[calc(100vw-24px)] flex-col gap-2.5 sm:right-5 sm:top-6 sm:max-w-[420px]"
     >
-      {toasts.map(toast => (
-        <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
-      ))}
+      <AnimatePresence mode="popLayout">
+        {toasts.map(toast => (
+          <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
+        ))}
+      </AnimatePresence>
     </div>
   );
 }
@@ -157,11 +161,17 @@ function ToastItem({ toast, onDismiss }: { toast: ToastEntry; onDismiss: (id: st
   const style = VARIANT_STYLES[toast.variant];
   const role = toast.variant === 'error' || toast.variant === 'warning' ? 'alert' : 'status';
   return (
-    <div
+    <m.div
+      layout
       role={role}
       data-testid="app-toast"
       data-variant={toast.variant}
-      className={`pointer-events-auto flex w-full items-start gap-3 rounded-xl border px-3.5 py-2.5 text-[13px] leading-5 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.25)] sm:text-sm animate-toast-in ${style.wrapper}`}
+      className={`pointer-events-auto flex w-full items-start gap-3 rounded-xl border px-3.5 py-2.5 text-[13px] leading-5 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.25)] sm:text-sm ${style.wrapper}`}
+      variants={toastVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      transition={toastTransition}
     >
       <span className={`mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${style.iconWrap}`}>
         <VariantIcon variant={toast.variant} />
@@ -178,6 +188,6 @@ function ToastItem({ toast, onDismiss }: { toast: ToastEntry; onDismiss: (id: st
       >
         <X className="h-3.5 w-3.5" aria-hidden="true" />
       </button>
-    </div>
+    </m.div>
   );
 }
