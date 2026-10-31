@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { validateVoucher, applyVoucherInTx, refundVoucherUsage } from './voucher.service.js';
 import { createPaymentForOrder } from '../payments/services/payment.service.js';
+import { getSettingsByPrefix } from './storeSetting.service.js';
 
 const ALLOWED_PAYMENT = ['COD', 'BANK_TRANSFER', 'MOMO', 'VNPAY'];
 
@@ -98,6 +99,26 @@ export async function createOrder(userId, { items, addressId, paymentMethod, not
 
   const subtotal = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const shippingAddress = `${address.streetAddress}, ${address.communeName}, ${address.provinceName}`;
+
+  const orderSettings = await getSettingsByPrefix('order.');
+  const minAmount = Number(orderSettings['order.min_amount']) || 0;
+  const maxQty = Number(orderSettings['order.max_qty_per_item']) || 0;
+
+  if (minAmount > 0 && subtotal < minAmount) {
+    const err = new Error(`Giá trị đơn hàng tối thiểu là ${minAmount.toLocaleString('vi-VN')}₫.`);
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (maxQty > 0) {
+    for (const item of orderItems) {
+      if (item.quantity > maxQty) {
+        const err = new Error(`Số lượng tối đa mỗi sản phẩm là ${maxQty}. "${item.name}" vượt giới hạn.`);
+        err.statusCode = 400;
+        throw err;
+      }
+    }
+  }
 
   // Validate voucher before entering transaction (throws on invalid)
   let voucherInfo = null;
@@ -331,8 +352,9 @@ export async function reorderItems(userId, orderId) {
 }
 
 export async function cancelOrder(userId, orderId) {
+  const where = userId ? { id: orderId, userId } : { id: orderId };
   const order = await prisma.order.findFirst({
-    where: { id: orderId, userId },
+    where,
     include: { items: { select: { productId: true, quantity: true } } },
   });
   if (!order) return null;
@@ -379,4 +401,28 @@ export async function cancelOrder(userId, orderId) {
 
     return updated;
   });
+}
+
+export async function cancelExpiredOrders() {
+  const settings = await getSettingsByPrefix('order.');
+  const hours = Number(settings['order.auto_cancel_hours']) || 0;
+  if (hours <= 0) return 0;
+
+  const cutoff = new Date(Date.now() - hours * 3600_000);
+  const expired = await prisma.order.findMany({
+    where: { status: 'PENDING', createdAt: { lt: cutoff } },
+    select: { id: true },
+  });
+
+  let cancelled = 0;
+  for (const { id } of expired) {
+    try {
+      await cancelOrder(null, id);
+      cancelled++;
+    } catch {
+      // skip orders that can't be cancelled
+    }
+  }
+  if (cancelled > 0) console.log(`[AutoCancel] Huỷ ${cancelled} đơn hàng quá hạn.`);
+  return cancelled;
 }

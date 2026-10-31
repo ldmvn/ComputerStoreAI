@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardShell from '@/components/admin/DashboardShell';
+import LoginModal from '@/components/layout/LoginModal';
 import { useAuthStore } from '@/store/auth.store';
 import { usePermissionStore } from '@/store/permission.store';
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
@@ -20,25 +20,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!isHydrated) void hydrate();
   }, [hydrate, isHydrated]);
 
-  // Load RBAC permissions once after auth is ready.
-  // token may be null (httpOnly cookie auth) — apiRequest sends cookie automatically.
   useEffect(() => {
     if (isHydrated && isAdmin && !permissionsLoaded) {
       void loadPermissions(token);
     }
   }, [isHydrated, isAdmin, token, permissionsLoaded, loadPermissions]);
 
-  useEffect(() => {
-    if (isHydrated && !isAdmin) router.replace('/');
-  }, [isHydrated, isAdmin, router]);
+  if (!isHydrated) return null;
 
-  if (!isHydrated || !isAdmin || !permissionsLoaded) {
+  if (!isAdmin) {
     return (
-      <p role="status" className="px-4 py-12 text-center text-slate-600">
-        Đang kiểm tra quyền truy cập…
-      </p>
+      <div className="flex min-h-screen items-center justify-center bg-slate-100">
+        <LoginModal isOpen onClose={() => router.replace('/')} />
+      </div>
     );
   }
+
+  if (!permissionsLoaded) return null;
 
   return <DashboardShell>{children}</DashboardShell>;
 }

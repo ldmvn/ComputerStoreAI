@@ -506,7 +506,7 @@ export default function DashboardPage() {
                   <div className="mb-1 flex items-center justify-between text-xs">
                     <span className="inline-flex items-center gap-1.5 font-medium text-slate-700">
                       {m.method === 'COD' ? <Banknote className="h-3.5 w-3.5 text-slate-400" /> : <CreditCard className="h-3.5 w-3.5 text-slate-400" />}
-                      {m.method === 'COD' ? 'Thanh toán khi nhận hàng' : 'Chuyển khoản'}
+                      {{ COD: 'Thanh toán khi nhận hàng', BANK_TRANSFER: 'Chuyển khoản ngân hàng', VNPAY: 'VNPay', MOMO: 'MoMo' }[m.method] ?? m.method}
                     </span>
                     <span className="tabular-nums text-slate-500">{m.count} đơn ({m.pct}%)</span>
                   </div>

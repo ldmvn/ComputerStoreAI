@@ -52,13 +52,15 @@ import { aiRouter } from './src/ai/routes/ai.routes.js';
 import { bootstrapAI } from './src/ai/bootstrap.js';
 import adminBrandingRoutes from './src/routes/v1/adminBranding.route.js';
 import { getPublicBranding } from './src/controllers/storeBranding.controller.js';
-import { getPublicStore } from './src/controllers/storeSetting.controller.js';
+import { getPublicStore, getPublicPaymentStatus, getPublicFeatureFlags, getPublicSeo } from './src/controllers/storeSetting.controller.js';
 import { promoMediaDirectory } from './src/services/promoMedia.service.js';
 import { paymentRouter } from './src/payments/routes/payment.routes.js';
 import { adminPaymentRouter } from './src/payments/routes/adminPayment.routes.js';
 
 import { verifyResetMailConnection } from './src/services/passwordResetMail.service.js';
+import { maintenanceGuard } from './src/middlewares/maintenance.middleware.js';
 import { cleanupExpiredPasswordResets } from './src/services/passwordReset.service.js';
+import { cancelExpiredOrders } from './src/services/order.service.js';
 
 // ---------------------------------------------------------------------------
 // App instance
@@ -109,6 +111,11 @@ app.use((req, _res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${loggedUrl}`);
   next();
 });
+
+// ---------------------------------------------------------------------------
+// Maintenance mode — blocks non-admin requests when enabled
+// ---------------------------------------------------------------------------
+app.use(maintenanceGuard);
 
 // ---------------------------------------------------------------------------
 // Health check
@@ -168,6 +175,9 @@ app.use('/api/admin/payments', adminPaymentRouter);
 app.use('/api/ai', aiRouter);
 app.get('/api/content/branding', getPublicBranding);
 app.get('/api/content/store-info', getPublicStore);
+app.get('/api/content/payment-status', getPublicPaymentStatus);
+app.get('/api/content/features', getPublicFeatureFlags);
+app.get('/api/content/seo', getPublicSeo);
 app.use('/media/promo-sections', express.static(promoMediaDirectory, {
   dotfiles: 'deny', immutable: true, maxAge: '30d',
   setHeaders: res => res.set('X-Content-Type-Options', 'nosniff'),
@@ -239,6 +249,10 @@ const otpCleanupTimer = setInterval(() => {
   void cleanupExpiredPasswordResets().catch(error => console.error('[OTP] Cleanup failed:', error.code || error.name));
 }, 60000);
 otpCleanupTimer.unref();
+const orderCancelTimer = setInterval(() => {
+  void cancelExpiredOrders().catch(error => console.error('[AutoCancel] Failed:', error.code || error.name));
+}, 300_000);
+orderCancelTimer.unref();
 const server = app.listen(PORT, () => {
   console.log('──────────────────────────────────────────────');
   console.log(`🚀 Backend is running at: http://localhost:${PORT}`);
@@ -252,6 +266,7 @@ const server = app.listen(PORT, () => {
 // Graceful shutdown
 const shutdown = (signal) => {
   clearInterval(otpCleanupTimer);
+  clearInterval(orderCancelTimer);
   console.log(`\n${signal} received. Closing server gracefully...`);
   server.close(() => {
     console.log('HTTP server closed.');

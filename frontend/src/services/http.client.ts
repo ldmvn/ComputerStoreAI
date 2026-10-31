@@ -32,8 +32,13 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}, tok
     if (error instanceof Error && error.name === 'AbortError') throw error;
     throw new Error('Không thể kết nối máy chủ. Vui lòng thử lại.');
   }
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new ApiRequestError(data.message || `Yêu cầu thất bại (${response.status}).`, response.status);
+  const data = await response.json().catch(() => ({})) as Record<string, unknown>;
+  if (!response.ok) {
+    if (response.status === 503 && data.maintenance && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('app:maintenance', { detail: String(data.message || 'Website đang bảo trì.') }));
+    }
+    throw new ApiRequestError(String(data.message || `Yêu cầu thất bại (${response.status}).`), response.status);
+  }
   return data as T;
 }
 

@@ -67,6 +67,39 @@ export async function getPublicStore(req, res) {
   } catch (e) { err(res, e); }
 }
 
+export async function getPublicFeatureFlags(req, res) {
+  try {
+    const raw = await svc.getSettingsByPrefix('feature.');
+    res.json({
+      success: true,
+      data: {
+        build_pc: (raw['feature.build_pc'] ?? 'true') === 'true',
+        reviews:  (raw['feature.reviews'] ?? 'true') === 'true',
+        wishlist: (raw['feature.wishlist'] ?? 'true') === 'true',
+      },
+    });
+  } catch (e) { err(res, e); }
+}
+
+export async function getPublicSeo(req, res) {
+  try {
+    const raw = await svc.getSettingsByPrefix('seo.');
+    res.json({ success: true, data: raw });
+  } catch (e) { err(res, e); }
+}
+
+export async function getPublicPaymentStatus(req, res) {
+  try {
+    const raw = await svc.getSettingsByPrefix('payment.');
+    const methods = ['cod', 'bank_transfer', 'vnpay', 'momo'];
+    const result = {};
+    for (const m of methods) {
+      result[m] = raw[`payment.${m}.status`] ?? 'active';
+    }
+    res.json({ success: true, data: result });
+  } catch (e) { err(res, e); }
+}
+
 export async function update(req, res) {
   try {
     const body = req.body ?? {};

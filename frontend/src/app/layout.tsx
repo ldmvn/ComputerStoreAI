@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import MotionProvider from '@/components/ui/motion/MotionProvider';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
+import MaintenanceOverlay from '@/components/layout/MaintenanceOverlay';
 import { SERVER_API_BASE_URL } from '@/services/http.client';
 import './globals.css';
 import '@/styles/interactions.css';
@@ -22,6 +23,21 @@ async function getBrandingMeta(): Promise<{ faviconUrl: string; version: string 
   }
 }
 
+async function getSeoMeta(): Promise<{ title: string; description: string; keywords: string }> {
+  try {
+    const res = await fetch(`${SERVER_API_BASE_URL}/content/seo`, { next: { revalidate: 60 } });
+    if (!res.ok) return { title: '', description: '', keywords: '' };
+    const json = (await res.json()) as { data?: Record<string, string> };
+    return {
+      title: json.data?.['seo.site_title'] ?? '',
+      description: json.data?.['seo.description'] ?? '',
+      keywords: json.data?.['seo.keywords'] ?? '',
+    };
+  } catch {
+    return { title: '', description: '', keywords: '' };
+  }
+}
+
 function resolveIconUrl(url: string, version: string): string {
   if (!url) return '/logo.png';
   // Already root-relative (e.g. "/media/branding/...") in the common case —
@@ -37,11 +53,12 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { faviconUrl, version } = await getBrandingMeta();
+  const [{ faviconUrl, version }, seo] = await Promise.all([getBrandingMeta(), getSeoMeta()]);
   const icon = resolveIconUrl(faviconUrl, version);
   return {
-    title: 'DUCMANH PC',
-    description: 'Cửa hàng PC & Laptop chính hãng',
+    title: seo.title || 'DUCMANH PC',
+    description: seo.description || 'Cửa hàng PC & Laptop chính hãng',
+    ...(seo.keywords ? { keywords: seo.keywords } : {}),
     icons: { icon },
   };
 }
@@ -56,7 +73,10 @@ export default function RootLayout({
       <body className="min-h-screen antialiased">
         <MotionProvider>
           <ToastProvider>
-            <ConfirmProvider>{children}</ConfirmProvider>
+            <ConfirmProvider>
+              {children}
+              <MaintenanceOverlay />
+            </ConfirmProvider>
           </ToastProvider>
         </MotionProvider>
       </body>
