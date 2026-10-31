@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 type GatewayProvider = 'VNPAY' | 'MOMO';
 type GatewayPaymentOutcome = 'success' | 'cancelled' | 'failed' | 'pending';
@@ -28,8 +28,6 @@ export default function GatewayReturnHandler({ provider, check }: {
   provider: GatewayProvider;
   check: (queryString: string) => Promise<ReturnData>;
 }) {
-  const [message, setMessage] = useState('Đang xác minh giao dịch…');
-
   useEffect(() => {
     let stopped = false;
     let polls = 0;
@@ -40,8 +38,7 @@ export default function GatewayReturnHandler({ provider, check }: {
         if (stopped) return;
         const outcome = outcomeFrom(data, provider);
         if (outcome === 'invalid') {
-          setMessage('Không xác minh được giao dịch. Đang chuyển về danh sách đơn hàng…');
-          window.setTimeout(() => window.location.replace('/customer/profile/orders'), 800);
+          window.setTimeout(() => window.location.replace('/customer/profile/orders'), 400);
           return;
         }
         if (outcome === 'pending' && ++polls < MAX_RETURN_POLLS) {
@@ -51,8 +48,7 @@ export default function GatewayReturnHandler({ provider, check }: {
         window.location.replace(`/customer/profile/orders/${data.orderId}`);
       } catch {
         if (!stopped) {
-          setMessage('Kết nối gián đoạn. Đang chuyển về đơn hàng để tiếp tục xác minh…');
-          window.setTimeout(() => window.location.replace('/customer/profile/orders'), 1000);
+          window.setTimeout(() => window.location.replace('/customer/profile/orders'), 400);
         }
       }
     };
@@ -62,11 +58,8 @@ export default function GatewayReturnHandler({ provider, check }: {
   }, [check, provider]);
 
   return (
-    <main className="flex min-h-[70vh] items-center justify-center px-4" aria-live="polite">
-      <div className="flex items-center gap-3 rounded-2xl border border-primary-100 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm">
-        <Loader2 className="h-5 w-5 animate-spin text-primary-600" />
-        {message}
-      </div>
-    </main>
+    <div className="flex min-h-[60vh] items-center justify-center" aria-live="polite">
+      <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+    </div>
   );
 }

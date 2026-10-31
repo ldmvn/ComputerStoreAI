@@ -19,12 +19,14 @@ import ProductDescription from './ProductDescription';
 import ProductPromotions from './ProductPromotions';
 import ProductReviews from './ProductReviews';
 import ProductSpecificationsModal from './ProductSpecificationsModal';
+import { useFeaturesStore } from '@/store/features.store';
 
 type DetailState = { slug: string; status: 'loading' | 'ready' | 'missing' | 'error'; product?: Product; message?: string };
 export default function ProductDetail({ slug }: { slug: string }) {
   const [state, setState] = useState<DetailState>({ slug, status: 'loading' });
   const [attempt, setAttempt] = useState(0);
   const [isSpecsModalOpen, setIsSpecsModalOpen] = useState(false);
+  const reviewsEnabled = useFeaturesStore(s => s.flags.reviews);
   const viewEvent = useRef<{ slug: string; id: string } | null>(null);
   useEffect(() => {
     const controller = new AbortController();
@@ -90,9 +92,11 @@ export default function ProductDetail({ slug }: { slug: string }) {
         </div>
         {/* Reviews — mobile order 6, always last; stays in the left column so the
             right column's height never affects its position. */}
-        <div className="order-6">
-          <ProductReviews key={`reviews-${product.id}`} slug={product.slug} productId={product.id} initialSummary={product.ratingAverage !== undefined || product.reviewCount !== undefined ? { ratingAverage: product.ratingAverage ?? null, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } } : null} />
-        </div>
+        {reviewsEnabled && (
+          <div className="order-6">
+            <ProductReviews key={`reviews-${product.id}`} slug={product.slug} productId={product.id} initialSummary={product.ratingAverage !== undefined || product.reviewCount !== undefined ? { ratingAverage: product.ratingAverage ?? null, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } } : null} />
+          </div>
+        )}
       </div>
 
       {/* Right column — display:contents on mobile, flex-col on desktop */}

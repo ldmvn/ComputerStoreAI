@@ -19,7 +19,7 @@ import { useCheckoutStore } from '@/store/checkout.store';
 import type { Address, AddressInput } from '@/types/address.type';
 import type { ProductReview } from '@/types/product.type';
 import AddressForm from '@/app/customer/profile/addresses/AddressForm';
-import { ApiRequestError, mediaUrl } from '@/services/http.client';
+import { apiRequest, ApiRequestError, mediaUrl } from '@/services/http.client';
 import VietQrPopup from '@/components/checkout/VietQrPopup';
 import type { Order, OrderItem, OrderStatus } from '@/types/order.type';
 import { PAYMENT_STATUS_LABEL, type Payment, type PaymentAttempt } from '@/types/payment.type';
@@ -110,6 +110,7 @@ export default function OrderDetailPage() {
   const [selectedMethod, setSelectedMethod] = useState<string>('');
   const [methodSaving, setMethodSaving] = useState(false);
   const [methodError, setMethodError] = useState<string | null>(null);
+  const [pmStatus, setPmStatus] = useState<Record<string, string>>({});
 
   // Review state: map productId → existing review (null = not reviewed)
   const [itemReviews, setItemReviews] = useState<Record<number, ProductReview | null>>({});
@@ -163,6 +164,10 @@ export default function OrderDetailPage() {
       setMomoLoading(false);
     }
   };
+
+  useEffect(() => {
+    apiRequest<{ data: Record<string, string> }>('/content/payment-status').then(r => setPmStatus(r.data ?? {})).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -937,27 +942,36 @@ export default function OrderDetailPage() {
             <div className="px-5 py-4">
               <ul className="space-y-2">
                 {[
-                  { value: 'MOMO',          label: 'Ví MoMo',                  desc: 'Thanh toán qua cổng MoMo' },
-                  { value: 'VNPAY',         label: 'VNPAY',                     desc: 'Thẻ ATM / Visa / QR VNPay' },
-                  { value: 'BANK_TRANSFER', label: 'Chuyển khoản ngân hàng',    desc: 'VietQR tự động xác nhận' },
-                  { value: 'COD',           label: 'Thanh toán khi nhận hàng',  desc: 'Trả tiền mặt cho shipper' },
-                ].map(opt => (
-                  <li key={opt.value}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedMethod(opt.value)}
-                      className={`w-full rounded-xl border px-4 py-3 text-left transition ${selectedMethod === opt.value ? 'border-primary-500 bg-primary-50/50' : 'border-slate-200 hover:border-primary-300 hover:bg-slate-50'}`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          <p className="text-sm font-medium text-slate-800">{opt.label}</p>
-                          <p className="text-xs text-slate-500">{opt.desc}</p>
+                  { value: 'MOMO',          statusKey: 'momo',          label: 'Ví MoMo',                  desc: 'Thanh toán qua cổng MoMo' },
+                  { value: 'VNPAY',         statusKey: 'vnpay',         label: 'VNPAY',                     desc: 'Thẻ ATM / Visa / QR VNPay' },
+                  { value: 'BANK_TRANSFER', statusKey: 'bank_transfer', label: 'Chuyển khoản ngân hàng',    desc: 'VietQR tự động xác nhận' },
+                  { value: 'COD',           statusKey: 'cod',           label: 'Thanh toán khi nhận hàng',  desc: 'Trả tiền mặt cho shipper' },
+                ].map(opt => {
+                  const status = pmStatus[opt.statusKey] ?? 'active';
+                  const unavailable = status === 'disabled' || status === 'maintenance';
+                  return (
+                    <li key={opt.value}>
+                      <button
+                        type="button"
+                        disabled={unavailable}
+                        onClick={() => !unavailable && setSelectedMethod(opt.value)}
+                        className={`w-full rounded-xl border px-4 py-3 text-left transition ${unavailable ? 'cursor-not-allowed opacity-50 border-slate-200 bg-slate-50' : selectedMethod === opt.value ? 'border-primary-500 bg-primary-50/50' : 'border-slate-200 hover:border-primary-300 hover:bg-slate-50'}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className={`text-sm font-medium ${unavailable ? 'text-slate-400' : 'text-slate-800'}`}>{opt.label}</p>
+                              {status === 'maintenance' && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Đang bảo trì</span>}
+                              {status === 'disabled' && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">Tạm ngưng</span>}
+                            </div>
+                            <p className={`text-xs ${unavailable ? 'text-slate-400' : 'text-slate-500'}`}>{opt.desc}</p>
+                          </div>
+                          {selectedMethod === opt.value && !unavailable && <Check className="h-4 w-4 shrink-0 text-primary-600" />}
                         </div>
-                        {selectedMethod === opt.value && <Check className="h-4 w-4 shrink-0 text-primary-600" />}
-                      </div>
-                    </button>
-                  </li>
-                ))}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
               {methodError && <p className="mt-3 text-sm text-red-600">{methodError}</p>}
             </div>

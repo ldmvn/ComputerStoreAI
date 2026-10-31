@@ -31,6 +31,7 @@ import { MegaMenuPanel, MobileMenuGroups } from '@/components/category/MegaMenuP
 import SmartSearchBar from '@/components/layout/SmartSearchBar';
 import { useBrandingStore } from '@/store/branding.store';
 import { useCategoryHeroStore } from '@/store/categoryHero.store';
+import { useFeaturesStore } from '@/store/features.store';
 
 function HeaderLabel({ sub, main, maxW = 'max-w-[7rem]', from = 'lg' }: { sub: string; main: string; maxW?: string; from?: 'md' | 'lg' | 'xl' }) {
   const showCls = from === 'md' ? 'md:flex' : from === 'xl' ? 'xl:flex' : 'lg:flex';
@@ -120,7 +121,10 @@ export default function Header() {
     else { clearWishlist(); }
   }, [authHydrated, wishlistToken, wishlistHydrated, hydrateWishlist, clearWishlist]);
 
+  const features = useFeaturesStore(s => s.flags);
+  const loadFeatures = useFeaturesStore(s => s.load);
   useEffect(() => { void hydrateBranding(); }, [hydrateBranding]);
+  useEffect(() => { void loadFeatures(); }, [loadFeatures]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -390,47 +394,53 @@ export default function Header() {
           {/* Action Icons */}
           <div className="ml-auto flex shrink-0 items-center gap-0 min-[360px]:gap-1 xl:gap-3">
             {/* Build PC — mobile: link to landing page */}
-            <Link
-              href="/customer/build-pc"
-              className="header-action lg:hidden"
-              aria-label="Build PC"
-              title="Build PC"
-            >
-              <Wrench className="h-5 w-5" />
-            </Link>
+            {features.build_pc && (
+              <Link
+                href="/customer/build-pc"
+                className="header-action lg:hidden"
+                aria-label="Build PC"
+                title="Build PC"
+              >
+                <Wrench className="h-5 w-5" />
+              </Link>
+            )}
 
             {/* Build PC — desktop: dropdown */}
-            <div
-              ref={buildPcRef}
-              className="relative hidden self-stretch lg:flex lg:items-center"
-              onKeyDown={e => { if (e.key === 'Escape') { setBuildPcOpen(false); buildPcRef.current?.querySelector('button')?.focus(); } }}
-              onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setBuildPcOpen(false); }}
-            >
-              <button
-                type="button"
-                onClick={() => setBuildPcOpen(v => !v)}
-                className="ui-header-action inline-flex items-center gap-1.5 rounded-md px-2 py-2 text-sm font-medium text-slate-700 transition hover:bg-primary-50 hover:text-primary-600"
-                aria-expanded={buildPcOpen}
-                aria-controls="build-pc-menu"
-                aria-label="Build PC"
+            {features.build_pc && (
+              <div
+                ref={buildPcRef}
+                className="relative hidden self-stretch lg:flex lg:items-center"
+                onKeyDown={e => { if (e.key === 'Escape') { setBuildPcOpen(false); buildPcRef.current?.querySelector('button')?.focus(); } }}
+                onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setBuildPcOpen(false); }}
               >
-                <Wrench className="h-5 w-5" aria-hidden="true" />
-                <HeaderLabel sub="Xây dựng" main="Cấu hình PC" maxW="max-w-[6rem]" from="xl" />
-                <ChevronDown className={`h-4 w-4 transition-transform ${buildPcOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
-              </button>
-              {buildPcOpen && <BuildPcDropdown onNavigate={() => setBuildPcOpen(false)} />}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => setBuildPcOpen(v => !v)}
+                  className="ui-header-action inline-flex items-center gap-1.5 rounded-md px-2 py-2 text-sm font-medium text-slate-700 transition hover:bg-primary-50 hover:text-primary-600"
+                  aria-expanded={buildPcOpen}
+                  aria-controls="build-pc-menu"
+                  aria-label="Build PC"
+                >
+                  <Wrench className="h-5 w-5" aria-hidden="true" />
+                  <HeaderLabel sub="Xây dựng" main="Cấu hình PC" maxW="max-w-[6rem]" from="xl" />
+                  <ChevronDown className={`h-4 w-4 transition-transform ${buildPcOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                </button>
+                {buildPcOpen && <BuildPcDropdown onNavigate={() => setBuildPcOpen(false)} />}
+              </div>
+            )}
 
             {/* Wishlist */}
-            <Link
-              href="/customer/wishlist"
-              className="header-action"
-              title="Yêu thích"
-            >
-              <HeaderIconWithBadge icon={Heart} count={wishlistCount} />
-              <HeaderLabel sub="Danh sách" main="Yêu thích" maxW="max-w-[5rem]" from="xl" />
-              <span className="sr-only">Yêu thích</span>
-            </Link>
+            {features.wishlist && (
+              <Link
+                href="/customer/wishlist"
+                className="header-action"
+                title="Yêu thích"
+              >
+                <HeaderIconWithBadge icon={Heart} count={wishlistCount} />
+                <HeaderLabel sub="Danh sách" main="Yêu thích" maxW="max-w-[5rem]" from="xl" />
+                <span className="sr-only">Yêu thích</span>
+              </Link>
+            )}
 
             {/* Cart with badge */}
             <Link
@@ -507,18 +517,22 @@ export default function Header() {
             {/* ── Level 0: Build PC + category list ──────────────────────────── */}
             {mobileCatId === null && (
               <div className="px-3 py-4">
-                <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Build PC</p>
-                <div className="mb-4 space-y-1">
-                  <Link href="/customer/build-pc/manual" onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-primary-50 hover:text-primary-600">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"><Puzzle className="h-4 w-4" aria-hidden="true" /></span>
-                    <span className="min-w-0 truncate">Tự chọn linh kiện</span>
-                  </Link>
-                  <Link href="/customer/build-pc/ai" onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[#C4480A] transition-colors hover:bg-orange-50">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-[#C4480A]"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
-                    <span className="min-w-0 flex-1 truncate">Tối ưu cùng AI</span>
-                    <span className="shrink-0 rounded-full bg-[#C4480A] px-1.5 py-0.5 text-[10px] font-bold text-white">Mới</span>
-                  </Link>
-                </div>
+                {features.build_pc && (
+                  <>
+                    <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Build PC</p>
+                    <div className="mb-4 space-y-1">
+                      <Link href="/customer/build-pc/manual" onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-primary-50 hover:text-primary-600">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"><Puzzle className="h-4 w-4" aria-hidden="true" /></span>
+                        <span className="min-w-0 truncate">Tự chọn linh kiện</span>
+                      </Link>
+                      <Link href="/customer/build-pc/ai" onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[#C4480A] transition-colors hover:bg-orange-50">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-[#C4480A]"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
+                        <span className="min-w-0 flex-1 truncate">Tối ưu cùng AI</span>
+                        <span className="shrink-0 rounded-full bg-[#C4480A] px-1.5 py-0.5 text-[10px] font-bold text-white">Mới</span>
+                      </Link>
+                    </div>
+                  </>
+                )}
                 <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Danh mục</p>
                 {menuLoading && <p role="status" className="px-3 text-sm text-slate-500">Đang tải danh mục...</p>}
                 {menuError && <p role="alert" className="px-3 text-sm text-red-600">{menuError}</p>}

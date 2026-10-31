@@ -82,7 +82,7 @@ export default function WishlistPage() {
   }, [addItem, toast]);
 
   if (!isHydrated) {
-    return <p role="status" className="text-sm text-slate-500">Đang tải...</p>;
+    return null;
   }
 
   const breadcrumb = (

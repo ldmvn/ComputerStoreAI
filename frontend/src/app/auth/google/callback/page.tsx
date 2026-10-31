@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { completeGoogleLogin, googleLoginErrors, takeGoogleLoginPending } from '@/services/google-auth.service';
@@ -33,7 +33,6 @@ export default function GoogleCallbackPage() {
     }
     void completeGoogleLogin(code, pending.verifier, pending.rememberMe).then(result => {
       login(result.user, result.token);
-      toast.success('Đăng nhập bằng Google thành công', `Chào mừng ${result.user.fullName}`);
       router.replace(pending.returnTo);
     }).catch((failure: unknown) => {
       toast.error(failure instanceof Error ? failure.message : googleLoginErrors.oauth_failed, 'Vui lòng thử lại.');
@@ -41,11 +40,9 @@ export default function GoogleCallbackPage() {
     });
   }, [login, router, toast]);
 
-  return <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
-    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-lg">
-      <h1 className="text-2xl font-bold text-slate-900">Đăng nhập bằng Google</h1>
-      <p role="status" className="mt-4 text-sm text-slate-600">Đang xác minh tài khoản Google...</p>
-      <Link href="/login" className="ui-link mt-6 inline-block font-semibold text-primary-600">Quay lại đăng nhập</Link>
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
     </div>
-  </main>;
+  );
 }

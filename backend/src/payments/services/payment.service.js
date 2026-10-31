@@ -769,8 +769,15 @@ export async function createMomoPaymentUrl(orderId, userId, momoType = 'atm') {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody), signal: AbortSignal.timeout(15000),
     });
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      const text = (await res.text()).slice(0, 300);
+      await prisma.paymentAttempt.update({ where: { id: attempt.id }, data: { status: 'FAILED', errorMessage: `MOMO_NON_JSON_RESPONSE: HTTP ${res.status} — ${text}`.slice(0, 500) } });
+      throw paymentError('Cổng MoMo đang bảo trì. Vui lòng thử lại sau ít phút.', 503);
+    }
     momoRes = await res.json();
   } catch (error) {
+    if (error.statusCode) throw error;
     await prisma.paymentAttempt.update({ where: { id: attempt.id }, data: { status: 'FAILED', errorMessage: `MOMO_CREATE_NETWORK_ERROR: ${error.message}`.slice(0, 500) } });
     throw paymentError('Không kết nối được cổng MoMo. Vui lòng thử lại.', 502);
   }

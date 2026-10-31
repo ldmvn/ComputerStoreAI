@@ -5,14 +5,15 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ClipboardList, Heart, Lock, MapPin, Star, User, LogOut, LifeBuoy } from 'lucide-react';
 import { mediaUrl } from '@/services/http.client';
 import { useAuthStore } from '@/store/auth.store';
+import { useFeaturesStore } from '@/store/features.store';
 import type { AuthUser } from '@/types/user.type';
 
-const navItems = [
+const allNavItems = [
   { href: '/customer/profile',           label: 'Thông tin tài khoản', icon: User,             exact: true },
   { href: '/customer/profile/orders',    label: 'Đơn hàng của tôi',    icon: ClipboardList                 },
   { href: '/customer/profile/addresses', label: 'Sổ địa chỉ',          icon: MapPin                        },
-  { href: '/customer/profile/reviews',   label: 'Đánh giá của tôi',    icon: Star                          },
-  { href: '/customer/wishlist',          label: 'Yêu thích',           icon: Heart                         },
+  { href: '/customer/profile/reviews',   label: 'Đánh giá của tôi',    icon: Star,             feature: 'reviews' as const },
+  { href: '/customer/wishlist',          label: 'Yêu thích',           icon: Heart,            feature: 'wishlist' as const },
   { href: '/customer/profile/password',  label: 'Bảo mật tài khoản',   icon: Lock                          },
   { href: '/customer/profile/support',   label: 'Yêu cầu hỗ trợ',      icon: LifeBuoy                       },
 ];
@@ -25,6 +26,8 @@ export default function ProfileSidebar({ user }: { user: AuthUser }) {
   const pathname  = usePathname();
   const router    = useRouter();
   const { logout } = useAuthStore();
+  const features = useFeaturesStore(s => s.flags);
+  const navItems = allNavItems.filter(item => !item.feature || features[item.feature]);
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);

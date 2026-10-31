@@ -13,7 +13,7 @@ import { getAddresses, createAddress } from '@/services/address.service';
 import { createOrder } from '@/services/order.service';
 import { createVnpayPayment, createMomoPayment } from '@/services/payment.service';
 import { validateVoucher, type VoucherValidation } from '@/services/voucher.service';
-import { mediaUrl } from '@/services/http.client';
+import { apiRequest, mediaUrl } from '@/services/http.client';
 import { formatProductPrice } from '@/lib/product';
 import type { Address, AddressInput } from '@/types/address.type';
 import AddressForm from '@/app/customer/profile/addresses/AddressForm';
@@ -21,10 +21,10 @@ import VietQrPopup from './VietQrPopup';
 import type { Payment, PaymentAttempt } from '@/types/payment.type';
 
 const PAYMENT_METHODS = [
-  { value: 'COD', label: 'Thanh toán khi nhận hàng', short: 'COD', icon: Banknote, description: 'Trả tiền mặt khi nhận hàng' },
-  { value: 'BANK_TRANSFER', label: 'Chuyển khoản ngân hàng', short: 'Chuyển khoản', icon: CreditCard, description: 'Thông tin tài khoản gửi qua email sau khi đặt hàng' },
-  { value: 'VNPAY', label: 'Thanh toán qua VNPAY', short: 'VNPAY', icon: CreditCard, description: 'Thẻ ATM/Visa/Mastercard, QR hoặc ví điện tử qua cổng VNPAY' },
-  { value: 'MOMO', label: 'Thanh toán qua MoMo', short: 'MoMo', icon: CreditCard, description: 'Thanh toán bằng thẻ ATM nội địa qua cổng MoMo' },
+  { value: 'COD', statusKey: 'cod', label: 'Thanh toán khi nhận hàng', short: 'COD', icon: Banknote, description: 'Trả tiền mặt khi nhận hàng' },
+  { value: 'BANK_TRANSFER', statusKey: 'bank_transfer', label: 'Chuyển khoản ngân hàng', short: 'Chuyển khoản', icon: CreditCard, description: 'Thông tin tài khoản gửi qua email sau khi đặt hàng' },
+  { value: 'VNPAY', statusKey: 'vnpay', label: 'Thanh toán qua VNPAY', short: 'VNPAY', icon: CreditCard, description: 'Thẻ ATM/Visa/Mastercard, QR hoặc ví điện tử qua cổng VNPAY' },
+  { value: 'MOMO', statusKey: 'momo', label: 'Thanh toán qua MoMo', short: 'MoMo', icon: CreditCard, description: 'Thanh toán bằng thẻ ATM nội địa qua cổng MoMo' },
 ];
 
 function AddressCard({ addr, selected, onSelect }: { addr: Address; selected: boolean; onSelect: () => void }) {
@@ -84,6 +84,7 @@ export default function CheckoutView() {
   // effect below from racing with router.push and sending the user to /cart.
   const orderPlacedRef = useRef(false);
 
+  const [paymentStatus, setPaymentStatus] = useState<Record<string, string>>({});
   const [voucherInput, setVoucherInput] = useState('');
   const [voucherApplied, setVoucherApplied] = useState<VoucherValidation | null>(null);
   const [voucherLoading, setVoucherLoading] = useState(false);
@@ -131,6 +132,19 @@ export default function CheckoutView() {
   }, [isAuthHydrated, user, isModalOpen, loadAddresses, openAuthModal, router]);
 
   useEffect(() => {
+    apiRequest<{ data: Record<string, string> }>('/content/payment-status')
+      .then(r => {
+        setPaymentStatus(r.data ?? {});
+        const firstActive = PAYMENT_METHODS.find(pm => (r.data?.[pm.statusKey] ?? 'active') === 'active');
+        if (firstActive) setPaymentMethod(prev => {
+          const currentStatus = r.data?.[PAYMENT_METHODS.find(p => p.value === prev)?.statusKey ?? ''] ?? 'active';
+          return currentStatus === 'active' ? prev : firstActive.value;
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (!isAuthHydrated) return;
     if (orderPlacedRef.current) return;
     if (!session || session.items.length === 0) {
@@ -144,9 +158,42 @@ export default function CheckoutView() {
   // into the "redirect to cart" loading state and hiding it.
   if ((!session || session.items.length === 0 || !isAuthHydrated) && !vietQr) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
-      </div>
+      <section>
+        <div className="mb-6 h-8 w-32 animate-pulse rounded-lg bg-slate-200" />
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="min-w-0 space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="mb-4 h-4 w-40 animate-pulse rounded bg-slate-200" />
+              <div className="space-y-3">
+                <div className="h-14 animate-pulse rounded-lg bg-slate-100" />
+                <div className="h-14 animate-pulse rounded-lg bg-slate-100" />
+              </div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="mb-4 h-4 w-36 animate-pulse rounded bg-slate-200" />
+              <div className="space-y-3">
+                {[1, 2].map(i => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="h-16 w-16 shrink-0 animate-pulse rounded-lg bg-slate-100" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
+                      <div className="h-3 w-1/3 animate-pulse rounded bg-slate-100" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="space-y-3">
+              <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
+              <div className="h-10 animate-pulse rounded-lg bg-slate-100" />
+              <div className="h-10 animate-pulse rounded-lg bg-slate-100" />
+              <div className="h-12 animate-pulse rounded-xl bg-slate-200" />
+            </div>
+          </div>
+        </div>
+      </section>
     );
   }
 
@@ -209,29 +256,32 @@ export default function CheckoutView() {
       // Mark success BEFORE clearSession so the session-empty effect is suppressed
       orderPlacedRef.current = true;
 
-      if (session.source === 'cart') {
-        for (const item of session.items) {
-          removeItem(item.id);
+      const cleanupCart = () => {
+        if (session.source === 'cart') {
+          for (const item of session.items) removeItem(item.id);
         }
-      }
-
-      clearSession();
+        clearSession();
+      };
 
       // BANK_TRANSFER: show the VietQR popup before leaving checkout.
       const attempt = order.payment?.attempts?.[0];
       if (paymentMethod === 'BANK_TRANSFER' && order.payment && attempt) {
+        cleanupCart();
         toast.success('Đặt hàng thành công!', `Đơn hàng #${order.id} đã được ghi nhận.`);
         setVietQr({ orderId: order.id, payment: order.payment, attempt });
         return;
       }
 
       // VNPAY: redirect directly to gateway, no premature "thành công" toast.
+      // Clear cart only right before redirect so the page stays intact on error.
       if (paymentMethod === 'VNPAY') {
         try {
           const vnpay = await createVnpayPayment(order.id, token);
+          cleanupCart();
           window.location.href = vnpay.data.url;
         } catch {
           toast.error('Không tạo được giao dịch VNPAY', 'Vui lòng thử lại từ trang chi tiết đơn hàng.');
+          cleanupCart();
           router.push(`/customer/profile/orders/${order.id}`);
         }
         return;
@@ -241,15 +291,18 @@ export default function CheckoutView() {
       if (paymentMethod === 'MOMO') {
         try {
           const momo = await createMomoPayment(order.id, token, 'atm');
+          cleanupCart();
           window.location.href = momo.data.url;
         } catch {
           toast.error('Không tạo được giao dịch MoMo', 'Vui lòng thử lại từ trang chi tiết đơn hàng.');
+          cleanupCart();
           router.push(`/customer/profile/orders/${order.id}`);
         }
         return;
       }
 
       // COD and other sync methods.
+      cleanupCart();
       toast.success('Đặt hàng thành công!', `Đơn hàng #${order.id} đã được ghi nhận.`);
       router.push(`/customer/profile/orders/${order.id}`);
     } catch (err) {
@@ -449,25 +502,35 @@ export default function CheckoutView() {
               {PAYMENT_METHODS.map(pm => {
                 const Icon = pm.icon;
                 const active = paymentMethod === pm.value;
+                const status = paymentStatus[pm.statusKey] ?? 'active';
+                const unavailable = status === 'disabled' || status === 'maintenance';
                 return (
                   <button
                     key={pm.value}
                     type="button"
-                    onClick={() => setPaymentMethod(pm.value)}
-                    className="flex w-full items-center gap-3 px-1 py-2 text-left transition hover:opacity-80"
+                    disabled={unavailable}
+                    onClick={() => !unavailable && setPaymentMethod(pm.value)}
+                    className={`flex w-full items-center gap-3 px-1 py-2 text-left transition ${unavailable ? 'cursor-not-allowed opacity-50' : 'hover:opacity-80'}`}
                   >
-                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${active ? 'border-primary-500' : 'border-slate-300'}`}>
-                      {active && <span className="h-2.5 w-2.5 rounded-full bg-primary-500" />}
+                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${active && !unavailable ? 'border-primary-500' : 'border-slate-300'}`}>
+                      {active && !unavailable && <span className="h-2.5 w-2.5 rounded-full bg-primary-500" />}
                     </span>
-                    <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-primary-600' : 'text-slate-400'}`} />
+                    <Icon className={`h-4 w-4 shrink-0 ${active && !unavailable ? 'text-primary-600' : 'text-slate-400'}`} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-slate-800">{pm.label}</p>
-                      <p className="truncate text-xs text-slate-500">{pm.description}</p>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-sm font-semibold ${unavailable ? 'text-slate-400' : 'text-slate-800'}`}>{pm.label}</p>
+                        {status === 'maintenance' && (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Đang bảo trì</span>
+                        )}
+                        {status === 'disabled' && (
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">Tạm ngưng</span>
+                        )}
+                      </div>
+                      <p className={`truncate text-xs ${unavailable ? 'text-slate-400' : 'text-slate-500'}`}>{pm.description}</p>
                     </div>
                   </button>
                 );
               })}
-
             </div>
           </div>
 

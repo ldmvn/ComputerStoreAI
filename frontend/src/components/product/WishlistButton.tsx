@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Heart } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { useWishlistStore } from '@/store/wishlist.store';
+import { useFeaturesStore } from '@/store/features.store';
 import { useToast } from '@/components/ui/Toast';
 
 type Variant = 'compact' | 'full';
@@ -18,6 +19,7 @@ type WishlistButtonProps = {
 };
 
 export default function WishlistButton({ productId, productName, variant = 'full', className, onRequireLogin, label }: WishlistButtonProps) {
+  const wishlistEnabled = useFeaturesStore(s => s.flags.wishlist);
   const token = useAuthStore(state => state.token);
   const user = useAuthStore(state => state.user);
   const toggle = useWishlistStore(state => state.toggle);
@@ -62,6 +64,8 @@ export default function WishlistButton({ productId, productName, variant = 'full
     : (isCompact ? 'border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-primary-500' : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50');
   const ariaLabel = favorited ? `Bỏ yêu thích ${productName}` : `Yêu thích ${productName}`;
   const visibleLabel = favorited ? 'Đã yêu thích' : (label || 'Yêu thích');
+
+  if (!wishlistEnabled) return null;
 
   return <button type="button" onClick={handleClick} disabled={busy} aria-pressed={favorited} aria-label={ariaLabel} title={visibleLabel} data-testid="wishlist-button" data-favorited={favorited ? 'true' : 'false'} className={`${baseClass} ${colorClass} ${className || ''}`}>
     <Heart size={isCompact ? 16 : 18} className="shrink-0" aria-hidden="true" fill={mounted && favorited ? 'currentColor' : 'none'} strokeWidth={2} />
