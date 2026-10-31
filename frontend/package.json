@@ -33,13 +33,11 @@
     "@tiptap/pm": "^3.31.4",
     "@tiptap/react": "^3.31.4",
     "@tiptap/starter-kit": "^3.31.4",
-    "clsx": "^2.1.1",
     "lucide-react": "^0.460.0",
     "motion": "^14.8.0",
     "next": "14.2.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.5.4",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
@@ -47,7 +45,6 @@
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.20",
-    "axe-core": "^4.14.0",
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.15",
     "playwright": "^1.63.0",
